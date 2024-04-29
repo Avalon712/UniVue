@@ -6,7 +6,7 @@
 
 ​       一个原型的过程如下图显示
 
-<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\imgs\批注 2024-04-07 222838.png" alt="MV" style="zoom:35%;" />
+<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\源码\imgs\批注 2024-04-07 222838.png" alt="MV" style="zoom:35%;" />
 
 ​       与MVC、MVP模式不同的是，MVVM模式能够实现UI与模型的自更新行为，即当UI变化时他所关联的模型数据也能及时更新，当模型数据变化时UI显示的内容也能得到立即更新。而两者的中介者是ViewModel，本框架主要实现ViewModel的接口从上述图中可见分为是IUIUpdater、IUINotifier、IModelNotifier、IModelUpdater。
 
@@ -14,31 +14,31 @@
 
 ### 视图加载流程
 
-<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\imgs\视图加载流程.png" alt="MV" style="zoom:35%;" />
+<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\源码\imgs\视图加载流程.png" alt="MV" style="zoom:35%;" />
 
 
 
 ### 数据绑定流程
 
-<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\imgs\数据绑定流程.png" alt="MV" style="zoom:35%;" />
+<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\源码\imgs\数据绑定流程.png" alt="MV" style="zoom:35%;" />
 
 
 
 ### UI更新流程
 
-<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\imgs\UI更新流程.png" alt="MV" style="zoom:35%;" />
+<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\源码\imgs\UI更新流程.png" alt="MV" style="zoom:35%;" />
 
 ### 模型更新流程
 
-<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\imgs\模型更新流程.png" alt="MV" style="zoom:35%;" />
+<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\源码\imgs\模型更新流程.png" alt="MV" style="zoom:35%;" />
 
 ### 事件触发流程
 
-<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\imgs\事件触发执行流程.png" alt="MV" style="zoom:35%;" />
+<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\源码\imgs\事件触发执行流程.png" alt="MV" style="zoom:35%;" />
 
 ### 资源卸载流程
 
-<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\imgs\资源卸载流程.png" alt="MV" style="zoom:35%;" />
+<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\源码\imgs\资源卸载流程.png" alt="MV" style="zoom:35%;" />
 
 
 
