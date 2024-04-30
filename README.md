@@ -6,7 +6,7 @@
 
 ​       一个原型的过程如下图显示
 
-<img src="D:\自己写的技术框架\Unity\UI框架_基于MVVM思想_UniVue\源码\imgs\mvvm.png" alt="MV" style="zoom:35%;" />
+<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/mvvm.png" alt="MV" style="zoom:35%;" />
 
 ​       与MVC、MVP模式不同的是，MVVM模式能够实现UI与模型的自更新行为，即当UI变化时他所关联的模型数据也能及时更新，当模型数据变化时UI显示的内容也能得到立即更新。而两者的中介者是ViewModel，本框架主要实现ViewModel的接口从上述图中可见分为是IUIUpdater、IUINotifier、IModelNotifier、IModelUpdater。
 
