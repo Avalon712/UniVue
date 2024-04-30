@@ -66,13 +66,13 @@
 
 该接口定义了可绑定模型数据的行为。
 
-### 6.BaseModel : IModel
+### 6.BaseModel : IBindableModel
 
 Model层的实现基类是BaseModel，基类中提供了基于反射来显示模型数据更新的方法。但是如果你对程序性能要求很高，可以重写父类的UpdateModel()函数，这样可以减少基本数据类型的装箱操作带来的在堆上的小对象内存。
 
 BaseModel实现了IUIUpdater, IModelUpdater接口。所有能被进行数据绑定的数据对象都应该继承自改类。
 
-### 7.UnityModel : MonoBehaviour, IModel
+### 7.UnityModel : MonoBehaviour, IBindableModel
 
 作用同BaseModel，与BaseModel不同的是，UnityModel继承了MonoBehaviour
 
