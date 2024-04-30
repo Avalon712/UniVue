@@ -13,13 +13,13 @@
 
 ### 视图加载流程
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/视图加载流程.png" width="800px" height="433px" />
+<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/视图加载流程.png" width="600px" height="634px" />
 
 
 
 ### 数据绑定流程
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/数据绑定流程.png" width="450px" height="476px" />
+<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/数据绑定流程.png" width="500px" height="324px" />
 
 
 
