@@ -1,5 +1,4 @@
-﻿using CodiceApp.EventTracking.Plastic;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using UniVue.Evt.Attr;
 using UniVue.Evt.Evts;
@@ -12,7 +11,7 @@ namespace UniVue.Evt
         private List<UIEvent> _events;
         private List<EventCall> _calls;
 
-        internal EventManager() { _events = new(16);_calls = new(16); }
+        internal EventManager() { _events = new(18);_calls = new(18); }
 
         /// <summary>
         /// 当前执行的事件回调
@@ -40,7 +39,10 @@ namespace UniVue.Evt
             }
         }
 
-        internal void AddUIEvent(UIEvent uIEvent) { _events.Add(uIEvent); }
+        public void AddUIEvent(UIEvent uIEvent) 
+        {
+            _events.Add(uIEvent);
+        }
 
         /// <summary>
         /// 触发某件事件
@@ -75,6 +77,18 @@ namespace UniVue.Evt
                     ListUtil.TrailDelete(_calls, i--);
                 }
             }
+        }
+
+        /// <summary>
+        /// 注销所有的事件注册器
+        /// </summary>
+        public void SignoutAll()
+        {
+            for (int i = 0; i < _calls.Count; i++)
+            {
+                _calls[i].Unregister();
+            }
+            _calls.Clear();
         }
 
         /// <summary>
@@ -140,7 +154,6 @@ namespace UniVue.Evt
             }
         }
 
-
         public EventArg[] GetCurrentEventArgs()
         {
             if(_currentCall == null)
@@ -152,5 +165,6 @@ namespace UniVue.Evt
             }
             return _currentCall.GetCurrentEventArgs();
         }
+
     }
 }

@@ -14,7 +14,7 @@ namespace UniVue
     /// <summary>
     /// 全局单例对象
     /// </summary>
-    public sealed class Vue : IDisposable
+    public sealed class Vue
     {
         private static Vue _instanced;
         private NamingFormat _format;
@@ -29,6 +29,11 @@ namespace UniVue
             _event = new();
             _format = NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper;
 
+            Init();
+        }
+
+        private void Init()
+        {
             //注册事件
             SceneManager.activeSceneChanged += OnSceneChanged;
 
@@ -90,6 +95,13 @@ namespace UniVue
         /// <param name="config">当前场景下的视图配置文件</param>
         public void LoadViews(SceneConfig config)
         {
+            if(config == null)
+            {
+#if UNITY_EDITOR
+                LogUtil.Warning("SceneConfig为null!");
+#endif
+                return;
+            }
             //构建视图
             ViewBuilder.Build(config);
         }
@@ -98,7 +110,7 @@ namespace UniVue
         /// 卸载当前场景下的所有视图
         /// 注：当场景切换时会自动调用此函数，你无需调用它。
         /// </summary>
-        public void UnloadViews()
+        public void UnloadCurrentSceneResources()
         {
             _updater.ClearBundles();
             _router.UnloadViews();
@@ -193,7 +205,12 @@ namespace UniVue
 
         private void OnSceneChanged(Scene current,Scene next) 
         {
-            UnloadViews();
+            UnloadCurrentSceneResources();
+        }
+
+        public string GetCurrentSceneName()
+        {
+            return SceneManager.GetActiveScene().name;
         }
 
         public void Dispose()
@@ -204,15 +221,15 @@ namespace UniVue
 
             _router.UnloadViews();
             _updater.ClearBundles();
+            _event.SignoutAll();
+            _event.UnregisterUIEvents();
+
             _router = null;
             _updater = null;
             _instanced = null;
+            _event = null;
         }
 
-        internal void ViewEventBus()
-        {
-
-        }
     }
 
     

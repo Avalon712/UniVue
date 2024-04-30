@@ -128,7 +128,7 @@ namespace UniVue.Evt
                                 //如果是枚举类型
                                 if (parameter.ParameterType.IsEnum)
                                 {
-                                    object value = args[i].GetArgumentValue();
+                                    object value = args[j].GetArgumentValue();
                                     if (value.GetType() == typeof(int))
                                     {
                                         _parameters[i] = Enum.ToObject(parameter.ParameterType, value);
@@ -142,7 +142,7 @@ namespace UniVue.Evt
                                 }
                                 else //如果是int\string\float\bool类型
                                 {
-                                    object value = args[i].GetArgumentValue();
+                                    object value = args[j].GetArgumentValue();
                                     if (value.GetType() != parameter.ParameterType)
                                     {
 #if UNITY_EDITOR
