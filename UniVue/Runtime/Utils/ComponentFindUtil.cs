@@ -15,7 +15,7 @@ namespace UniVue.Utils
         /// </summary>
         /// <param name="gameObject"></param>
         /// <returns>List<CustomTuple<Component, UIType>></returns>
-        public static List<CustomTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject,IView view=null)
+        public static List<CustomTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject, IView view = null)
         {
             //广度式搜索
             Queue<Transform> parents = new Queue<Transform>();
@@ -53,7 +53,7 @@ namespace UniVue.Utils
                             bool flag = false;
                             for (int k = 0; k < nestedViews.Length; k++)
                             {
-                                if(child.gameObject == nestedViews[k].viewObject) { flag = true; break; }
+                                if (child.gameObject == nestedViews[k].viewObject) { flag = true; break; }
                             }
                             if (flag) { continue; }
                         }
@@ -82,7 +82,7 @@ namespace UniVue.Utils
                         if (image != null)
                         {
                             CustomTuple<Component, UIType> result = new();
-                            result.Item1 = image; 
+                            result.Item1 = image;
                             result.Item2 = UIType.Image;
                             return result;
                         }
@@ -91,10 +91,10 @@ namespace UniVue.Utils
                 case UIType.TMP_Dropdown:
                     {
                         TMP_Dropdown dropdown = gameObject.GetComponent<TMP_Dropdown>();
-                        if (dropdown != null) 
+                        if (dropdown != null)
                         {
                             CustomTuple<Component, UIType> result = new();
-                            result.Item1 = dropdown; 
+                            result.Item1 = dropdown;
                             result.Item2 = UIType.TMP_Dropdown;
                             return result;
                         }
@@ -127,10 +127,10 @@ namespace UniVue.Utils
                 case UIType.Button:
                     {
                         Button button = gameObject.GetComponent<Button>();
-                        if (button != null) 
+                        if (button != null)
                         {
                             CustomTuple<Component, UIType> result = new();
-                            result.Item1 = button; 
+                            result.Item1 = button;
                             result.Item2 = UIType.Button;
                             return result;
                         }
@@ -180,7 +180,7 @@ namespace UniVue.Utils
             else if (current.GetComponentInParent<T>(true) == null) { return LookUpFindComponent<T>(current.transform.parent.gameObject); }
             else { return current.transform.parent.GetComponent<T>(); }
         }
-    
+
         /// <summary>
         /// 判断当前GameObject或其子孙GameObject身上是否含有包含组件
         /// </summary>
@@ -213,7 +213,7 @@ namespace UniVue.Utils
         /// </summary>
         public static T DepthFind<T>(GameObject self) where T : Component
         {
-            if(self == null) { return null; }
+            if (self == null) { return null; }
 
             T comp = self.GetComponent<T>();
             if (comp != null) { return comp; }
@@ -237,7 +237,7 @@ namespace UniVue.Utils
         public static T BreadthFind<T>(GameObject self) where T : Component
         {
             T comp = self.GetComponent<T>();
-            if(comp != null) { return comp; }
+            if (comp != null) { return comp; }
 
             Queue<Transform> parents = new Queue<Transform>();
             parents.Enqueue(self.transform);
@@ -255,7 +255,7 @@ namespace UniVue.Utils
                         parents.Clear();
                         return comp;
                     }
-                    else if (child.childCount == 0) //叶子节点无需再入队
+                    else if (child.childCount > 0) //非叶子节点再入队
                     {
                         parents.Enqueue(child);
                     }
@@ -265,6 +265,41 @@ namespace UniVue.Utils
             return null;
         }
 
+        /// <summary>
+        /// 获取所有指定类型的UI组件，无条件匹配
+        /// </summary>
+        public static List<T> GetAllComponents<T>(GameObject gameObject) where T : Component
+        {
+            List<T> values = new List<T>();
+            T comp = gameObject.GetComponent<T>();
+
+            if (comp != null) { values.Add(comp); }
+
+            Queue<Transform> queue = new Queue<Transform>();
+            queue.Enqueue(gameObject.transform);
+
+            while (queue.Count > 0)
+            {
+                Transform transform = queue.Dequeue();
+
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    Transform child = transform.GetChild(i);
+                    comp = child.GetComponent<T>();
+                    if (comp != null)
+                    {
+                        values.Add(comp);
+                    }
+
+                    if (child.childCount > 0) //非叶子节点再入队
+                    {
+                        queue.Enqueue(child);
+                    }
+                }
+            }
+
+            return values;
+        }
     }
 
     public sealed class CustomTuple<T1, T2>
@@ -275,9 +310,9 @@ namespace UniVue.Utils
 
         public CustomTuple() { }
 
-        public CustomTuple(T1 t1,T2 t2)
+        public CustomTuple(T1 t1, T2 t2)
         {
-            Item1 = t1;Item2 = t2;
+            Item1 = t1; Item2 = t2;
         }
 
         public void Dispose()

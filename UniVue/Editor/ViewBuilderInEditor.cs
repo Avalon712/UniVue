@@ -41,6 +41,7 @@ namespace UniVue.Editor
             {
                 config = ScriptableObject.CreateInstance<BaseView>();
                 AssetDatabase.CreateAsset(config, path);
+                config.name = fileName;
             }
         }
 
@@ -52,6 +53,7 @@ namespace UniVue.Editor
             {
                 config = ScriptableObject.CreateInstance<ListView>();
                 AssetDatabase.CreateAsset(config, path);
+                config.name = fileName;
             }
         }
 
@@ -63,6 +65,7 @@ namespace UniVue.Editor
             {
                 config = ScriptableObject.CreateInstance<GridView>();
                 AssetDatabase.CreateAsset(config, path);
+                config.name = fileName;
             }
         }
 

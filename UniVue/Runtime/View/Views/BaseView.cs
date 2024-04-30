@@ -144,7 +144,7 @@ namespace UniVue.View.Views
 
         public ViewLevel level { get => viewLevel; }
 
-        public new string name { get => viewName; }
+        public new string name { get => viewName; set => viewName = value; }
 
         public bool isMaster => isMasterView;
 

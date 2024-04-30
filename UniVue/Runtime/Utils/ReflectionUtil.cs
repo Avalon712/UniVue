@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UniVue.Evt;
 using UniVue.Evt.Attr;
+using UniVue.Model;
 using UniVue.ViewModel.Attr;
 using UniVue.ViewModel.Models;
 
@@ -126,51 +127,7 @@ namespace UniVue.Utils
         {
             return !type.IsValueType && type != typeof(string);
         }
-      
-        public static T CreateInstance<T>(Type type)
-        {
-            return (T)Activator.CreateInstance(type);
-        }
-
-        //public static IEnumerable<Assembly> GetAssemblies(string[] names)
-        //{
-        //    Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        //    for (int i = 0; i < assemblies.Length; i++)
-        //    {
-        //        string name = assemblies[i].GetName().Name;
-        //        //排除内置的程序集
-        //        if (IsBuiltInAssembly(name)) { continue; }
-
-        //        for (int j = 0; j < names.Length; j++)
-        //        {
-        //            if(name == names[j])
-        //            {
-        //                yield return assemblies[i];
-        //            }
-        //        }
-        //    }
-        //}
-
-        ///// <summary>
-        ///// 判断是否是一个内置的程序集
-        ///// </summary>
-        //public static bool IsBuiltInAssembly(string assemblyName)
-        //{
-        //    return assemblyName.StartsWith("Unity") 
-        //        || assemblyName.StartsWith("System")
-        //        || assemblyName.StartsWith("Mono")
-        //        || assemblyName.StartsWith("JetBrains")
-        //        || assemblyName.StartsWith("Bee")
-        //        || assemblyName.StartsWith("mscorlib")
-        //        || assemblyName.StartsWith("PsdPlugin")
-        //        || assemblyName.StartsWith("nunit")
-        //        || assemblyName.StartsWith("log4net")
-        //        || assemblyName.StartsWith("netstandard")
-        //        || assemblyName.StartsWith("Microsoft")
-        //        || assemblyName.StartsWith("UniVue")
-        //        || assemblyName.StartsWith("ExCSS")
-        //        || assemblyName.StartsWith("PlayerBuildProgramLibrary");
-        //}
+       
     }
 
 }

@@ -55,12 +55,13 @@ namespace UniVue.Editor
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("重命名")){
-                Rename(_format); 
+            if (GUILayout.Button("重命名"))
+            {
+                Rename(_format);
             }
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("清空特殊命名")) 
+            if (GUILayout.Button("清空特殊命名"))
             {
                 for (int i = 0; i < _viewObjects.Count; i++)
                 {
@@ -117,14 +118,14 @@ namespace UniVue.Editor
                     if (!tuple.Item2 && !allNoMatch) { tuple.Item1.name = '@' + tuple.Item1.name; }
                 }
             }
-            
+
             Debug.Log("UI组件重命名完成!");
         }
 
         /// <summary>
         /// 子代是否都匹配不成功
         /// </summary>
-        private bool AllDescendantNoMatch(int ancestorIdx,CustomTuple<GameObject, bool> ancestor,List<CustomTuple<GameObject, bool>> result,ref int lastDescendantIdx)
+        private bool AllDescendantNoMatch(int ancestorIdx, CustomTuple<GameObject, bool> ancestor, List<CustomTuple<GameObject, bool>> result, ref int lastDescendantIdx)
         {
             Transform transform = ancestor.Item1.transform;
 
@@ -147,7 +148,7 @@ namespace UniVue.Editor
             return true;
         }
 
-        private bool IsAncestor(Transform ancestor,Transform descendant)
+        private bool IsAncestor(Transform ancestor, Transform descendant)
         {
             while (descendant != null)
             {
@@ -158,7 +159,7 @@ namespace UniVue.Editor
         }
 
         //bool指示当前GameObject名称是否匹配成功
-        private void DeapthSearch(GameObject root,List<CustomTuple<GameObject,bool>> result,NamingFormat format)
+        private void DeapthSearch(GameObject root, List<CustomTuple<GameObject, bool>> result, NamingFormat format)
         {
             result.Add(new CustomTuple<GameObject, bool>(root, NamingRuleEngine.FuzzyMatch(format, root.name)));
 

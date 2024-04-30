@@ -45,7 +45,7 @@ namespace UniVue.Editor
         private string _calssName;
 
         //item1为PropertyName item3为属性类型的全限定性名称,item5为注释内容
-        private List<CustomTuple<string, PropertyType,string, AccessSymbol,string, bool>> _properties;
+        private List<CustomTuple<string, PropertyType, string, AccessSymbol, string, bool>> _properties;
 
         private Vector2 _scrollPos = Vector2.zero;//滚动条
 
@@ -57,7 +57,7 @@ namespace UniVue.Editor
             window.position = new Rect(320, 120, 340, 265);
             window.Show();
 
-            window._properties = new List<CustomTuple<string, PropertyType, string,AccessSymbol,string, bool>>();
+            window._properties = new List<CustomTuple<string, PropertyType, string, AccessSymbol, string, bool>>();
         }
 
 
@@ -115,7 +115,7 @@ namespace UniVue.Editor
                 {
                     position = new Rect(position.x, position.y, position.width, position.height + 145);
                 }
-               
+
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
@@ -208,7 +208,7 @@ namespace UniVue.Editor
 
         private void CreatCSharpScript()
         {
-            if(string.IsNullOrEmpty(_calssName) || string.IsNullOrEmpty(_saveDirectory) || _properties.Count==0)
+            if (string.IsNullOrEmpty(_calssName) || string.IsNullOrEmpty(_saveDirectory) || _properties.Count == 0)
             {
                 Debug.LogWarning("必须包含类名和脚本存放的目录，以及至少包含一个属性!");
                 return;
@@ -220,7 +220,7 @@ namespace UniVue.Editor
             StringBuilder classStructure = new StringBuilder();
 
             namespaces.AppendLine("using UniVue.Model;");//引入命名空间
-             
+
             string space = !string.IsNullOrEmpty(_namespace) ? "    " : string.Empty;
 
             if (!string.IsNullOrEmpty(_namespace))
@@ -228,16 +228,16 @@ namespace UniVue.Editor
                 classStructure.AppendLine("namespace " + _namespace);
                 classStructure.AppendLine("{");
             }
-           
-            classStructure.AppendLine(space+"/*");
+
+            classStructure.AppendLine(space + "/*");
             classStructure.AppendLine(space + $"{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")} Build By UniVue ScriptEditor");
             classStructure.AppendLine(space + "UniVue 作者: Avalon712");
             classStructure.AppendLine(space + "Github地址: https://github.com/Avalon712/UniVue");
             classStructure.AppendLine(space + "*/\n");
-            classStructure.AppendLine(space + "public sealed class " + _calssName + " : "+_bindableModelType.ToString());
+            classStructure.AppendLine(space + "public sealed class " + _calssName + " : " + _bindableModelType.ToString());
             classStructure.AppendLine(space + "{");
 
-            string intervalSpace =space + "    "; //属性首行缩进
+            string intervalSpace = space + "    "; //属性首行缩进
 
             //判断是否需要生成字段信息
             foreach (var property in _properties)
@@ -283,7 +283,7 @@ namespace UniVue.Editor
                     classStructure.Append("set; }");
                     classStructure.Append('\n');
                 }
-                else if(_autoUpdateUI && property.Item2 != PropertyType.Custom)
+                else if (_autoUpdateUI && property.Item2 != PropertyType.Custom)
                 {
                     classStructure.Append('\n');
                     classStructure.Append(intervalSpace);
@@ -315,7 +315,7 @@ namespace UniVue.Editor
                     classStructure.Append("            ");
                     classStructure.Append("NotifyUIUpdate(nameof(");
                     classStructure.Append(property.Item1);
-                    if(property.Item2 == PropertyType.Enum) { classStructure.Append("), (int)value);\n");}
+                    if (property.Item2 == PropertyType.Enum) { classStructure.Append("), (int)value);\n"); }
                     else { classStructure.Append("), value);\n"); }
                     classStructure.Append(intervalSpace);
                     classStructure.Append("        }\n");
@@ -324,12 +324,12 @@ namespace UniVue.Editor
                     classStructure.Append(intervalSpace);
                     classStructure.Append("}\n");
                 }
-            
-                if(string.IsNullOrEmpty(property.Item3) && (property.Item2 == PropertyType.Enum || property.Item2 == PropertyType.Custom))
+
+                if (string.IsNullOrEmpty(property.Item3) && (property.Item2 == PropertyType.Enum || property.Item2 == PropertyType.Custom))
                 {
                     string[] strs = property.Item3.Split('.');
                     string n = property.Item3.Replace("." + strs[strs.Length - 1], string.Empty);
-                    if(n != _namespace)
+                    if (n != _namespace)
                     {
                         namespaces.Append("using ");
                         namespaces.Append(n);
@@ -352,15 +352,16 @@ namespace UniVue.Editor
                 foreach (var property in _properties)
                 {
                     if (!flag) { flag = property.Item2 == PropertyType.Sprite; }
-                    if(property.Item2 != PropertyType.Custom)
+                    if (property.Item2 != PropertyType.Custom)
                     {
                         classStructure.Append(intervalSpace);
                         classStructure.Append("    ");
                         classStructure.Append("NotifyUIUpdate(nameof(");
                         classStructure.Append(property.Item1);
                         classStructure.Append("), ");
-                         //枚举类型进行一次强制转换
-                        if(property.Item2 == PropertyType.Enum){
+                        //枚举类型进行一次强制转换
+                        if (property.Item2 == PropertyType.Enum)
+                        {
                             classStructure.Append("(int)");
                         }
                         classStructure.Append(property.Item1);
@@ -395,7 +396,7 @@ namespace UniVue.Editor
             }
             classStructure.AppendLine("}");
 
-            string dir = Application.dataPath+ '/' + _saveDirectory;
+            string dir = Application.dataPath + '/' + _saveDirectory;
             if (!dir.EndsWith('/')) { dir += '/'; }
 
             if (Directory.Exists(dir))
@@ -410,9 +411,10 @@ namespace UniVue.Editor
                     Debug.Log(filePath + " 文件成功创建!");
                     AssetDatabase.Refresh();
 
-                }catch (Exception e)
+                }
+                catch (Exception e)
                 {
-                    Debug.LogError("存放目录: " + dir + "不存在! 异常原因: "+e);
+                    Debug.LogError("存放目录: " + dir + "不存在! 异常原因: " + e);
                 }
             }
             else
@@ -421,12 +423,12 @@ namespace UniVue.Editor
             }
         }
 
-        private void OverrideUpdateModel(StringBuilder classStructure,string intervalSpace, PropertyType type)
+        private void OverrideUpdateModel(StringBuilder classStructure, string intervalSpace, PropertyType type)
         {
             classStructure.Append('\n');
             classStructure.Append(intervalSpace);
             classStructure.Append("public override void UpdateModel(string propertyName, ");
-            if(type == PropertyType.Enum) { classStructure.Append("int"); }
+            if (type == PropertyType.Enum) { classStructure.Append("int"); }
             else { classStructure.Append(type.ToString().ToLower()); }
             classStructure.Append(" propertyValue)\n");
 
@@ -437,18 +439,18 @@ namespace UniVue.Editor
             int l = 0;
             foreach (var property in _properties)
             {
-                if (property.Item2 == type || (property.Item2==PropertyType.Enum && type== PropertyType.Int))
+                if (property.Item2 == type || (property.Item2 == PropertyType.Enum && type == PropertyType.Int))
                 {
-                    if(l == 0)
+                    if (l == 0)
                     {
                         classStructure.Append(intervalSpace);
                         classStructure.Append("    ");
                     }
-                    if (l == 0){classStructure.Append("if(nameof("); l++; }
+                    if (l == 0) { classStructure.Append("if(nameof("); l++; }
                     else
                     {
                         classStructure.Append(intervalSpace);
-                        classStructure.Append("    "); 
+                        classStructure.Append("    ");
                         classStructure.Append("else if(nameof(");
                     }
 
@@ -469,13 +471,13 @@ namespace UniVue.Editor
             classStructure.Append("}\n");
         }
 
-        private string GetTypeStr(PropertyType propertyType,string item3)
+        private string GetTypeStr(PropertyType propertyType, string item3)
         {
             switch (propertyType)
             {
-                case PropertyType.Float:return "float";
+                case PropertyType.Float: return "float";
                 case PropertyType.Int: return "int";
-                case PropertyType.String:return "string";
+                case PropertyType.String: return "string";
                 case PropertyType.Enum:
                     {
                         string[] strs = item3.Split('.');
@@ -486,7 +488,7 @@ namespace UniVue.Editor
                         string[] strs = item3.Split('.');
                         return strs[strs.Length - 1];
                     }
-                case PropertyType.Bool:return "bool";
+                case PropertyType.Bool: return "bool";
                 case PropertyType.Sprite: return "Sprite";
             }
 
@@ -496,7 +498,7 @@ namespace UniVue.Editor
 
     public enum PropertyType
     {
-        Float, 
+        Float,
         Int,
         String,
         Enum,

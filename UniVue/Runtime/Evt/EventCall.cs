@@ -26,9 +26,9 @@ namespace UniVue.Evt
         /// </summary>
         private object[] _parameters;
 
-        public EventCall(string eventName,MethodInfo call,IEventRegister register)
+        public EventCall(string eventName, MethodInfo call, IEventRegister register)
         {
-            EventName = eventName; _call = call;_triggerEvt = null; Register = register;
+            EventName = eventName; _call = call; _triggerEvt = null; Register = register;
         }
 
         internal void Call(UIEvent triggerEvt)

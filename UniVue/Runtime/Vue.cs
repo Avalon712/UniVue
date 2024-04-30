@@ -49,10 +49,11 @@ namespace UniVue
         }
 
 
-        public static Vue Instance{
+        public static Vue Instance
+        {
             get
             {
-                if(_instanced == null){ _instanced = new Vue(); }
+                if (_instanced == null) { _instanced = new Vue(); }
                 return _instanced;
             }
         }
@@ -80,13 +81,13 @@ namespace UniVue
         /// 获取视图路由
         /// </summary>
         public static ViewRouter Router { get => Instance._router; }
-   
+
         /// <summary>
         /// 获取视图更新器
         /// </summary>
         public static ViewUpdater Updater { get => Instance._updater; }
 
-        
+
         /// <summary>
         /// 加载视图
         /// <para>如果当前配置文件中viewObject尚未实例化则由框架进行实例化</para>
@@ -95,7 +96,7 @@ namespace UniVue
         /// <param name="config">当前场景下的视图配置文件</param>
         public void LoadViews(SceneConfig config)
         {
-            if(config == null)
+            if (config == null)
             {
 #if UNITY_EDITOR
                 LogUtil.Warning("SceneConfig为null!");
@@ -136,7 +137,7 @@ namespace UniVue
         /// <param name="model">模型数据</param>
         /// <param name="allowUIUpdateModel">是否允许通过UI来修改模型数据</param>
         /// <param name="modelName">模型名称，若为null则将默认为模型TypeName</param>
-        public void BindModel<T>(string viewName,T model,bool allowUIUpdateModel=true,string modelName=null) where T : IBindableModel
+        public void BindModel<T>(string viewName, T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
         {
             Router.GetView(viewName)?.BindModel(model, allowUIUpdateModel, modelName);
         }
@@ -150,11 +151,11 @@ namespace UniVue
         /// <param name="allowUIUpdateModel">是否允许通过UI来修改模型数据</param>
         /// <param name="modelName">模型名称，若为null则将默认为模型TypeName</param>
         /// <returns>UIBundle</returns>
-        public UIBundle BuildUIBundle<T>(GameObject uiBundle,T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
+        public UIBundle BuildUIBundle<T>(GameObject uiBundle, T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
         {
             var uis = ComponentFindUtil.FindAllSpecialUIComponents(uiBundle);
             UIBundle bundle = UIBundleBuilder.Build(uiBundle.name, uis, model, modelName, allowUIUpdateModel);
-            if(bundle != null) { Updater.AddUIBundle(bundle); }
+            if (bundle != null) { Updater.AddUIBundle(bundle); }
 #if UNITY_EDITOR
             else
             {
@@ -189,7 +190,7 @@ namespace UniVue
             var uis = ComponentFindUtil.FindAllSpecialUIComponents(uiBundle);
 
             //构建UIEvent
-            UIEventBuilder.Build(uiBundle.name, uis); 
+            UIEventBuilder.Build(uiBundle.name, uis);
             //构建UIBundle
             UIBundle bundle = UIBundleBuilder.Build(uiBundle.name, uis, model, modelName, allowUIUpdateModel);
             if (bundle != null) { Updater.AddUIBundle(bundle); }
@@ -203,7 +204,7 @@ namespace UniVue
             return bundle;
         }
 
-        private void OnSceneChanged(Scene current,Scene next) 
+        private void OnSceneChanged(Scene current, Scene next)
         {
             UnloadCurrentSceneResources();
         }
@@ -215,7 +216,7 @@ namespace UniVue
 
         public void Dispose()
         {
-            if (_instanced == null) { return;  }
+            if (_instanced == null) { return; }
 
             SceneManager.activeSceneChanged -= OnSceneChanged;
 
@@ -232,5 +233,6 @@ namespace UniVue
 
     }
 
-    
+
 }
+ 
