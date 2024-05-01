@@ -724,6 +724,8 @@ View中具有嵌套关系时，在创建被嵌套的视图时，无需指定view
 
 **UniVue中所有具有管理者功能的对象（如ViewRouter、ViewUpdater、EventManger）都通过Vue这个全局单例对象来访问，同时Vue对象封装了一些API来简化某些函数的调用。**
 
+**UIEvent、EventArg、UIBundle、PropertyUI都是基于视图隔离的，即使有两个相同的事件，但是他们在不同的视图中，那么UIEvent也是不同的。**
+
 
 
 ## 九、编辑器扩展功能

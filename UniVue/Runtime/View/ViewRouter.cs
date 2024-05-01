@@ -79,6 +79,7 @@ namespace UniVue.View
             }
         }
 
+        
         #region 视图动作相关
         /// <summary>
         /// 关闭当前视图，跳转打开指定名称的视图

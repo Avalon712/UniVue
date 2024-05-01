@@ -11,12 +11,12 @@ namespace UniVue.Evt
         private List<UIEvent> _events;
         private List<EventCall> _calls;
 
-        internal EventManager() { _events = new(18); _calls = new(18); }
+        internal EventManager() { _events = new(18);_calls = new(18); }
 
         /// <summary>
         /// 当前执行的事件回调
         /// </summary>
-        private EventCall _currentCall;
+        private EventCall _currentCall; 
 
         /// <summary>
         /// 注册事件注册器
@@ -32,40 +32,14 @@ namespace UniVue.Evt
                 {
                     MethodInfo method = tuple.Item1;
                     EventCallAttribute attribute = tuple.Item2;
-                    EventCall call = new(attribute.EventName, method, register);
+                    EventCall call = new(attribute.EventName, method,register);
                     _calls.Add(call);
                     tuple.Dispose();
                 }
             }
         }
 
-        /// <summary>
-        /// 主动触发事件
-        /// </summary>
-        /// <param name="eventName">触发事件的名称</param>
-        /// <param name="viewNames">指定哪些视图下的此事件进行触发，如果为null，则所有定义了此事件的视图都将进行触发</param>
-        public void TriggerEvent(string eventName,params string[] viewNames)
-        {
-            for (int i = 0; i < _events.Count; i++)
-            {
-                if (_events[i].EventName == eventName)
-                {
-                    if(viewNames == null) { _events[i].Trigger(); }
-                    else
-                    {
-                        for (int j = 0; j < viewNames.Length; j++)
-                        {
-                            if (_events[i].ViewName == viewNames[j])
-                            {
-                                _events[i].Trigger();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public void AddUIEvent(UIEvent uIEvent)
+        public void AddUIEvent(UIEvent uIEvent) 
         {
             _events.Add(uIEvent);
         }
@@ -89,6 +63,32 @@ namespace UniVue.Evt
         }
 
         /// <summary>
+        /// 主动触发事件
+        /// </summary>
+        /// <param name="eventName">触发事件的名称</param>
+        /// <param name="viewNames">指定哪些视图下的此事件进行触发，如果为null，则所有定义了此事件的视图都将进行触发</param>
+        public void TriggerEvent(string eventName, params string[] viewNames)
+        {
+            for (int i = 0; i < _events.Count; i++)
+            {
+                if (_events[i].EventName == eventName)
+                {
+                    if (viewNames == null) { _events[i].Trigger(); }
+                    else
+                    {
+                        for (int j = 0; j < viewNames.Length; j++)
+                        {
+                            if (_events[i].ViewName == viewNames[j])
+                            {
+                                _events[i].Trigger();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 注销某个事件注册器
         /// </summary>
         /// <typeparam name="T">实现IEventRegister接口类型</typeparam>
@@ -97,7 +97,7 @@ namespace UniVue.Evt
         {
             for (int i = 0; i < _calls.Count; i++)
             {
-                if (object.ReferenceEquals(_calls[i].Register, register))
+                if(object.ReferenceEquals(_calls[i].Register,register))
                 {
                     _calls[i].Unregister();
                     ListUtil.TrailDelete(_calls, i--);
@@ -123,11 +123,11 @@ namespace UniVue.Evt
         /// <typeparam name="T">实现IEventRegister接口类型</typeparam>
         /// <param name="register">实现IEventRegister接口类型的对象</param>
         /// <param name="eventName">要注销的事件名称</param>
-        public void UnregiserEventCall<T>(T register, string eventName)
+        public void UnregiserEventCall<T>(T register,string eventName)
         {
             for (int i = 0; i < _calls.Count; i++)
             {
-                if (object.ReferenceEquals(_calls[i].Register, register) && _calls[i].EventName == eventName)
+                if (object.ReferenceEquals(_calls[i].Register, register) && _calls[i].EventName==eventName)
                 {
                     _calls[i].Unregister();
                     ListUtil.TrailDelete(_calls, i--);
@@ -172,7 +172,7 @@ namespace UniVue.Evt
         {
             for (int i = 0; i < _events.Count; i++)
             {
-                if (_events[i].ViewName == viewName)
+                if (_events[i].ViewName == viewName) 
                 {
                     _events[i].Unregister();
                     ListUtil.TrailDelete(_events, i--);
@@ -182,7 +182,7 @@ namespace UniVue.Evt
 
         public EventArg[] GetCurrentEventArgs()
         {
-            if (_currentCall == null)
+            if(_currentCall == null)
             {
 #if UNITY_EDITOR
                 LogUtil.Warning("当前没有事件正在被触发执行!无法获取到事件参数!");

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
@@ -22,6 +23,8 @@ namespace UniVue.View.Views
         public string master { get; set; }
 
         public bool forbid { get; set; }
+
+        public IView[] nestedViews { get; set; }
 
         public DynamicView(GameObject viewObject,string viewName=null,ViewLevel level = ViewLevel.Common)
         {
@@ -51,6 +54,24 @@ namespace UniVue.View.Views
         public void RebindModel<T>(T newModel, T oldModel) where T : IBindableModel
         {
             Vue.Updater.Rebind(name, newModel, oldModel);
+        }
+
+        public void RebindModel<T>(T newModel) where T : IBindableModel
+        {
+            Vue.Updater.Rebind(name, newModel);
+        }
+
+        public IEnumerable<IView> GetNestedViews()
+        {
+            IView[] views = nestedViews;
+            if (views != null)
+            {
+                for (int i = 0; i < views.Length; i++)
+                {
+                    yield return views[i];
+                }
+            }
+            yield return null;
         }
 
         public virtual void OnLoad(){ }
@@ -94,6 +115,5 @@ namespace UniVue.View.Views
 
             state = true; //设置为打开状态
         }
-
     }
 }

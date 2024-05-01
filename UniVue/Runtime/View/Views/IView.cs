@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UniVue.Model;
 
 namespace UniVue.View.Views
@@ -46,6 +47,13 @@ namespace UniVue.View.Views
         bool forbid { get; }
 
         /// <summary>
+        /// 获取此时图嵌套的所有的视图
+        /// </summary>
+        /// <typeparam name="T">实现IView</typeparam>
+        /// <returns>此视图包含的所有嵌套视图</returns>
+        IEnumerable<IView> GetNestedViews();
+
+        /// <summary>
         /// 视图加载时调用
         /// </summary>
         void OnLoad();
@@ -77,9 +85,18 @@ namespace UniVue.View.Views
 
         /// <summary>
         /// 重新绑定模型数据，注意新的模型类型应该与之前绑定过的模型类型一致
+        /// 注：重新绑定指定类型的数据
         /// </summary>
         /// <param name="newModel">新模型</param>
         /// <param name="oldModel">旧模型</param>
         void RebindModel<T>(T newModel, T oldModel) where T : IBindableModel;
+
+        /// <summary>
+        /// 重新绑定模型数据
+        /// 注：重绑定所有此类型的数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="newModel"></param>
+        void RebindModel<T>(T newModel) where T : IBindableModel;
     }
 }

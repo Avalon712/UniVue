@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
-using UniVue.ViewModel;
 using static UnityEngine.UI.ScrollRect;
 
 namespace UniVue.View.Views
@@ -22,7 +21,6 @@ namespace UniVue.View.Views
             public int head, trial;
             public List<IBindableModel> models;
             public bool isDirty; //当数据被修改时，设为true===>Refresh
-            public Dictionary<string, UIBundle> bundles;
         }
 
         #region 配置信息
@@ -109,13 +107,11 @@ namespace UniVue.View.Views
                 int k = i;
                 RectTransform itemRect = _runtime.scrollRect.content.GetChild(k).GetComponent<RectTransform>();
 
-                //创建UIModel和UIEvent
-                UIBundle bundle = Vue.Instance.BuildUIBundleAndUIEvents(itemRect.gameObject, data[0],false);
-                _runtime.bundles.Add(itemRect.name, bundle);
+                DynamicView dynamicView = new DynamicView(itemRect.gameObject, null, ViewLevel.Permanent);
 
                 if (_runtime.trial < data.Count)
                 {
-                    _runtime.bundles[itemRect.name].Rebind(data[_runtime.trial++]);
+                    dynamicView.BindModel(data[_runtime.trial++]);
                 }
                 else
                 {
@@ -202,8 +198,7 @@ namespace UniVue.View.Views
                     {
                         itemObj.SetActive(true);
                     }
-                    IBindableModel model = _runtime.models[_runtime.trial++];
-                    _runtime.bundles[itemObj.name].Rebind(model);
+                    Vue.Router.GetView(itemObj.name).RebindModel(_runtime.models[_runtime.trial++]);
                 }
                 else
                 {
@@ -270,7 +265,6 @@ namespace UniVue.View.Views
                     deltaPos.y -= y * rows;
                 }
             }
-            _runtime.bundles = new Dictionary<string, UIBundle>();
         }
 
         private void BindScrollEvt()
@@ -348,7 +342,9 @@ namespace UniVue.View.Views
                 runtime.trial = (runtime.trial + 1) % dataCount;
                 runtime.head = (runtime.head + 1) % dataCount;
                 //当前数据不是脏数据才进行重新渲染
-                if (!runtime.isDirty) { runtime.bundles[itemTrans.name].Rebind(data[runtime.trial]); }
+                if (!runtime.isDirty) {
+                    Vue.Router.GetView(itemTrans.name).RebindModel(data[runtime.trial]);
+                }
                 //如果没有设置无限滚动则数据渲染到底时隐藏显示，但是任然进行数据渲染
                 if (runtime.trial < runtime.head) { itemTrans.gameObject.SetActive(false); }
             }
@@ -375,7 +371,9 @@ namespace UniVue.View.Views
                 runtime.trial = (runtime.trial + dataCount - 1) % dataCount;
                 runtime.head = (runtime.head + dataCount - 1) % dataCount;
                 //当前数据不是脏数据才进行重新渲染
-                if (!runtime.isDirty) { runtime.bundles[itemTrans.name].Rebind(data[runtime.head]); }
+                if (!runtime.isDirty) {
+                    Vue.Router.GetView(itemTrans.name).RebindModel(data[runtime.head]);
+                }
                 //向下滑动全部显示
                 if (!itemTrans.gameObject.activeSelf) { itemTrans.gameObject.SetActive(true); }
             }
@@ -404,7 +402,9 @@ namespace UniVue.View.Views
                 runtime.trial = (runtime.trial + 1) % dataCount;
                 runtime.head = (runtime.head + 1) % dataCount;
                 //当前数据不是脏数据才进行重新渲染
-                if (!runtime.isDirty) { runtime.bundles[itemTrans.name].Rebind(data[runtime.trial]); }
+                if (!runtime.isDirty) {
+                    Vue.Router.GetView(itemTrans.name).RebindModel(data[runtime.trial]);
+                }
                 //如果没有设置无限滚动则数据渲染到底时隐藏显示，但是任然进行数据渲染
                 if (runtime.trial < runtime.head) { itemTrans.gameObject.SetActive(false); }
             }
@@ -432,7 +432,9 @@ namespace UniVue.View.Views
                 runtime.trial = (runtime.trial + dataCount - 1) % dataCount;
                 runtime.head = (runtime.head + dataCount - 1) % dataCount;
                 //当前数据不是脏数据才进行重新渲染
-                if (!runtime.isDirty) { runtime.bundles[itemTrans.name].Rebind(data[runtime.head]);}
+                if (!runtime.isDirty) {
+                    Vue.Router.GetView(itemTrans.name).RebindModel(data[runtime.head]);
+                }
                 //向右滑动全部显示
                 if (!itemTrans.gameObject.activeSelf) { itemTrans.gameObject.SetActive(true); }
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Evt;
 using UniVue.Input;
@@ -144,7 +145,7 @@ namespace UniVue.View.Views
 
         public ViewLevel level { get => viewLevel; }
 
-        public new string name { get => viewName; set => viewName = value; }
+        public new string name { get => viewName; }
 
         public bool isMaster => isMasterView;
 
@@ -189,12 +190,6 @@ namespace UniVue.View.Views
 
         #region 数据绑定
 
-        /// <summary>
-        /// 一个视图可以绑定多个模型数据，持久绑定模型将进行双向绑定
-        /// </summary>
-        /// <param name="model">绑定的模型数据</param>
-        /// <param name="allowUIUpdateModel">是否允许通过UI修改模型的值</param>
-        /// <param name="modelName">模型名称，若为null则默认为该类型的TypeName</param>
         public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
         {
             //获取所有的ui组件
@@ -204,15 +199,28 @@ namespace UniVue.View.Views
             return this;
         }
 
-        /// <summary>
-        /// 重新绑定模型数据，注意新的模型类型应该与之前绑定过的模型类型一致
-        /// </summary>
-        /// <param name="newModel">新模型</param>
-        /// <param name="oldModel">旧模型</param>
         public void RebindModel<T>(T newModel,T oldModel) where T : IBindableModel
         {
             Vue.Updater.Rebind(viewName, newModel,oldModel);
         }
+
+        public void RebindModel<T>(T newModel) where T : IBindableModel
+        {
+            Vue.Updater.Rebind(viewName, newModel);
+        }
+
+        public IEnumerable<IView> GetNestedViews()
+        {
+            if (nestedViews != null)
+            {
+                for (int i = 0; i < nestedViews.Length; i++)
+                {
+                    yield return nestedViews[i];
+                }
+            }
+            yield return null;
+        }
+
 
         #endregion
 
@@ -287,7 +295,6 @@ namespace UniVue.View.Views
             if (receiver == null) { receiver = viewObject; }
             DragInput.ReceiveInput(receiver, viewObject);
         }
-
     }
 }
 

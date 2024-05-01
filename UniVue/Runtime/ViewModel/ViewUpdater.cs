@@ -151,6 +151,22 @@ namespace UniVue.ViewModel
         }
 
         /// <summary>
+        /// 重新绑定模型
+        /// </summary>
+        /// <param name="viewName">需要重新绑定模型的视图名称</param>
+        /// <param name="newModel">新模型</param>
+        public void Rebind<T>(string viewName, T newModel) where T : IBindableModel
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (_bundles[i].Name == viewName && newModel.GetType() == _bundles[i].Model.GetType())
+                {
+                    _bundles[i].Rebind(newModel);
+                }
+            }
+        }
+
+        /// <summary>
         /// 清空UIBundle
         /// </summary>
         public void ClearBundles()

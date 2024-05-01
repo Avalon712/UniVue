@@ -20,11 +20,11 @@ namespace UniVue.ViewModel
         /// </summary>
         /// <param name="modelName">模型名称，如果为null将默认为TypeName</param>
         /// <returns>UIModel</returns>
-        public static UIBundle Build<T>(string name, List<CustomTuple<Component, UIType>> uis, T model,string modelName, bool allowUIUpdateModel) where T :IBindableModel
+        public static UIBundle Build<T>(string viewName, List<CustomTuple<Component, UIType>> uis, T model,string modelName, bool allowUIUpdateModel) where T :IBindableModel
         {
             Dictionary<UIType, List<Component>> uiComponents = GetAllUIComponents(uis);
 
-            return CreateUIBundle(name,model,uiComponents,modelName,allowUIUpdateModel);
+            return CreateUIBundle(viewName,model,uiComponents,modelName,allowUIUpdateModel);
         }
 
         private static Dictionary<UIType, List<Component>> GetAllUIComponents(List<CustomTuple<Component, UIType>> uis)

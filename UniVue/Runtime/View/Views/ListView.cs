@@ -23,7 +23,6 @@ namespace UniVue.View.Views
             public List<IBindableModel> models;
             public int head, trail; //数据头尾指针
             public bool isDirty;
-            public List<UIBundle> bundles;
         }
 
         private RuntimeData _runtime;
@@ -108,14 +107,12 @@ namespace UniVue.View.Views
             {
                 RectTransform itemRectTrans = _runtime.scrollRect.content.GetChild(i).GetComponent<RectTransform>();
 
-                //生成UIModel的数量 = itemGameObject的数量
-                UIBundle bundle = Vue.Instance.BuildUIBundleAndUIEvents(itemRectTrans.gameObject, data[0], false);
-                _runtime.bundles.Add(bundle);
+                DynamicView dynamicView = new DynamicView(itemRectTrans.gameObject, null, ViewLevel.Permanent);
 
                 //数据渲染
                 if (_runtime.trail < data.Count)
                 {
-                    _runtime.bundles[i].Rebind(data[_runtime.trail++]);
+                    dynamicView.BindModel(data[_runtime.trail++]);
                 }
                 else
                 {
@@ -229,8 +226,6 @@ namespace UniVue.View.Views
                 itemViewObject.name += i; 
                 itemViewObject.transform.localPosition = startPos - singal * i * _runtime.deltaPos;
             }
-
-            _runtime.bundles = new List<UIBundle>(viewNum + 1);
         }
 
         private void BindScrollEvt()
@@ -272,14 +267,7 @@ namespace UniVue.View.Views
 
         private void Rebind(string itemName, IBindableModel model)
         {
-            for (int j = 0; j < _runtime.bundles.Count; j++)
-            {
-                if (_runtime.bundles[j].Name == itemName) 
-                {
-                    _runtime.bundles[j].Rebind(model);
-                    break;
-                }
-            }
+            Vue.Router.GetView(itemName).RebindModel(model);
         }
 
         /// <summary>
