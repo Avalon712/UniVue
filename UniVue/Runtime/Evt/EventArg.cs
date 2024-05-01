@@ -49,6 +49,9 @@ namespace UniVue.Evt
                 case UIType.Slider:
                     return ((Slider)_argUI).value;
 
+                case UIType.Image:
+                    return ((Image)_argUI).sprite;
+
                 default: return null; //不可能执行到这一步
             }
         }

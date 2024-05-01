@@ -61,7 +61,7 @@ namespace UniVue.Rule
         /// <param name="eventName">事件名称</param>
         /// <param name="viewName">如果匹配成功，表示动作对象(即视图名称)的名称</param>
         /// <returns>是否匹配</returns>
-        public static bool CheckViewEventMatch(string uiName, RouterEvent eventName, out string viewName)
+        public static bool CheckRouterEventMatch(string uiName, RouterEvent eventName, out string viewName)
         {
             viewName = null;
             if (!uiName.Contains(" & "))
@@ -77,7 +77,7 @@ namespace UniVue.Rule
             else
             {
                 //视图事件的索引为1
-                return CheckViewEventMatch(uiName.Split(" & ")[1], eventName, out viewName);
+                return CheckRouterEventMatch(uiName.Split(" & ")[1], eventName, out viewName);
             }
         }
 
@@ -294,29 +294,29 @@ namespace UniVue.Rule
             switch (Vue.Format)
             {
                 case NamingFormat.CamelCase | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? @"Return(Btn|Button)" : @$"^{GetViewEventName(eventName)}(\w{{1,}})(Btn|Button)$";
+                    return eventName == RouterEvent.Return ? @"Return(Btn|Button)" : @$"^{GetViewEventName(eventName)}(\w{{1,}})(Btn|Button|Toggle)$";
                 case NamingFormat.CamelCase | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? @"(Btn|Button)Return" : @$"^(Btn|Button){GetViewEventName(eventName)}(\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? @"(Btn|Button)Return" : @$"^(Btn|Button|Toggle){GetViewEventName(eventName)}(\w{{1,}})$";
 
                 case NamingFormat.UnderlineLower | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? "return_(btn|button)" : @$"^{GetViewEventName(eventName, true)}_(\w{{1,}})_(btn|button)$";
+                    return eventName == RouterEvent.Return ? "return_(btn|button)" : @$"^{GetViewEventName(eventName, true)}_(\w{{1,}})_(btn|button|toggle)$";
                 case NamingFormat.UnderlineLower | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? "(btn|button)_return" : @$"^(btn|button)_{GetViewEventName(eventName, true)}_(\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? "(btn|button)_return" : @$"^(btn|button|toggle)_{GetViewEventName(eventName, true)}_(\w{{1,}})$";
 
                 case NamingFormat.SpaceLower | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? "return (btn|button)" : @$"^{GetViewEventName(eventName, true)} (\w{{1,}}) (btn|button)$";
+                    return eventName == RouterEvent.Return ? "return (btn|button)" : @$"^{GetViewEventName(eventName, true)} (\w{{1,}}) (btn|button|toggle)$";
                 case NamingFormat.SpaceLower | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? "(btn|button) return" : @$"^(btn|button) {GetViewEventName(eventName, true)} (\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? "(btn|button) return" : @$"^(btn|button|toggle) {GetViewEventName(eventName, true)} (\w{{1,}})$";
 
                 case NamingFormat.SpaceUpper | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? "Return (Btn|Button)" : @$"^{GetViewEventName(eventName)} (\w{{1,}}) (Btn|Button)$";
+                    return eventName == RouterEvent.Return ? "Return (Btn|Button)" : @$"^{GetViewEventName(eventName)} (\w{{1,}}) (Btn|Button|Toggle)$";
                 case NamingFormat.SpaceUpper | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? "(Btn|Button) Return" : @$"^(Btn|Button) {GetViewEventName(eventName)} (\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? "(Btn|Button) Return" : @$"^(Btn|Button|Toggle) {GetViewEventName(eventName)} (\w{{1,}})$";
 
                 case NamingFormat.UnderlineUpper | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? "Return_(Btn|Button)" : @$"^{GetViewEventName(eventName)}_(\w{{1,}})_(Btn|Button)$";
+                    return eventName == RouterEvent.Return ? "Return_(Btn|Button)" : @$"^{GetViewEventName(eventName)}_(\w{{1,}})_(Btn|Button|Toggle)$";
                 case NamingFormat.UnderlineUpper | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? "(Btn|Button)_Return" : @$"^(Btn|Button)_{GetViewEventName(eventName)}_(\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? "(Btn|Button)_Return" : @$"^(Btn|Button|Toggle)_{GetViewEventName(eventName)}_(\w{{1,}})$";
             }
             return null;
         }

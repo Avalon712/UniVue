@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using UnityEngine;
 using UniVue.Evt.Evts;
 using UniVue.Utils;
 
@@ -125,10 +126,10 @@ namespace UniVue.Evt
 
                             if (args[j].ArgumentName == argName)
                             {
+                                object value = args[j].GetArgumentValue();
                                 //如果是枚举类型
                                 if (parameter.ParameterType.IsEnum)
                                 {
-                                    object value = args[j].GetArgumentValue();
                                     if (value.GetType() == typeof(int))
                                     {
                                         _parameters[i] = Enum.ToObject(parameter.ParameterType, value);
@@ -140,9 +141,23 @@ namespace UniVue.Evt
 #endif
                                     }
                                 }
-                                else //如果是int\string\float\bool类型
+                                //Sprite类型
+                                else if (parameter.ParameterType == typeof(Sprite))
                                 {
-                                    object value = args[j].GetArgumentValue();
+                                    if (value.GetType() != parameter.ParameterType)
+                                    {
+#if UNITY_EDITOR
+                                        LogUtil.Warning($"方法[{_call.Name}]: 参数名为{argName}的类型为{parameter.ParameterType}，与UI返回的事件参数类型{value.GetType()}不一致，无法正确进行赋值!");
+#endif
+                                    }
+                                    else
+                                    {
+                                        _parameters[i] = value;
+                                    }
+                                }
+                                //如果是int\string\float\bool类型
+                                else
+                                {
                                     if (value.GetType() != parameter.ParameterType)
                                     {
 #if UNITY_EDITOR

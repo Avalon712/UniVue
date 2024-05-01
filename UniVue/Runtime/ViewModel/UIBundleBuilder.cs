@@ -72,6 +72,7 @@ namespace UniVue.ViewModel
 
                 List<Toggle> singleChoice = null;//单选
                 List<Toggle> multiChoice = null;//多选
+                List<Toggle> intToToggles = null; //int类型的值绑定Toggles
 
                 //允许通过UI更改属性值的条件
                 bool allow = allowUIUpdateModel && propertyInfo.CanWrite;
@@ -138,6 +139,16 @@ namespace UniVue.ViewModel
                                         multiChoice.Add((Toggle)components[j]);
                                     }
                                 }
+                            }else if(bindableType == BindablePropertyType.Int)
+                            {
+                                for (int j = 0; j < components.Count; j++)
+                                {
+                                    if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyInfo.Name))
+                                    {
+                                        if(intToToggles == null) { intToToggles = new List<Toggle>(); }
+                                        intToToggles.Add((Toggle)components[j]);
+                                    }
+                                }
                             }
                             break;
 
@@ -191,7 +202,7 @@ namespace UniVue.ViewModel
                             break;
                     }
 
-                    //设置ToggleGroup --> 单选
+                    //单选
                     if (singleChoice != null && bindableType == BindablePropertyType.Enum && singleChoice.Count > 1)
                     {
                         PropertyUI uiUpdater = PropertyUIBuilder.DoBuildSingleChoiceToggles(bundle, propertyInfo, singleChoice, allow);
@@ -199,13 +210,21 @@ namespace UniVue.ViewModel
                         singleChoice.Clear();
                     }
 
-                    //设置ToggleGroup --> 多选
+                    //多选
                     bool isFlags = ReflectionUtil.HasFlags(propertyInfo.PropertyType);
                     if (multiChoice != null && bindableType == BindablePropertyType.Enum && multiChoice.Count > 1 && isFlags)
                     {
                         PropertyUI uiUpdater = PropertyUIBuilder.DoBuildMultiChoiceToggles(bundle, propertyInfo, multiChoice, allow);
                         if (uiUpdater != null) { propertyUIs.Add(uiUpdater); }
                         multiChoice.Clear();
+                    }
+
+                    //int绑定Toogle
+                    if(intToToggles != null && intToToggles.Count > 1 && bindableType == BindablePropertyType.Int)
+                    {
+                        PropertyUI uiUpdater = new IntPropertyToggles(intToToggles.ToArray(), bundle, propertyInfo.Name, allow);
+                        propertyUIs.Add(uiUpdater);
+                        intToToggles.Clear();
                     }
                 }
 

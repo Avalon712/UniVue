@@ -166,7 +166,7 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 在方法上注解该特性，当此事件触发时将会进行调用此函数。标记此特性的方法不能是一个泛型方法以及方法参数不能有in、out关键字。同时该方法中的方法参数的类型以及参数名如果与UI中标记的一致，那么将会对其进行自动赋值。更强大的是，如果方法参数是一个自定义的实体类型，在满足实体的属性名以及类型与UI中标记的一致，也能对其进行赋值。(有关这一部分的详细细节，参阅**命名系统**[关于事件参数映射为方法参数的说明](#7.关于事件参数映射为方法参数的说明))
 
-==注解该特性的方法支持的方法参数类型：**int、float、string、bool、enum、UIEvent、EventArg[]、EventCall、自定义类型(不能是结构体)**。==
+==注解该特性的方法支持的方法参数类型：**int、float、string、bool、enum、UIEvent、EventArg[]、EventCall、Sprite、自定义类型(不能是结构体)**。==
 
 ### 2.UIEvent
 
@@ -255,10 +255,10 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 #### 各种类型允许绑定的UI组件
 
-- int: TMP_InputField、TMP_Text、Slider
+- int: TMP_InputField、TMP_Text、Slider、**Toggles（Toggle.isOn的数量等于绑定的int的值）**
 - float: TMP_InputField、TMP_Text、Slider
 - bool: Toggle、TMP_InputField、TMP_Text
-- enum: TMP_Dropdown、ToggleGroup（单选效果）、TMP_Text、TMP_InputField
+- enum: TMP_Dropdown、ToggleGroup（多个Toggle组成单选效果）、TMP_Text、TMP_InputField
 - string: TMP_InputField、TMP_Text
 - [Flags] enum: Toggle（绑定多个Toggle可以实现复选效果）、TMP_Text
 - Sprite: Image
@@ -398,10 +398,11 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 规则说明：
 
-​							==**路由事件(Open|Skip|Close|Return) + 视图名称 + 按钮UI组件的名称**==
+​							==**路由事件(Open|Skip|Close|Return) + 视图名称 + 按钮UI组件的名称（仅支持Button和Toggle）**==
 
 - 视图名称一定要存在，否则会导致不能实现路由事件。
 - 注意这个命名规则中只有UI组件的名称的顺序可以改变，即UI组件的名称可以在最前（NamingFormat.UI_Prefix）也可以在最后（NamingFormat.UI_Suffix）；
+- **对于Toggle绑定的视图事件，只有当toggle.isOn=true时会触发路由事件；**
 
 #### 2）命名举例说明
 
