@@ -24,7 +24,7 @@ namespace UniVue.Evt
                 string evtName, argName; bool isOnlyEvt, isOnlyArg;
                 if (NamingRuleEngine.CheckCustomEventAndArgMatch(result.Item1.name, out evtName, out argName,out isOnlyEvt,out isOnlyArg))
                 {
-                    if (isOnlyArg || (!isOnlyArg && !isOnlyEvt))
+                    if (isOnlyArg || !(isOnlyArg || isOnlyEvt))
                     {
                         if (args.ContainsKey(evtName))
                         {
@@ -60,21 +60,15 @@ namespace UniVue.Evt
                 }
             }
 
-            //这一步是减少ToArray()的函数调用，减少内存开销
-            Dictionary<string, EventArg[]> args2 = new();
-            foreach (var eventName in args.Keys)
-            {
-                args2.Add(eventName, args[eventName].ToArray());
-                args[eventName].Clear();
-            }
-
             for (int i = 0; i < events.Count; i++)
             {
-                events[i].EventArgs = args2[events[i].EventName];
+                if (args.ContainsKey(events[i].EventName))
+                {
+                    events[i].EventArgs = args[events[i].EventName].ToArray();
+                }
             }
 
             args.Clear();
-            args2.Clear();
             events.Clear();
         }
     }

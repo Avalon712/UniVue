@@ -29,14 +29,11 @@ namespace UniVue
             _event = new();
             _format = NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper;
 
-            Init();
+            RegisterInEditorModeEvt();
         }
 
-        private void Init()
+        private void RegisterInEditorModeEvt()
         {
-            //注册事件
-            SceneManager.activeSceneChanged += OnSceneChanged;
-
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += (mode) =>
             {
@@ -86,7 +83,6 @@ namespace UniVue
         /// </summary>
         public static ViewUpdater Updater { get => Instance._updater; }
 
-        
         /// <summary>
         /// 加载视图
         /// <para>如果当前配置文件中viewObject尚未实例化则由框架进行实例化</para>
@@ -115,6 +111,26 @@ namespace UniVue
             _updater.ClearBundles();
             _router.UnloadViews();
             _event.UnregisterUIEvents();
+        }
+
+        /// <summary>
+        /// 自动装配EventCall
+        /// 注意：这个函数只会被执行一次
+        /// </summary>
+        /// <param name="scanAssemblies">要扫描的程序集，如果为null则默认为"Assembly-CSharp"</param>
+        public void AutowireEventCalls(string[] scanAssemblies=null)
+        {
+            if(scanAssemblies == null) { scanAssemblies = new string[] { "Assembly-CSharp" }; }
+            _event.ConfigAutowireEventCalls(scanAssemblies);
+        }
+
+        /// <summary>
+        /// 自动装配指定场景的EventCall同时卸载不符合添加的EventCall
+        /// </summary>
+        /// <param name="currentSceneName">当前场景名称</param>
+        public void AutowireAndUnloadEventCalls(string currentSceneName)
+        {
+            _event.AutowireAndUnloadEventCalls(currentSceneName);
         }
 
         /// <summary>
@@ -213,6 +229,9 @@ namespace UniVue
             return SceneManager.GetActiveScene().name;
         }
 
+        /// <summary>
+        /// 仅在Editor模式下执行
+        /// </summary>
         public void Dispose()
         {
             if (_instanced == null) { return;  }
@@ -232,5 +251,4 @@ namespace UniVue
 
     }
 
-    
 }

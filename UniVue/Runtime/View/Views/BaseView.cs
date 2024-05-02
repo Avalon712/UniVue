@@ -215,7 +215,8 @@ namespace UniVue.View.Views
             {
                 for (int i = 0; i < nestedViews.Length; i++)
                 {
-                    yield return nestedViews[i];
+                    //Unity序列化的原因会导致虽然有数据但全是null值
+                    if (nestedViews[i] != null) { yield return nestedViews[i]; }
                 }
             }
             yield return null;

@@ -36,6 +36,8 @@ namespace UniVue.Editor
             EditorGUILayout.PropertyField(_serializedObjs);
             EditorGUILayout.Space();
 
+            EditorGUILayout.LabelField("注：所有的取消Raycast Target属性不会对可交互的组件生效");
+            EditorGUILayout.Space();
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("UI组件的字体设置");
@@ -84,14 +86,16 @@ namespace UniVue.Editor
                         List<TMP_Text> texts = ComponentFindUtil.GetAllComponents<TMP_Text>(_objects[i]);
                         for (int j = 0; j < texts.Count; j++)
                         {
-                            texts[j].raycastTarget = false;
+                            if (!ContainsCtrlUI(texts[j]))
+                            {
+                                texts[j].raycastTarget = false;
+                            }
                         }
                     }
                 }
             }
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField("不会对Button组件应用此操作");
             if (GUILayout.Button("取消所有Image组件的Raycast Target属性"))
             {
                 if (_objects!=null)
@@ -101,7 +105,7 @@ namespace UniVue.Editor
                         List<Image> imgs = ComponentFindUtil.GetAllComponents<Image>(_objects[i]);
                         for (int j = 0; j < imgs.Count; j++)
                         {
-                            if (imgs[j].GetComponent<Button>() == null)
+                            if (!ContainsCtrlUI(imgs[j]))
                             {
                                 imgs[j].raycastTarget = false;
                             }
@@ -146,6 +150,24 @@ namespace UniVue.Editor
             EditorGUILayout.EndScrollView();
 
             _window.ApplyModifiedProperties();
+        }
+
+        private bool ContainsCtrlUI(TMP_Text text)
+        {
+            if (text.GetComponent<Button>() != null) { return true; }
+            if(text.GetComponent<Toggle>() != null) { return true; }
+            if (text.GetComponent<Slider>() != null) { return true; }
+            if (text.GetComponent<TMP_InputField>() != null) { return true; }
+            return false;
+        }
+
+        private bool ContainsCtrlUI(Image img)
+        {
+            if (img.GetComponent<Button>() != null) { return true; }
+            if (img.GetComponent<Toggle>() != null) { return true; }
+            if (img.GetComponent<Slider>() != null) { return true; }
+            if (img.GetComponent<TMP_InputField>() != null) { return true; }
+            return false;
         }
     }
 }

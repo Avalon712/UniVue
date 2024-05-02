@@ -160,7 +160,7 @@ namespace UniVue.Editor
         //bool指示当前GameObject名称是否匹配成功
         private void DeapthSearch(GameObject root,List<CustomTuple<GameObject,bool>> result,NamingFormat format)
         {
-            result.Add(new CustomTuple<GameObject, bool>(root, NamingRuleEngine.FuzzyMatch(format, root.name)));
+            result.Add(new CustomTuple<GameObject, bool>(root, NamingRuleEngine.FullFuzzyMatch(format, root.name)));
 
             Transform transform = root.transform;
             for (int i = 0; i < transform.childCount; i++)

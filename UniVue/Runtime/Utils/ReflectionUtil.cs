@@ -132,45 +132,78 @@ namespace UniVue.Utils
             return (T)Activator.CreateInstance(type);
         }
 
-        //public static IEnumerable<Assembly> GetAssemblies(string[] names)
-        //{
-        //    Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        //    for (int i = 0; i < assemblies.Length; i++)
-        //    {
-        //        string name = assemblies[i].GetName().Name;
-        //        //排除内置的程序集
-        //        if (IsBuiltInAssembly(name)) { continue; }
+        /// <summary>
+        /// 获取指定扫描的程序集的AutowireInfo
+        /// </summary>
+        /// <param name="assemblyNames">要搜索的程序集名称</param>
+        /// <returns>IEnumerable<AutowireInfo></returns>
+        public static IEnumerable<AutowireInfo> GetAutowireInfos(string[] assemblyNames)
+        {
+            using(var a = GetAssemblies(assemblyNames).GetEnumerator())
+            {
+                while (a.MoveNext())
+                {
+                    Type[] types = a.Current.GetTypes();
+                    for (int i = 0; i < types.Length; i++)
+                    {
+                        var attribute = types[i].GetCustomAttribute<EventCallAutowireAttribute>();
+                        if(attribute != null)
+                        {
+                            if (types[i].GetInterface("IEventRegister") != null)
+                            {
+                                yield return new AutowireInfo(types[i], attribute);
+                            }
+#if UNITY_EDITOR
+                            else
+                            {
+                                LogUtil.Warning("EventCallAutowireAttribute特性只能注解在实现了接口IEventRegister的类上!");
+                            }
+#endif
+                        }
+                    }
+                }
+            }
+        }
 
-        //        for (int j = 0; j < names.Length; j++)
-        //        {
-        //            if(name == names[j])
-        //            {
-        //                yield return assemblies[i];
-        //            }
-        //        }
-        //    }
-        //}
+        private static IEnumerable<Assembly> GetAssemblies(string[] names)
+        {
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for (int i = 0; i < assemblies.Length; i++)
+            {
+                string name = assemblies[i].GetName().Name;
+                //排除内置的程序集
+                if (IsBuiltInAssembly(name)) { continue; }
 
-        ///// <summary>
-        ///// 判断是否是一个内置的程序集
-        ///// </summary>
-        //public static bool IsBuiltInAssembly(string assemblyName)
-        //{
-        //    return assemblyName.StartsWith("Unity") 
-        //        || assemblyName.StartsWith("System")
-        //        || assemblyName.StartsWith("Mono")
-        //        || assemblyName.StartsWith("JetBrains")
-        //        || assemblyName.StartsWith("Bee")
-        //        || assemblyName.StartsWith("mscorlib")
-        //        || assemblyName.StartsWith("PsdPlugin")
-        //        || assemblyName.StartsWith("nunit")
-        //        || assemblyName.StartsWith("log4net")
-        //        || assemblyName.StartsWith("netstandard")
-        //        || assemblyName.StartsWith("Microsoft")
-        //        || assemblyName.StartsWith("UniVue")
-        //        || assemblyName.StartsWith("ExCSS")
-        //        || assemblyName.StartsWith("PlayerBuildProgramLibrary");
-        //}
+                for (int j = 0; j < names.Length; j++)
+                {
+                    if (name == names[j])
+                    {
+                        yield return assemblies[i];
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 判断是否是一个内置的程序集
+        /// </summary>
+        private static bool IsBuiltInAssembly(string assemblyName)
+        {
+            return assemblyName.StartsWith("Unity")
+                || assemblyName.StartsWith("System")
+                || assemblyName.StartsWith("Mono")
+                || assemblyName.StartsWith("JetBrains")
+                || assemblyName.StartsWith("Bee")
+                || assemblyName.StartsWith("mscorlib")
+                || assemblyName.StartsWith("PsdPlugin")
+                || assemblyName.StartsWith("nunit")
+                || assemblyName.StartsWith("log4net")
+                || assemblyName.StartsWith("netstandard")
+                || assemblyName.StartsWith("Microsoft")
+                || assemblyName.StartsWith("UniVue")
+                || assemblyName.StartsWith("ExCSS")
+                || assemblyName.StartsWith("PlayerBuildProgramLibrary");
+        }
     }
 
 }

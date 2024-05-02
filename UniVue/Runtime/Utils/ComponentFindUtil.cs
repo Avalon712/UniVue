@@ -29,7 +29,7 @@ namespace UniVue.Utils
             {
                 using(var v = view.GetNestedViews().GetEnumerator())
                 {
-                    while (v.MoveNext())
+                    while (v.MoveNext() && v.Current != null)
                     {
                         if(nestedViews == null) { nestedViews = new List<IView>(); }
                         nestedViews.Add(v.Current);

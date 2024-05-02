@@ -44,6 +44,12 @@
 
 
 
+### 自动装配与卸载EventCall的执行逻辑
+
+<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/自动装配与卸载EventCall的流程.png" width="450px" height="512px" />
+
+
+
 ## 二、Model
 
 ### 1.IUIUpdater
@@ -195,6 +201,10 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 ### 8.EventManager
 
 管理所有的事件。
+
+### 9.EventCallAutowireAttribute
+
+只要在实现了接口**IEventRegister**的类上注解此特性，同时调用Vue.Instance.AutowireEventCalls()函数（此函数只会被执行一次）来装配事件注册器。注意事件注册器真正装配的时机是主动调用Vue.Instance.AutowireAndUnloadEventCalls()函数。
 
 
 

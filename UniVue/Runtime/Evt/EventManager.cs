@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UniVue.Evt.Attr;
 using UniVue.Evt.Evts;
@@ -10,6 +11,7 @@ namespace UniVue.Evt
     {
         private List<UIEvent> _events;
         private List<EventCall> _calls;
+        private List<AutowireInfo> _autowires;
 
         internal EventManager() { _events = new(18);_calls = new(18); }
 
@@ -32,9 +34,75 @@ namespace UniVue.Evt
                 {
                     MethodInfo method = tuple.Item1;
                     EventCallAttribute attribute = tuple.Item2;
-                    EventCall call = new(attribute.EventName, method,register);
+                    EventCall call = new(attribute, method, register);
                     _calls.Add(call);
                     tuple.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 自动装配EventCall
+        /// </summary>
+        internal void ConfigAutowireEventCalls(string[] scanAssemblies)
+        {
+            //只执行一次
+            if(_autowires == null)
+            {
+                _autowires = new List<AutowireInfo>();
+                using (var it = ReflectionUtil.GetAutowireInfos(scanAssemblies).GetEnumerator())
+                {
+                    while (it.MoveNext())
+                    {
+                        _autowires.Add(it.Current);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 当场景加载完成时调用
+        /// </summary>
+        public void AutowireAndUnloadEventCalls(string sceneName)
+        {
+            if(_autowires == null) { return; }
+
+            for (int i = 0; i < _autowires.Count; i++)
+            {
+                AutowireInfo info = _autowires[i];
+                if (info.EventCallInfo.Scenes != null)
+                {
+                    string[] scenes = info.EventCallInfo.Scenes;
+                    bool unload = true; //是否要卸载当前类型的所有EventCall
+
+                    for (int k = 0; k < scenes.Length; k++)
+                    {
+                        if (scenes[k] == sceneName && (!info.EventCallInfo.singleton || !ContainsType(info.type)))
+                        {
+                            object register = info.AutowireEventCall();
+#if UNITY_EDITOR
+                            LogUtil.Info($"已自动装配类型为{register.GetType()}的注册器到场景{sceneName}中!");
+#endif
+                            unload = false;
+                            break;
+                        }
+                    }
+
+                    if (unload)
+                    {
+                        for (int k = 0; k < _calls.Count; k++)
+                        {
+                            if (_calls[k].Register.GetType() == info.type)
+                            {
+#if UNITY_EDITOR
+                                string[] views = _calls[k].CallInfo.Views;
+                                string s = views != null ? string.Join(", ", views) : string.Empty;
+                                LogUtil.Info($"已自动卸载类型为{_calls[k].Register.GetType()}的注册器注册的EventCall{{EventName={_calls[k].CallInfo.EventName},Views=[{s}]}}!");
+#endif
+                                ListUtil.TrailDelete(_calls, k--);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -45,6 +113,34 @@ namespace UniVue.Evt
         }
 
         /// <summary>
+        /// 获取指定类型的注册器
+        /// 注：如果有多种类型的，只会返回第一个查找到的
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetRegister<T>() where T : IEventRegister
+        {
+            for (int i = 0; i < _calls.Count; i++)
+            {
+                if (_calls[i].Register.GetType() == typeof(T)) { return (T)_calls[i].Register; }
+            }
+            return default;
+        }
+
+        /// <summary>
+        /// 获取指定类型的所有注册器
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>IEnumerable<T></returns>
+        public IEnumerable<T> GetRegisters<T>() where T : IEventRegister
+        {
+            for (int i = 0; i < _calls.Count; i++)
+            {
+                if (_calls[i].Register.GetType() == typeof(T)) { yield return (T)_calls[i].Register; }
+            }
+        }
+
+        /// <summary>
         /// 触发某件事件
         /// </summary>
         public void ExecuteEvent(UIEvent trigger)
@@ -52,10 +148,24 @@ namespace UniVue.Evt
             List<EventCall> calls = _calls;
             for (int i = 0; i < calls.Count; i++)
             {
-                if (calls[i].EventName == trigger.EventName)
+                if (calls[i].CallInfo.EventName == trigger.EventName)
                 {
-                    _currentCall = calls[i];
-                    calls[i].Call(trigger);
+                    string[] views = calls[i].CallInfo.Views;
+                    bool exe = views == null;
+                    if (!exe)
+                    {
+                        exe = false;
+                        for (int j = 0; j < views.Length; j++)
+                        {
+                            if (views[j] == trigger.ViewName) { exe = true;break; }
+                        }
+                    }
+
+                    if (exe)
+                    {
+                        _currentCall = calls[i];
+                        calls[i].Call(trigger);
+                    }
                 }
             }
 
@@ -127,7 +237,7 @@ namespace UniVue.Evt
         {
             for (int i = 0; i < _calls.Count; i++)
             {
-                if (object.ReferenceEquals(_calls[i].Register, register) && _calls[i].EventName==eventName)
+                if (object.ReferenceEquals(_calls[i].Register, register) && _calls[i].CallInfo.EventName==eventName)
                 {
                     _calls[i].Unregister();
                     ListUtil.TrailDelete(_calls, i--);
@@ -192,5 +302,19 @@ namespace UniVue.Evt
             return _currentCall.GetCurrentEventArgs();
         }
 
+        /// <summary>
+        /// 判断当前所有的EventCall中是否存在此类型的注册器
+        /// </summary>
+        public bool ContainsType(Type type) 
+        {
+            if (!typeof(IEventRegister).IsAssignableFrom(type)) { return false; }
+
+            for (int i = 0; i < _calls.Count; i++)
+            {
+                if (_calls[i].Register.GetType() == type) { return true; }
+            }
+
+            return false;
+        }
     }
 }

@@ -45,7 +45,8 @@ namespace UniVue.Rule
         {
             if(!uiName.Contains(" & "))
             {
-                return Regex.IsMatch(uiName, GetDataBindRegex(modelName, propertyName));
+                NamingFormat format = Vue.Format;
+                return Regex.IsMatch(uiName, GetDataBindRegex(ref format, modelName, propertyName));
             }
             else
             {
@@ -61,13 +62,14 @@ namespace UniVue.Rule
         /// <param name="eventName">事件名称</param>
         /// <param name="viewName">如果匹配成功，表示动作对象(即视图名称)的名称</param>
         /// <returns>是否匹配</returns>
-        public static bool CheckRouterEventMatch(string uiName, RouterEvent eventName, out string viewName)
+        public static bool CheckRouterEventMatch(string uiName,RouterEvent eventName, out string viewName)
         {
             viewName = null;
+            NamingFormat format = Vue.Format;
             if (!uiName.Contains(" & "))
             {
                 int viewNameGroupIdx;
-                Match match = Regex.Match(uiName, GetViewEventRegex(eventName, out viewNameGroupIdx));
+                Match match = Regex.Match(uiName, GetViewEventRegex(ref format,ref eventName, out viewNameGroupIdx));
                 if (eventName != RouterEvent.Return && match.Success)
                 {
                     viewName = match.Groups[viewNameGroupIdx].Value;
@@ -93,6 +95,7 @@ namespace UniVue.Rule
         public static bool CheckCustomEventAndArgMatch(string uiName, out string eventName, out string argName,out bool isOnlyEvt,out bool isOnlyArg)
         {
             eventName = argName = null;
+            NamingFormat format = Vue.Format;
             if (!uiName.Contains(" & "))
             {
                 isOnlyEvt = false;
@@ -101,17 +104,18 @@ namespace UniVue.Rule
                 Match match;
                 if (uiName.Contains('&')) //Evt&Arg
                 {
-                    match = Regex.Match(uiName, GetCustomEventAndArgRegex(out eventNameIdx, out argNameIdx));
+                    match = Regex.Match(uiName, GetCustomEventAndArgRegex(out eventNameIdx, ref format, out argNameIdx));
                 }
                 else if(uiName.Contains("Arg",StringComparison.OrdinalIgnoreCase)) //Arg
                 {
                     isOnlyArg = true;
-                    match = Regex.Match(uiName, GetCustomEventArgRegex(out eventNameIdx, out argNameIdx));
+                    match = Regex.Match(uiName, GetCustomEventArgRegex(out eventNameIdx, ref format, out argNameIdx));
                 }
                 else //Evt
                 {
                     isOnlyEvt = true;
-                    match = Regex.Match(uiName, GetCustomEventRegex(out eventNameIdx));
+
+                    match = Regex.Match(uiName, GetCustomEventRegex(ref format,out eventNameIdx));
                 }
 
                 if (match.Success)
@@ -132,10 +136,11 @@ namespace UniVue.Rule
 
         /// <summary>
         /// 简单的进行命名匹配(简单地判断一个UI的命名是否是特殊命名，这个判断结果可能是错误的)
+        /// 注：想要实现高精度的匹配办法就是使用完全不一样的命名风格，比如：以下划线隔开的可以选驼峰式或空格式这样的命名
         /// </summary>
         /// <param name="uiName"></param>
         /// <returns></returns>
-        public static bool FuzzyMatch(NamingFormat format,string uiName)
+        public static bool FullFuzzyMatch(NamingFormat format,string uiName)
         {
             if (UITypeUtil.GetUIType(uiName) == UIType.None) return false;
 
@@ -158,10 +163,10 @@ namespace UniVue.Rule
             return false;
         }
 
-        private static string GetCustomEventAndArgRegex(out int eventNameIdx, out int argNameIdx)
+        private static string GetCustomEventAndArgRegex(out int eventNameIdx,ref NamingFormat format ,out int argNameIdx)
         {
             eventNameIdx = argNameIdx = -1;
-            switch (Vue.Format)
+            switch (format)
             {
                 case NamingFormat.CamelCase | NamingFormat.UI_Suffix:
                     eventNameIdx = 1; argNameIdx = 2;
@@ -201,10 +206,10 @@ namespace UniVue.Rule
             return null; //不能执行到这儿
         }
 
-        private static string GetCustomEventArgRegex(out int eventNameIdx, out int argNameIdx)
+        private static string GetCustomEventArgRegex(out int eventNameIdx, ref NamingFormat format, out int argNameIdx)
         {
             eventNameIdx = argNameIdx = -1;
-            switch (Vue.Format)
+            switch (format)
             {
                 case NamingFormat.CamelCase | NamingFormat.UI_Suffix:
                     eventNameIdx = 1; argNameIdx = 2;
@@ -244,10 +249,10 @@ namespace UniVue.Rule
             return null; //不可能执行到这儿
         }
 
-        private static string GetCustomEventRegex(out int eventNameIdx)
+        private static string GetCustomEventRegex(ref NamingFormat format, out int eventNameIdx)
         {
             eventNameIdx = -1;
-            switch (Vue.Format)
+            switch (format)
             {
                 case NamingFormat.CamelCase | NamingFormat.UI_Suffix:
                     eventNameIdx = 1;
@@ -287,43 +292,43 @@ namespace UniVue.Rule
             return null; //不能执行到这儿
         }
 
-        private static string GetViewEventRegex(RouterEvent eventName, out int viewNameGroupIdx)
+        private static string GetViewEventRegex(ref NamingFormat format, ref RouterEvent eventName, out int viewNameGroupIdx)
         {
             viewNameGroupIdx = (Vue.Format & NamingFormat.UI_Suffix) == NamingFormat.UI_Suffix ? 1 : 2;
 
-            switch (Vue.Format)
+            switch (format)
             {
                 case NamingFormat.CamelCase | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? @"Return(Btn|Button)" : @$"^{GetViewEventName(eventName)}(\w{{1,}})(Btn|Button|Toggle)$";
+                    return eventName == RouterEvent.Return ? @"Return(Btn|Button)" : @$"^{GetViewEventName(ref eventName)}(\w{{1,}})(Btn|Button|Toggle)$";
                 case NamingFormat.CamelCase | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? @"(Btn|Button)Return" : @$"^(Btn|Button|Toggle){GetViewEventName(eventName)}(\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? @"(Btn|Button)Return" : @$"^(Btn|Button|Toggle){GetViewEventName(ref eventName)}(\w{{1,}})$";
 
                 case NamingFormat.UnderlineLower | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? "return_(btn|button)" : @$"^{GetViewEventName(eventName, true)}_(\w{{1,}})_(btn|button|toggle)$";
+                    return eventName == RouterEvent.Return ? "return_(btn|button)" : @$"^{GetViewEventName(ref eventName, true)}_(\w{{1,}})_(btn|button|toggle)$";
                 case NamingFormat.UnderlineLower | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? "(btn|button)_return" : @$"^(btn|button|toggle)_{GetViewEventName(eventName, true)}_(\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? "(btn|button)_return" : @$"^(btn|button|toggle)_{GetViewEventName(ref eventName, true)}_(\w{{1,}})$";
 
                 case NamingFormat.SpaceLower | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? "return (btn|button)" : @$"^{GetViewEventName(eventName, true)} (\w{{1,}}) (btn|button|toggle)$";
+                    return eventName == RouterEvent.Return ? "return (btn|button)" : @$"^{GetViewEventName(ref eventName, true)} (\w{{1,}}) (btn|button|toggle)$";
                 case NamingFormat.SpaceLower | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? "(btn|button) return" : @$"^(btn|button|toggle) {GetViewEventName(eventName, true)} (\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? "(btn|button) return" : @$"^(btn|button|toggle) {GetViewEventName(ref eventName, true)} (\w{{1,}})$";
 
                 case NamingFormat.SpaceUpper | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? "Return (Btn|Button)" : @$"^{GetViewEventName(eventName)} (\w{{1,}}) (Btn|Button|Toggle)$";
+                    return eventName == RouterEvent.Return ? "Return (Btn|Button)" : @$"^{GetViewEventName(ref eventName)} (\w{{1,}}) (Btn|Button|Toggle)$";
                 case NamingFormat.SpaceUpper | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? "(Btn|Button) Return" : @$"^(Btn|Button|Toggle) {GetViewEventName(eventName)} (\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? "(Btn|Button) Return" : @$"^(Btn|Button|Toggle) {GetViewEventName(ref eventName)} (\w{{1,}})$";
 
                 case NamingFormat.UnderlineUpper | NamingFormat.UI_Suffix:
-                    return eventName == RouterEvent.Return ? "Return_(Btn|Button)" : @$"^{GetViewEventName(eventName)}_(\w{{1,}})_(Btn|Button|Toggle)$";
+                    return eventName == RouterEvent.Return ? "Return_(Btn|Button)" : @$"^{GetViewEventName(ref eventName)}_(\w{{1,}})_(Btn|Button|Toggle)$";
                 case NamingFormat.UnderlineUpper | NamingFormat.UI_Prefix:
-                    return eventName == RouterEvent.Return ? "(Btn|Button)_Return" : @$"^(Btn|Button|Toggle)_{GetViewEventName(eventName)}_(\w{{1,}})$";
+                    return eventName == RouterEvent.Return ? "(Btn|Button)_Return" : @$"^(Btn|Button|Toggle)_{GetViewEventName(ref eventName)}_(\w{{1,}})$";
             }
             return null;
         }
 
-        private static string GetDataBindRegex(string modelName, string propertyName)
+        private static string GetDataBindRegex(ref NamingFormat format, string modelName, string propertyName)
         {
-            switch (Vue.Format)
+            switch (format)
             {
                 case NamingFormat.CamelCase | NamingFormat.UI_Suffix:
                     return @$"^({modelName}){{0,1}}{propertyName}(Slider|Txt|Text|Input|Dropdown|Toggle|Btn|Img|Button|Image)$";
@@ -354,7 +359,7 @@ namespace UniVue.Rule
         }
 
         //防止ToString()和ToLower()频繁产生新字符串对象
-        private static string GetViewEventName(RouterEvent viewEvent, bool lower = false)
+        private static string GetViewEventName(ref RouterEvent viewEvent, bool lower = false)
         {
             switch (viewEvent)
             {

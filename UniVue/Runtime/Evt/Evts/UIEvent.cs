@@ -30,11 +30,14 @@ namespace UniVue.Evt.Evts
         /// </summary>
         public virtual void Unregister()
         {
-            for (int i = 0; i < EventArgs.Length; i++)
+            if(EventArgs != null)
             {
-                EventArgs[i] = default;
+                for (int i = 0; i < EventArgs.Length; i++)
+                {
+                    EventArgs[i] = default;
+                }
+                EventArgs = null;
             }
-            EventArgs = null;
         }
 
         /// <summary>
