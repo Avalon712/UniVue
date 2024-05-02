@@ -46,7 +46,7 @@
 
 ### 自动装配与卸载EventCall的执行逻辑
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/自动装配与卸载EventCall的流程.png" width="450px" height="512px" />
+<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/自动装配与卸载EventCall的流程.png" width="1200px" height="609px" />
 
 
 
