@@ -114,6 +114,14 @@ namespace UniVue
         }
 
         /// <summary>
+        /// 手动的方式创建AutowireInfo，以对不支持反射的时候实现自动装配与卸载的功能
+        /// </summary>
+        public void BuildAutowireInfos(params Type[] types)
+        {
+            if (types != null) { _event.AddAutowireInfos(types); }
+        }
+
+        /// <summary>
         /// 自动装配EventCall
         /// 注意：这个函数只会被执行一次
         /// </summary>

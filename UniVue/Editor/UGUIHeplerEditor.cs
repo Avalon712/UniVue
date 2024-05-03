@@ -19,7 +19,7 @@ namespace UniVue.Editor
         public static void OpenEditorWindow()
         {
             var window = GetWindow<UGUIHeplerEditor>("UGUI工具编辑器");
-            window.position = new Rect(320, 240, 370, 280);
+            window.position = new Rect(320, 240, 420, 400);
             window.Show();
 
             window._window = new SerializedObject(window);
@@ -36,7 +36,7 @@ namespace UniVue.Editor
             EditorGUILayout.PropertyField(_serializedObjs);
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField("注：所有的取消Raycast Target属性不会对可交互的组件生效");
+            EditorGUILayout.LabelField("注：所有取消Raycast Target属性的操作不会对可交互的组件生效");
             EditorGUILayout.Space();
 
             EditorGUILayout.BeginHorizontal();
@@ -142,6 +142,19 @@ namespace UniVue.Editor
                         {
                             texts[j].interactable = false;
                         }
+                    }
+                }
+            }
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("注：此操作会对所有图片进行一次拷贝再打成图集");
+            if (GUILayout.Button("将每个GameObject下引用的所有图片打成图集，然后引用图集中的图片"))
+            {
+                if (_objects != null)
+                {
+                    for (int i = 0; i < _objects.Count; i++)
+                    {
+                       //TODO
                     }
                 }
             }

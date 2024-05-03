@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+
 namespace UniVue.Evt.Evts
 {
     public abstract class UIEvent
@@ -23,6 +25,21 @@ namespace UniVue.Evt.Evts
             ViewName = viewName; EventName = eventName;
             //交给EventManger管理
             Vue.Event.AddUIEvent(this);
+        }
+
+        /// <summary>
+        /// 为当前事件设置事件参数
+        /// </summary>
+        /// <param name="values">key=参数名，value=参数值</param>
+        public void SetEventArgs(Dictionary<string,object> values)
+        {
+            for (int i = 0; i < EventArgs.Length; i++)
+            {
+                if (values.ContainsKey(EventArgs[i].ArgumentName))
+                {
+                    EventArgs[i].SetArgumentValue(values[EventArgs[i].ArgumentName]);
+                }
+            }
         }
 
         /// <summary>

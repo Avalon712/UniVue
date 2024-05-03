@@ -87,7 +87,7 @@ namespace UniVue.Evt
                     ParameterInfo parameter = parameters[i];
                     string argName = parameter.Name;
 
-                    SupportableArgType argType = GetSupportableArgType(parameter.ParameterType);
+                    SupportableArgType argType = EventUtil.GetSupportableArgType(parameter.ParameterType);
 
                     if(argType == SupportableArgType.None) { continue; }
 
@@ -161,40 +161,8 @@ namespace UniVue.Evt
             }
         }
 
-        private SupportableArgType GetSupportableArgType(Type type)
-        {
-            if (type == typeof(string)) { return SupportableArgType.String; }
-            if (type == typeof(int)) { return SupportableArgType.Int; }
-            if (type == typeof(float)) { return SupportableArgType.Float; }
-            if (type == typeof(bool)) { return SupportableArgType.Bool; }
-            if (type.IsEnum) { return SupportableArgType.Enum; }
-            if (type == typeof(Sprite)) { return SupportableArgType.Sprite; }
-            if (ReflectionUtil.IsCustomType(type)) { return SupportableArgType.Custom; }
-            if (type == typeof(UIEvent)) { return SupportableArgType.UIEvent; }
-            if(type == typeof(EventCall)) { return SupportableArgType.EventCall; }
-            if(type == typeof(EventArg[])) { return SupportableArgType.EventArg; }
-            return SupportableArgType.None;
-        }
+       
     }
 
-    /// <summary>
-    /// EventCall支持的方法参数类型
-    /// </summary>
-    internal enum SupportableArgType
-    {
-        /// <summary>
-        /// 不被支持的类型
-        /// </summary>
-        None,
-        Int,
-        Float,
-        String,
-        Enum,
-        Bool,
-        Sprite,
-        Custom,
-        UIEvent,
-        EventArg,
-        EventCall
-    }
+   
 }

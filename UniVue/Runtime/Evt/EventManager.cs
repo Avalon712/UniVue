@@ -61,6 +61,35 @@ namespace UniVue.Evt
         }
 
         /// <summary>
+        /// 对不支持反射的时候提高的API
+        /// </summary>
+        internal void AddAutowireInfos(Type[] types)
+        {
+            if(types != null)
+            {
+                for (int i = 0; i < types.Length; i++)
+                {
+                    var attribute = types[i].GetCustomAttribute<EventCallAutowireAttribute>();
+                    if (attribute != null)
+                    {
+                        if (types[i].GetInterface("IEventRegister") != null)
+                        {
+                            var autowire = new AutowireInfo(types[i], attribute);
+                            if(_autowires == null) { _autowires = new(); }
+                            _autowires.Add(autowire);
+                        }
+#if UNITY_EDITOR
+                        else
+                        {
+                            LogUtil.Warning("EventCallAutowireAttribute特性只能注解在实现了接口IEventRegister的类上!");
+                        }
+#endif
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 当场景加载完成时调用
         /// </summary>
         public void AutowireAndUnloadEventCalls(string sceneName)
@@ -107,9 +136,27 @@ namespace UniVue.Evt
             }
         }
 
-        public void AddUIEvent(UIEvent uIEvent) 
+        internal void AddUIEvent(UIEvent uIEvent) 
         {
             _events.Add(uIEvent);
+        }
+
+        /// <summary>
+        /// 为事件参数赋值
+        /// </summary>
+        /// <param name="eventName">事件名称</param>
+        /// <param name="viewName">哪个视图下的事件</param>
+        /// <param name="values">key=参数名,value=参数值</param>
+        public void SetEventArgs(string eventName,string viewName,Dictionary<string,object> values)
+        {
+            for (int i = 0; i < _events.Count; i++)
+            {
+                UIEvent @event = _events[i];
+                if(@event.EventName == eventName && @event.ViewName == viewName)
+                {
+                    @event.SetEventArgs(values);
+                }
+            }
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UniVue.View.Views;
+using static Unity.Burst.Intrinsics.X86.Avx;
 
 namespace UniVue.Utils
 {
@@ -80,6 +81,7 @@ namespace UniVue.Utils
             return results;
         }
 
+        #region 设置查询结果
         private static CustomTuple<Component, UIType> GetResult(GameObject gameObject)
         {
             //减少GetComponent()函数的调用
@@ -175,7 +177,7 @@ namespace UniVue.Utils
 
             return null;
         }
-
+        #endregion
 
         /// <summary>
         /// 从当前GameObject开始向上查找指定组件，返回第一次挂载此组件的GameObject
@@ -263,6 +265,61 @@ namespace UniVue.Utils
                     {
                         parents.Clear();
                         return comp;
+                    }
+                    else if (child.childCount > 0) //非叶子节点再入队
+                    {
+                        parents.Enqueue(child);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary> 
+        /// 从自身开始查找一个指定名称的GameObject同时获得其身上指定类型的组件 深度搜索
+        /// </summary>
+        public static T DepthFind<T>(GameObject self,string name) where T : Component
+        {
+            if (self == null) { return null; }
+
+            if(self.name == name)
+            {
+                return self.GetComponent<T>();
+            }
+
+            int childNum = self.transform.childCount;
+            for (int i = 0; i < childNum; i++)
+            {
+                 T comp = DepthFind<T>(self.transform.GetChild(i).gameObject);
+                 if(comp != null && comp.name == name) { return comp; }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 从自身开始查找一个指定名称的GameObject同时获得其身上指定类型的组件 广度搜索
+        /// </summary>
+        public static T BreadthFind<T>(GameObject self,string name) where T : Component
+        {
+            if (self.name == name){ return self.GetComponent<T>(); }
+
+            Queue<Transform> parents = new Queue<Transform>();
+            parents.Enqueue(self.transform);
+
+            while (parents.Count > 0)
+            {
+                Transform transform = parents.Dequeue();
+
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    Transform child = transform.GetChild(i);
+
+                    if(child.name == name)
+                    {
+                        parents.Clear();
+                        return child.GetComponent<T>();
                     }
                     else if (child.childCount > 0) //非叶子节点再入队
                     {
