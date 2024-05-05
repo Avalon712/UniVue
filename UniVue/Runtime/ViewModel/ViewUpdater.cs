@@ -167,6 +167,39 @@ namespace UniVue.ViewModel
         }
 
         /// <summary>
+        /// 判断一个视图是否已经绑定过某个模型
+        /// </summary>
+        public bool HadBinded<T>(string viewName,T model)
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (_bundles[i].Name == viewName && ReferenceEquals(_bundles[i].Model,model))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///  解除此模型与所有它绑定的视图的关系
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        public void Unbind<T>(T model) where T : IBindableModel
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (ReferenceEquals(_bundles[i].Model,model))
+                {
+                    _bundles[i].Dispose();
+                    ListUtil.TrailDelete(_bundles, i--);
+                }
+            }
+        }
+
+        /// <summary>
         /// 清空UIBundle
         /// </summary>
         public void ClearBundles()

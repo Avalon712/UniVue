@@ -6,6 +6,17 @@ namespace UniVue.Model
 {
     public abstract class UnityModel : MonoBehaviour, IBindableModel
     {
+
+        public void Bind(string viewName, bool allowUIUpdateModel = true)
+        {
+            Vue.Router.GetView(viewName)?.BindModel(this, allowUIUpdateModel);
+        }
+
+        public void Unbind()
+        {
+            Vue.Updater.Unbind(this);
+        }
+
         public virtual void NotifyAll()
         {
             PropertyInfo[] propertyInfos = this.GetType().GetProperties();

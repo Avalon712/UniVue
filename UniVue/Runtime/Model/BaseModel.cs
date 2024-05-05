@@ -9,6 +9,11 @@ namespace UniVue.Model
     /// </summary>
     public abstract class BaseModel : IBindableModel
     {
+        public void Bind(string viewName, bool allowUIUpdateModel=true)
+        {
+            Vue.Router.GetView(viewName)?.BindModel(this, allowUIUpdateModel);
+        }
+
         /// <summary>
         /// 通知所有UI进行更新
         /// </summary>
@@ -65,6 +70,11 @@ namespace UniVue.Model
         public void NotifyUIUpdate(string propertyName, Sprite propertyValue) 
         {
             Vue.Updater.UpdateUI(this, propertyName, propertyValue);
+        }
+
+        public void Unbind()
+        {
+            Vue.Updater.Unbind(this);
         }
 
         public virtual void UpdateModel(string propertyName, int propertyValue)
