@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UniVue.Evt;
 using UniVue.Model;
 using UniVue.Rule;
@@ -103,8 +102,7 @@ namespace UniVue
         }
 
         /// <summary>
-        /// 卸载当前场景下的所有视图
-        /// 注：当场景切换时会自动调用此函数，你无需调用它。
+        /// 卸载当前场景下的所有资源（UIBundle、View、UIEvent）
         /// </summary>
         public void UnloadCurrentSceneResources()
         {
@@ -227,24 +225,12 @@ namespace UniVue
             return bundle;
         }
 
-        private void OnSceneChanged(Scene current,Scene next) 
-        {
-            UnloadCurrentSceneResources();
-        }
-
-        public string GetCurrentSceneName()
-        {
-            return SceneManager.GetActiveScene().name;
-        }
-
         /// <summary>
         /// 仅在Editor模式下执行
         /// </summary>
         public void Dispose()
         {
             if (_instanced == null) { return;  }
-
-            SceneManager.activeSceneChanged -= OnSceneChanged;
 
             _router.UnloadViews();
             _updater.ClearBundles();

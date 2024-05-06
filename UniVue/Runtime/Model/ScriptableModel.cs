@@ -4,12 +4,9 @@ using UnityEngine;
 
 namespace UniVue.Model
 {
-    /// <summary>
-    /// 基础模型数据
-    /// </summary>
-    public abstract class BaseModel : IBindableModel
+    public abstract class ScriptableModel : ScriptableObject, IBindableModel
     {
-        public void Bind(string viewName, bool allowUIUpdateModel=true)
+        public void Bind(string viewName, bool allowUIUpdateModel = true)
         {
             Vue.Router.GetView(viewName).BindModel(this, allowUIUpdateModel);
             NotifyAll();
@@ -29,18 +26,19 @@ namespace UniVue.Model
                 {
                     NotifyUIUpdate(propertyInfo.Name, Convert.ToInt32(value));
                 }
-                else if(propertyInfo.PropertyType == typeof(float))
+                else if (propertyInfo.PropertyType == typeof(float))
                 {
                     NotifyUIUpdate(propertyInfo.Name, Convert.ToSingle(value));
                 }
-                else if(propertyInfo.PropertyType == typeof(string))
+                else if (propertyInfo.PropertyType == typeof(string))
                 {
                     NotifyUIUpdate(propertyInfo.Name, value as string);
                 }
-                else if(propertyInfo.PropertyType == typeof(bool))
+                else if (propertyInfo.PropertyType == typeof(bool))
                 {
                     NotifyUIUpdate(propertyInfo.Name, Convert.ToBoolean(value));
-                }else if(propertyInfo.PropertyType == typeof(Sprite))
+                }
+                else if (propertyInfo.PropertyType == typeof(Sprite))
                 {
                     NotifyUIUpdate(propertyInfo.Name, value as Sprite);
                 }
@@ -68,7 +66,7 @@ namespace UniVue.Model
             Vue.Updater.UpdateUI(this, propertyName, propertyValue);
         }
 
-        public void NotifyUIUpdate(string propertyName, Sprite propertyValue) 
+        public void NotifyUIUpdate(string propertyName, Sprite propertyValue)
         {
             Vue.Updater.UpdateUI(this, propertyName, propertyValue);
         }
@@ -102,7 +100,7 @@ namespace UniVue.Model
             NotifyUIUpdate(propertyName, propertyValue);
         }
 
-        private void UpdateModel<T>(string propertyName,T propertyValue)
+        private void UpdateModel<T>(string propertyName, T propertyValue)
         {
             PropertyInfo[] propertyInfos = this.GetType().GetProperties();
             for (int i = 0; i < propertyInfos.Length; i++)
@@ -111,7 +109,7 @@ namespace UniVue.Model
                 {
                     if (propertyInfos[i].PropertyType.IsEnum)
                     {
-                        propertyInfos[i].SetValue(this, Enum.ToObject(propertyInfos[i].PropertyType,propertyValue));
+                        propertyInfos[i].SetValue(this, Enum.ToObject(propertyInfos[i].PropertyType, propertyValue));
                     }
                     else
                     {

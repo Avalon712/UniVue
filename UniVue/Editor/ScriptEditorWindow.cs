@@ -16,7 +16,8 @@ namespace UniVue.Editor
         public enum BindableModelType
         {
             BaseModel,
-            UnityModel
+            ScriptableModel,
+            UnityModel,
         }
 
         private BindableModelType _bindableModelType;

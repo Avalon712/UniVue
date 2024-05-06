@@ -107,7 +107,7 @@ namespace UniVue.View
         /// </summary>
         /// <param name="viewName">视图名称</param>
         /// <param name="top">是否将打开的视图置于同级视图最前方</param>
-        public void Open(string viewName,bool top=false)
+        public void Open(string viewName,bool top=true)
         {
             IView opening = GetView(viewName);
 

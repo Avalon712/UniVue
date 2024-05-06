@@ -35,20 +35,22 @@ namespace UniVue.Evt
 
             for (int i = 0; i < propertyInfos.Length; i++)
             {
+                PropertyInfo propertyInfo = propertyInfos[i];
+
                 for (int j = 0; j < args.Length; j++)
                 {
-                    if (args[j].ArgumentName == propertyInfos[i].Name)
+                    if (args[j].ArgumentName == propertyInfo.Name)
                     {
                         object value = args[j].GetArgumentValue();
-                        if (value.GetType() != propertyInfos[j].PropertyType)
+                        if (value.GetType() != propertyInfo.PropertyType)
                         {
 #if UNITY_EDITOR
-                            LogUtil.Warning($"尝试为类型为{instance.GetType()}的对象进行属性赋值时: 属性名为{propertyInfos[i].Name}的类型为{propertyInfos[i].PropertyType}，与UI返回的事件参数类型{value.GetType()}不一致，无法正确赋值!");
+                            LogUtil.Warning($"尝试为类型为{instance.GetType()}的对象进行属性赋值时: 属性名为{propertyInfo.Name}的类型为{propertyInfos[i].PropertyType}，与UI返回的事件参数类型{value.GetType()}不一致，无法正确赋值!");
 #endif
                         }
                         else
                         {
-                            propertyInfos[j].SetValue(instance, value);
+                            propertyInfo.SetValue(instance, value);
                         }
                     }
                 }
