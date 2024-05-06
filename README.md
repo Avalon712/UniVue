@@ -82,6 +82,10 @@ BaseModel实现了IUIUpdater, IModelUpdater接口。所有能被进行数据绑�
 
 作用同BaseModel，与BaseModel不同的是，UnityModel继承了MonoBehaviour
 
+### 8.ScriptableModel : ScriptableObject, IBindableMode
+
+作用同BaseModel，与BaseModel不同的是，ScriptableModel 继承了ScriptableObject
+
 
 
 ## 三、ViewModel
