@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UniVue.Tween.Tweens;
 using UniVue.Utils;
+using System;
 
 namespace UniVue.Tween
 {
@@ -24,50 +25,50 @@ namespace UniVue.Tween
             {
                 case DefaultTween.PunchOpen:
                     duration = duration < 0 ? 1.6f : duration;
-                    PunchOpen(transform, duration);
-                    break;
+                    return PunchOpen(transform, duration);
+
                 case DefaultTween.QuickClose:
                     duration = duration < 0 ? 0.3f : duration;
-                    QuickClose(transform, duration);
-                    break;
+                    return QuickClose(transform, duration);
+
                 case DefaultTween.QuickOpen:
                     duration = duration < 0 ? 0.3f : duration;
-                    QuickOpen(transform, duration);
-                    break;
+                    return QuickOpen(transform, duration);
+
                 case DefaultTween.FromOffScreenLeftOpen:
                     duration = duration < 0 ? 1.1f : duration;
-                    FromOffScreenLeftOpen(transform, duration);
-                    break;
+                    return FromOffScreenLeftOpen(transform, duration);
+
                 case DefaultTween.FromOffScreenRightOpen:
                     duration = duration < 0 ? 1.1f : duration;
-                    FromOffScreenRightOpen(transform, duration);
-                    break;
+                    return FromOffScreenRightOpen(transform, duration);
+
                 case DefaultTween.FromOffScreenUpOpen:
                     duration = duration < 0 ? 1.1f : duration;
-                    FromOffScreenUpOpen(transform, duration);
-                    break;
+                    return FromOffScreenUpOpen(transform, duration);
+
                 case DefaultTween.FromOffScreenDownOpen:
                     duration = duration < 0 ? 1.1f : duration;
-                    FromOffScreenDownOpen(transform, duration);
-                    break;
+                    return FromOffScreenDownOpen(transform, duration);
+
                 case DefaultTween.ToOffScreenLeftClose:
                     duration = duration < 0 ? 1.1f : duration;
-                    ToOffScreenLeftClose(transform, duration);
-                    break;
+                    return ToOffScreenLeftClose(transform, duration);
+
                 case DefaultTween.ToOffScreenRightClose:
                     duration = duration < 0 ? 1.1f : duration;
-                    ToOffScreenRightClose(transform, duration);
-                    break;
+                    return ToOffScreenRightClose(transform, duration);
+
                 case DefaultTween.ToOffScreenUpClose:
                     duration = duration < 0 ? 1.1f : duration;
-                    ToOffScreenUpClose(transform, duration);
-                    break;
+                    return ToOffScreenUpClose(transform, duration);
+
                 case DefaultTween.ToOffScreenDownClose:
                     duration = duration < 0 ? 1.1f : duration;
-                    ToOffScreenDownClose(transform, duration);
-                    break;
+                    return ToOffScreenDownClose(transform, duration);
             }
-            return null;
+
+            throw new NotSupportedException("不被支持的默认UI动画！");
         }
 
         /// <summary>
@@ -76,7 +77,7 @@ namespace UniVue.Tween
         public static TweenTask PunchOpen(Transform transform, float duration = 1.6f)
         {
             transform.localScale = new Vector3(0.5f, 0.5f, 1);
-            SetGameObjectActive(transform.gameObject, true);
+            SetGameObjectState(transform.gameObject, true);
             return TweenBehavior.DoLocalScale(transform,duration, Vector3.one, TweenEase.OutElastic);
         }
 
@@ -86,7 +87,7 @@ namespace UniVue.Tween
         public static TweenTask QuickOpen(Transform transform, float duration = 0.3f)
         {
             transform.localScale = new Vector3(0.5f, 0.5f, 1);
-            SetGameObjectActive(transform.gameObject, true);
+            SetGameObjectState(transform.gameObject, true);
             return TweenBehavior.DoLocalScale(transform, duration, Vector2.one, TweenEase.OnePunch);
         }
 
@@ -95,10 +96,10 @@ namespace UniVue.Tween
         /// </summary>
         public static TweenTask QuickClose(Transform transform, float duration = 0.3f)
         {
-            SetGameObjectActive(transform.gameObject, true);
+            SetGameObjectState(transform.gameObject, true);
             return TweenBehavior.DoLocalScale(transform, duration, new Vector3(0.5f, 0.5f, 1), TweenEase.OnePunch).Call(() =>
             {
-                SetGameObjectActive(transform.gameObject, false); transform.localScale = Vector3.one;
+                SetGameObjectState(transform.gameObject, false); transform.localScale = Vector3.one;
             });
         }
 
@@ -177,7 +178,7 @@ namespace UniVue.Tween
         {
             RectTransform rectTransform = transform.GetComponent<RectTransform>();
             Vector3 targetWorldPos = CalculateScreenEdgeWorldPos(rectTransform, dir);
-            SetGameObjectActive(transform.gameObject, true);
+            SetGameObjectState(transform.gameObject, true);
 
             if (dir == Direction.Left || dir == Direction.Right)
             {
@@ -201,33 +202,33 @@ namespace UniVue.Tween
         /// <returns>TweenTask</returns>
         private static TweenTask ToOffScreenClose(Transform transform, Direction dir, float duration)
         {
-            SetGameObjectActive(transform.gameObject, true);
+            SetGameObjectState(transform.gameObject, true);
             RectTransform rectTransform = transform.GetComponent<RectTransform>();
             Vector3 targetWorldPos = CalculateScreenEdgeWorldPos(rectTransform, dir);
-
+            
+            Vector3 startPos = transform.position;
+            
             if (dir == Direction.Left || dir == Direction.Right)
             {
-                float start = transform.position.x;
                 return TweenBehavior.DoMoveX(transform, duration, targetWorldPos.x, TweenEase.OutExp).Call(() =>
                 {
-                    SetGameObjectActive(transform.gameObject, false);
-                    transform.position = new Vector3(start, transform.position.y, transform.position.z);
+                    SetGameObjectState(transform.gameObject, false);
+                    transform.position = startPos;
                 });
             }
             else
             {
-                float start = transform.position.y;
                 return TweenBehavior.DoMoveY(transform, duration, targetWorldPos.y, TweenEase.OutExp).Call(() =>
                 {
-                    SetGameObjectActive(transform.gameObject, false);
-                    transform.position = new Vector3(transform.position.x, start, transform.position.z);
+                    SetGameObjectState(transform.gameObject, false);
+                    transform.position = startPos;
                 });
             }
         }
 
 
 
-        private static void SetGameObjectActive(GameObject obj,bool state)
+        private static void SetGameObjectState(GameObject obj,bool state)
         {
             if(state != obj.activeSelf)
             {

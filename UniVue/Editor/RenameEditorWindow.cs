@@ -114,7 +114,8 @@ namespace UniVue.Editor
                     }
 
                     //当前GameObject能被标记@的条件是：当前GameoObject匹配不成功但是其后代有匹配成功的
-                    if (!tuple.Item2 && !allNoMatch) { tuple.Item1.name = '@' + tuple.Item1.name; }
+                    //如果当前是视图对象（以View结尾的GameObject的名称也不要特殊命名）
+                    if (!tuple.Item2 && !allNoMatch && !tuple.Item1.name.EndsWith("View")) { tuple.Item1.name = '@' + tuple.Item1.name; }
                 }
             }
             

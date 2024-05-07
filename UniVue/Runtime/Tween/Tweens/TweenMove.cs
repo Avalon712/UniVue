@@ -37,7 +37,7 @@ namespace UniVue.Tween.Tweens
             _time = (_time+=deltaTime) >= _duration ? _duration : _time;
 
             //是否执行完
-            bool executed = _time == _duration;
+            bool executed = _time >= _duration;
 
             _pos.x = TweenComputer.Compute(_ease, _time, _duration, _startPos.x, _endPos.x - _startPos.x);
             _pos.y = TweenComputer.Compute(_ease, _time, _duration, _startPos.y, _endPos.y - _startPos.y);

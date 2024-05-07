@@ -39,13 +39,14 @@ namespace UniVue.View
             //先加载所有没有父视图的视图
             for (int j = 0; j < views.Count; j++)
             {
-                views[j].viewObject = PrefabCloneUtil.Clone(views[j].viewObjectPrefab, canvas);
+                views[j].viewObject = PrefabCloneUtil.RectTransformClone(views[j].viewObjectPrefab, canvas.transform);
                 //加载子视图
                 if (views[j].nestedViews != null)
                 {
                     BaseView[] nestedViews = views[j].nestedViews;
                     for (int k = 0; k < nestedViews.Length; k++)
                     {
+                        //注：这儿找嵌套视图时是通过viewName来进行查找的，因此要保证嵌套视图的名称与视图对象（ViewObject）的名称保证一致
                         GameObject nestedViewObject = GameObjectFindUtil.BreadthFindSelf(nestedViews[k].name, views[j].viewObject);
                         if(nestedViewObject == null)
                         {
@@ -60,6 +61,7 @@ namespace UniVue.View
                     }
                 }
             }
+
 
             //按order进行排序
             views.Sort((v1, v2) => v1.order - v2.order); //升序

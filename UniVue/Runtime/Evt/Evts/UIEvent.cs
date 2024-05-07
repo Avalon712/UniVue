@@ -22,7 +22,8 @@ namespace UniVue.Evt.Evts
 
         public UIEvent(string viewName,string eventName)
         {
-            ViewName = viewName; EventName = eventName;
+            ViewName = viewName;
+            EventName = eventName;
             //交给EventManger管理
             Vue.Event.AddUIEvent(this);
         }

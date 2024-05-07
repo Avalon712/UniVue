@@ -96,7 +96,7 @@ namespace UniVue.Editor
             }
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("取消所有Image组件的Raycast Target属性"))
+            if (GUILayout.Button("勾选所有Image组件的Raycast Target属性"))
             {
                 if (_objects!=null)
                 {
@@ -107,7 +107,7 @@ namespace UniVue.Editor
                         {
                             if (!ContainsCtrlUI(imgs[j]))
                             {
-                                imgs[j].raycastTarget = false;
+                                imgs[j].raycastTarget = true;
                             }
                         }
                     }

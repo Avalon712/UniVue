@@ -44,7 +44,7 @@ namespace UniVue.Tween.Tweens
 
         public TweenTask Call(Action callback)
         {
-            _OnComplete = callback;
+            _OnComplete += callback;
             return this;
         }
 

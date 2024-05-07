@@ -156,7 +156,7 @@ namespace UniVue.View
             }
 
             //6.检验是否为System级别 是则关闭上一次打开的System级别再打开当前
-            if (opening.level == ViewLevel.System && opened.level == ViewLevel.System)
+            if (opened!=null && opening.level == ViewLevel.System && opened.level == ViewLevel.System)
             {
                 Close(opened.name);
             }
@@ -206,7 +206,8 @@ namespace UniVue.View
             }
 
             //1.检查当前视图是否以及处于关闭状态
-            if (!closing.state) { return; }
+            //2.检查是否为Permanent级别
+            if (!closing.state || closing.level == ViewLevel.Permanent) { return; }
 
             //2.视图级别检查
             if(closing.level == ViewLevel.Permanent || closing.level == ViewLevel.Transient)
@@ -310,6 +311,7 @@ namespace UniVue.View
                 view.OnUnload();
             }
             _views.Clear();
+            _histories.Clear();
         }
 
         /// <summary>

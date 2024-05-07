@@ -28,7 +28,7 @@ namespace UniVue.Tween.Tweens
             _time = (_time += deltaTime) >= _duration ? _duration : _time;
 
             //是否执行完
-            bool executed = _time == _duration;
+            bool executed = _time >= _duration;
 
             Color color = _image.color;
             color.a = TweenComputer.Compute(_ease, _time, _duration, _startColor.a, _endColor.a - _startColor.a);

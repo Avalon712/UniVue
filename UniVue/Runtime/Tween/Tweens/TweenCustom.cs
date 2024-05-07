@@ -25,7 +25,7 @@ namespace UniVue.Tween.Tweens
             //计算时间 保证最后一帧的位置完全匹配
             _time = (_time += deltaTime) >= _duration ? _duration : _time;
 
-            bool executed = _time == _duration;
+            bool executed = _time >= _duration;
             _tween(_time,_loopNum,_pingPong);
 
             //检查loop 和 pingpong

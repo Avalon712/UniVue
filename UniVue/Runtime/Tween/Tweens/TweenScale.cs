@@ -27,7 +27,7 @@ namespace UniVue.Tween.Tweens
             _time = (_time += deltaTime) >= _duration ? _duration : _time;
 
             //是否执行完
-            bool executed = _time == _duration;
+            bool executed = _time >= _duration;
 
             Vector3 localScale = _transform.localScale;
             localScale.x = TweenComputer.Compute(_ease, _time, _duration, _startScale.x, _endScale.x - _startScale.x);

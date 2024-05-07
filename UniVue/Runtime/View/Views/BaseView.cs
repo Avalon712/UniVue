@@ -24,6 +24,8 @@ namespace UniVue.View.Views
             /// 当前视图状态
             /// </summary>
             public bool state;
+            public bool isOpening;
+            public bool isClosing;
         }
 
         private RuntimeData _runtime;
@@ -249,21 +251,25 @@ namespace UniVue.View.Views
                 return;
             }
 
+            if (_runtime.isOpening || _runtime.isClosing) { return; }
+
+            state = true; //设置为打开状态
+
             if (openTween == DefaultTween.None)
             {
                 viewObject.SetActive(true);
             }
             else
             {
-                DefaultViewTweens.ExecuteTween(viewObject.transform, openTween, openDuration);
+                _runtime.isOpening = true;
+                DefaultViewTweens.ExecuteTween(viewObject.transform, openTween, openDuration)
+                    .Call(() => { _runtime.isOpening = false; }); //动画完成后才设置为开状态
             }
 
             if (viewLevel == ViewLevel.Transient)
             {
                 TweenBehavior.Timer(Close).Delay(transientTime);
             }
-
-            state = true; //设置为打开状态
         }
 
         /// <summary>
@@ -279,17 +285,20 @@ namespace UniVue.View.Views
                 return;
             }
 
+            if (_runtime.isClosing || _runtime.isOpening) { return; }
+
+            state = false;
+
             if (closeTween == DefaultTween.None)
             {
                 viewObject.SetActive(false);
             }
             else
             {
-
-                DefaultViewTweens.ExecuteTween(viewObject.transform, closeTween, closeDuration);
+                _runtime.isClosing = true;
+                DefaultViewTweens.ExecuteTween(viewObject.transform, closeTween, closeDuration)
+                    .Call(() => { _runtime.isClosing = false; }); //动画完成后才设置为关状态
             }
-
-            state = false; //设置为关闭状态
         }
 
         #endregion
