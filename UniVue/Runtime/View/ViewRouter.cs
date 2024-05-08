@@ -61,7 +61,7 @@ namespace UniVue.View
             return null;
         }
 
-        internal void AddView(IView view, List<CustomTuple<Component, UIType>> uis)
+        internal void AddView(IView view)
         {
             if (_views.ContainsKey(view.name))
             {
@@ -72,8 +72,9 @@ namespace UniVue.View
             }
 
             _views.Add(view.name, view);
+
             //如果当前视图的初始状态处于打开状态
-            if (view.state && view.level!=ViewLevel.Permanent) 
+            if (view.state && view.level != ViewLevel.Permanent) 
             { 
                 ListUtil.AddButNoOutOfCapacity(_histories, view.name);
             }
@@ -97,7 +98,7 @@ namespace UniVue.View
         public void Return()
         {
             string newestClosedView = CurrentClosedView();
-            string newestOpendView = CurrentOpendView();
+            string newestOpendView = CurrentOpenedView();
             if (newestClosedView != null) { Open(newestClosedView); }
             if (newestOpendView != null) { Close(newestOpendView); }
         }
@@ -113,7 +114,7 @@ namespace UniVue.View
 
             if (opening == null) {
 #if UNITY_EDITOR
-                LogUtil.Info($"未找到名称为{viewName}的视图进行打开操作，不存在这个名称的视图！");
+                LogUtil.Warning($"未找到名称为{viewName}的视图进行打开操作，不存在这个名称的视图！");
 #endif
                 return; 
             }
@@ -123,11 +124,11 @@ namespace UniVue.View
             if (opening.state || opening.level == ViewLevel.Permanent) { return; }
 
             //3.检验当前是否有一个ForbidOpenOther的视图被打开 
-            IView opened = GetView(CurrentOpendView()); //当前被打开的视图
+            IView opened = GetView(CurrentOpenedView()); //当前被打开的视图
             if (opened != null && opened.forbid)
             {
 #if UNITY_EDITOR
-                LogUtil.Info($"当前被打开的视图viewName={opened.name}禁止打开viewName={viewName}的视图，无法再打开其它视图，除非关闭它");
+                LogUtil.Warning($"当前被打开的视图viewName={opened.name}禁止打开viewName={viewName}的视图，无法再打开其它视图，除非关闭它");
 #endif
                 return;
             }
@@ -139,7 +140,7 @@ namespace UniVue.View
                 if (!GetView(masterViewName).state)
                 {
 #if UNITY_EDITOR
-                    LogUtil.Info($"名称为{viewName}的视图已被关联到一个{masterViewName}的视图，而它没有被打开，因此无法打开{opening.name}视图!");
+                    LogUtil.Warning($"名称为{viewName}的视图已被关联到一个{masterViewName}的视图，而它没有被打开，因此无法打开{opening.name}视图!");
 #endif
                     return;
                 }
@@ -150,17 +151,43 @@ namespace UniVue.View
             if (!string.IsNullOrEmpty(rootViewName) && !GetView(rootViewName).state)
             {
 #if UNITY_EDITOR
-                LogUtil.Info($"当前打开的视图与名称为{rootViewName}的视图存在父子关系，而此视图的父视图没有被打开，因此无法打开{viewName}视图!");
+                LogUtil.Warning($"当前打开的视图与名称为{rootViewName}的视图存在父子关系，而此视图的父视图没有被打开，因此无法打开{viewName}视图!");
 #endif
                 return;
             }
 
-            //6.检验是否为System级别 是则关闭上一次打开的System级别再打开当前
-            if (opened!=null && opening.level == ViewLevel.System && opened.level == ViewLevel.System)
+            //6.System级别视图的打开逻辑
+            if (opening.level == ViewLevel.System)
             {
-                Close(opened.name);
-            }
+                //6.1如果当前打开的系统级别的视图有根视图，则只能关闭相同根视图的系统级别视图
+                if (!string.IsNullOrEmpty(opening.root))
+                {
+                    for (int i = 0; i < _histories.Count; i++)
+                    {
+                        IView view = GetView(_histories[i]);
+                        if(view.state && view.level == ViewLevel.System && view.root == opening.root)
+                        {
+                            Close(view.name);
+                            break;
+                        }
+                    }
+                }
 
+                //6.2如果当前打开的系统级别的视图没有有根视图，则只能关闭上一个打开的同样没有根视图的系统级别视图
+                else
+                {
+                    for (int i = 0; i < _histories.Count; i++)
+                    {
+                        IView view = GetView(_histories[i]);
+                        if (view.state && view.level == ViewLevel.System && string.IsNullOrEmpty(view.root))
+                        {
+                            Close(view.name);
+                            break;
+                        }
+                    }
+                }
+            }
+            
             //7.将其设置为最后一个子物体，保证被打开的视图能被显示
             if (top)
             {
@@ -182,6 +209,8 @@ namespace UniVue.View
             //12.加入历史记录中，只有不为瞬态的视图才加入
             if (opening.level != ViewLevel.Transient)
             {
+                //如果当前历史记录里面已经有过其记录，则先移除再添加
+                if (_histories.Contains(viewName)) { _histories.Remove(viewName); }
                 ListUtil.AddButNoOutOfCapacity(_histories, viewName);
             }
 
@@ -200,7 +229,7 @@ namespace UniVue.View
             if (closing == null)
             {
 #if UNITY_EDITOR
-                LogUtil.Info($"未找到名称为{viewName}的视图进行关闭操作，不存在这个名称的视图！");
+                LogUtil.Warning($"未找到名称为{viewName}的视图进行关闭操作，不存在这个名称的视图！");
 #endif
                 return;
             }
@@ -213,7 +242,7 @@ namespace UniVue.View
             if(closing.level == ViewLevel.Permanent || closing.level == ViewLevel.Transient)
             {
 #if UNITY_EDITOR
-                LogUtil.Info($"不能关闭一个视图级别为{closing.level}的视图!");
+                LogUtil.Warning($"不能关闭一个视图级别为{closing.level}的视图!");
 #endif
                 return;
             }
@@ -225,7 +254,7 @@ namespace UniVue.View
                 if (!master.state)
                 {
 #if UNITY_EDITOR
-                    LogUtil.Info($"当前视图{closing.name}已被{master.name}所关联，而{master.name}未被打开，因此无法进行关闭操作");
+                    LogUtil.Warning($"当前视图{closing.name}已被{master.name}所关联，而{master.name}未被打开，因此无法进行关闭操作");
 #endif
                     return;
                 }
@@ -263,7 +292,7 @@ namespace UniVue.View
         /// 获取当前最新被打开的视图
         /// </summary>
         /// <returns>最新被打开的视图名称</returns>
-        public string CurrentOpendView()
+        public string CurrentOpenedView()
         {
             if (_histories.Count > 0) {
                 for (int i = _histories.Count-1; i >= 0; i--)
@@ -343,24 +372,24 @@ namespace UniVue.View
                         btn.onClick.AddListener(() => Skip(currentViewName, viewName));
                     }
                 }
-                else if (uis[i].Item2 == UIType.Toggle)
+                else if (uis[i].Item2 == UIType.Toggle || uis[i].Item2 == UIType.ToggleGroup)
                 {
                     Toggle toggle = uis[i].Item1 as Toggle;
-                    string btnName = toggle.name;
+                    string toggleName = toggle.name;
                     string viewName;
-                    if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouterEvent.Close, out viewName))
+                    if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouterEvent.Close, out viewName))
                     {
                         toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Close(viewName); } });
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouterEvent.Open, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouterEvent.Open, out viewName))
                     {
                         toggle.onValueChanged.AddListener((isOn) => { if (isOn) {  Open(viewName); } });
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouterEvent.Return, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouterEvent.Return, out viewName))
                     {
                         toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Return(); } });
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouterEvent.Skip, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouterEvent.Skip, out viewName))
                     {
                         toggle.onValueChanged.AddListener((isOn) => { if (isOn) {  Skip(currentViewName, viewName); } });
                     }

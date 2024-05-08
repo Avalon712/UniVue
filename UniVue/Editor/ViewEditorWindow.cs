@@ -81,6 +81,9 @@ namespace UniVue.Editor
                 case ViewType.GridView:
                     ViewBuilderInEditor.CreateGridViewConfig(_configFileName, _saveDirectory);
                     break;
+                case ViewType.TipView:
+                    ViewBuilderInEditor.CreateTipViewConfig(_configFileName, _saveDirectory);
+                    break;
             }
 
             return true;
@@ -172,5 +175,6 @@ namespace UniVue.Editor
         BaseView,
         ListView,
         GridView,
+        TipView,
     }
 }

@@ -78,9 +78,9 @@ Model层的实现基类是BaseModel，基类中提供了基于反射来显示模
 
 BaseModel实现了IUIUpdater, IModelUpdater接口。所有能被进行数据绑定的数据对象都应该继承自改类。
 
-### 7.UnityModel : MonoBehaviour, IBindableModel
+### 7.MonoModel : MonoBehaviour, IBindableModel
 
-作用同BaseModel，与BaseModel不同的是，UnityModel继承了MonoBehaviour
+作用同BaseModel，与BaseModel不同的是，MonoModel继承了MonoBehaviour
 
 ### 8.ScriptableModel : ScriptableObject, IBindableMode
 

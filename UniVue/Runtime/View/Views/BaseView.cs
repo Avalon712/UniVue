@@ -172,10 +172,11 @@ namespace UniVue.View.Views
             _runtime.state = initState;
             SetDraggable(draggable);
             viewObject.SetActive(initState || viewLevel == ViewLevel.Permanent);
+
+            //将当前视图对象交给ViewRouter管理
+            Vue.Router.AddView(this);
             //获取所有的ui组件
             var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject,this);
-            //将当前视图对象交给ViewRouter管理
-            Vue.Router.AddView(this, uis);
             //构建UIEvent
             UIEventBuilder.Build(viewName, uis);
             //处理路由事件

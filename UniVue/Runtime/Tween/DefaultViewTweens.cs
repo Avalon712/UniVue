@@ -246,6 +246,8 @@ namespace UniVue.Tween
         public static Vector3 CalculateScreenEdgeWorldPos(RectTransform rectTransform,Direction dir)
         {
             Vector3 worldPos;
+            
+            float offset = 200; //偏移位置量
 
             //获取UI在屏幕空间中的坐标
             Vector2 screenPos = Camera.main.WorldToScreenPoint(rectTransform.position);
@@ -255,16 +257,16 @@ namespace UniVue.Tween
             switch (dir)
             {
                 case Direction.Left:
-                    targetScreenPos = new Vector2(-rectTransform.rect.width/2, screenPos.y);
+                    targetScreenPos = new Vector2(-rectTransform.rect.width/2- offset, screenPos.y);
                     break;
                 case Direction.Right:
-                    targetScreenPos = new Vector2(Screen.width+rectTransform.rect.width/2, screenPos.y);
+                    targetScreenPos = new Vector2(Screen.width+rectTransform.rect.width/2+ offset, screenPos.y);
                     break;
                 case Direction.Up:
-                    targetScreenPos = new Vector2(screenPos.x,Screen.height+rectTransform.rect.height/2);
+                    targetScreenPos = new Vector2(screenPos.x,Screen.height+rectTransform.rect.height/2+ offset);
                     break;
                 case Direction.Down:
-                    targetScreenPos = new Vector2(screenPos.x,-rectTransform.rect.height/2);
+                    targetScreenPos = new Vector2(screenPos.x,-rectTransform.rect.height/2- offset);
                     break;
             }
 

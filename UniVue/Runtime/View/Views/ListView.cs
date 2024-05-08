@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
-using UniVue.ViewModel;
 using static UnityEngine.UI.ScrollRect;
 
 namespace UniVue.View.Views
@@ -23,6 +22,7 @@ namespace UniVue.View.Views
             public List<IBindableModel> models;
             public int head, trail; //数据头尾指针
             public bool isDirty;
+            public bool flag;//标志当前所有的Item是否都已经生成UIBundle了
         }
 
         private RuntimeData _runtime;
@@ -50,7 +50,7 @@ namespace UniVue.View.Views
         /// 相连两个item在滚动方向上的距离
         /// </summary>
         [Header("相连两个item在滚动方向上的位置差")]
-        [Tooltip("垂直方向滚动: upItem.localPos.y-downItem.localPos.y 水平方向滚动:leftItem.localPos.x-rightItem.localPos.x")]
+        [Tooltip("垂直方向滚动: upItem.localPos.y-downItem.localPos.y 水平方向滚动:rightItem.localPos.x-leftItem.localPos.x")]
         [SerializeField] internal float distance;
 
         #endregion
@@ -94,7 +94,7 @@ namespace UniVue.View.Views
                 return;
             }
 
-            _runtime.models = new List<IBindableModel>();
+            _runtime.models = new List<IBindableModel>(data.Count);
             for (int i = 0; i < data.Count; i++) { _runtime.models.Add(data[i]); }
 
             //创建Item
@@ -112,10 +112,13 @@ namespace UniVue.View.Views
                 //数据渲染
                 if (_runtime.trail < data.Count)
                 {
-                    dynamicView.BindModel(data[_runtime.trail++]);
+                    dynamicView.BindModel(data[_runtime.trail]);
+                    data[_runtime.trail++].NotifyAll();
                 }
                 else
                 {
+                    //这一步是为了生成UIBundle，以此使用RebindModel()函数
+                    if (data.Count > 0) { dynamicView.BindModel(data[0]);_runtime.flag = true; }
                     itemRectTrans.gameObject.SetActive(false);
                 }
             }
@@ -144,6 +147,17 @@ namespace UniVue.View.Views
         /// <param name="newData">新加入的数据</param>
         public void AddData<T>(T newData) where T : IBindableModel
         {
+            //如果当前所有的Item都还没有生成UIBundle则先生成UIBundle
+            if (!_runtime.flag)
+            {
+                _runtime.flag = true;
+                Transform content = _runtime.scrollRect.content;
+                for (int i = 0; i < content.childCount; i++)
+                {
+                    Vue.Router.GetView(content.GetChild(i).name).BindModel(newData);
+                }
+            }
+
             if (!_runtime.models.Contains(newData))
             {
                 _runtime.models.Add(newData);
@@ -268,6 +282,7 @@ namespace UniVue.View.Views
         private void Rebind(string itemName, IBindableModel model)
         {
             Vue.Router.GetView(itemName).RebindModel(model);
+            model.NotifyAll();
         }
 
         /// <summary>

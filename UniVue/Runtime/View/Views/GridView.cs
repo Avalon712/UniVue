@@ -21,6 +21,7 @@ namespace UniVue.View.Views
             public int head, trial;
             public List<IBindableModel> models;
             public bool isDirty; //当数据被修改时，设为true===>Refresh
+            public bool flag;//标志当前所有的Item是否都已经生成UIBundle了
         }
 
         #region 配置信息
@@ -93,7 +94,7 @@ namespace UniVue.View.Views
                 return;
             }
 
-            _runtime.models = new List<IBindableModel>();
+            _runtime.models = new List<IBindableModel>(data.Count);
             for (int i = 0; i < data.Count; i++) { _runtime.models.Add(data[i]); }
 
             CreateItems();
@@ -111,10 +112,13 @@ namespace UniVue.View.Views
 
                 if (_runtime.trial < data.Count)
                 {
-                    dynamicView.BindModel(data[_runtime.trial++]);
+                    dynamicView.BindModel(data[_runtime.trial]);
+                    data[_runtime.trial++].NotifyAll();
                 }
                 else
                 {
+                    //这一步是为了生成UIBundle，以此使用RebindModel()函数
+                    if (data.Count > 0) { dynamicView.BindModel(data[0]); _runtime.flag = true; }
                     itemRect.gameObject.SetActive(false);
                 }
             }
@@ -140,6 +144,17 @@ namespace UniVue.View.Views
         /// <param name="newData">新加入的数据</param>
         public void AddData<T>(T newData) where T : IBindableModel
         {
+            //如果当前所有的Item都还没有生成UIBundle则先生成UIBundle
+            if (!_runtime.flag)
+            {
+                _runtime.flag = true;
+                Transform content = _runtime.scrollRect.content;
+                for (int i = 0; i < content.childCount; i++)
+                {
+                    Vue.Router.GetView(content.GetChild(i).name).BindModel(newData);
+                }
+            }
+
             _runtime.isDirty = !_runtime.models.Contains(newData);
             if (_runtime.isDirty)
             {
@@ -188,8 +203,7 @@ namespace UniVue.View.Views
             _runtime.head = 0;
             _runtime.trial = 0;
             Transform content = _runtime.scrollRect.content;
-            int len = content.childCount;
-            for (int i = 0; i < len; i++)
+            for (int i = 0; i < content.childCount; i++)
             {
                 GameObject itemObj = content.GetChild(i).gameObject;
                 if (_runtime.trial < _runtime.models.Count)
@@ -198,7 +212,8 @@ namespace UniVue.View.Views
                     {
                         itemObj.SetActive(true);
                     }
-                    Vue.Router.GetView(itemObj.name).RebindModel(_runtime.models[_runtime.trial++]);
+                    Vue.Router.GetView(itemObj.name).RebindModel(_runtime.models[_runtime.trial]);
+                    _runtime.models[_runtime.trial++].NotifyAll();
                 }
                 else
                 {
@@ -208,6 +223,7 @@ namespace UniVue.View.Views
             --_runtime.trial;
             _runtime.isDirty = false;
         }
+
 
         /// <summary>
         /// 重新计算content的大小

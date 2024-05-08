@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UniVue.Evt;
 using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
@@ -33,11 +34,14 @@ namespace UniVue.View.Views
             name = viewName;
             this.level = level;
 
+            //将当前视图对象交给ViewRouter管理
+            Vue.Router.AddView(this);
             //获取所有的ui组件
             var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
-            //将当前视图对象交给ViewRouter管理
-            Vue.Router.AddView(this, uis);
-
+            //构建UIEvent
+            UIEventBuilder.Build(viewName, uis);
+            //处理路由事件
+            Vue.Router.BindRouteEvt(viewName, uis);
             //调用函数
             OnLoad();
         }

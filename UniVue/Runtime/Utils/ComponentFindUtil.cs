@@ -3,7 +3,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UniVue.View.Views;
-using static Unity.Burst.Intrinsics.X86.Avx;
 
 namespace UniVue.Utils
 {
@@ -19,10 +18,10 @@ namespace UniVue.Utils
         public static List<CustomTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject,IView view=null)
         {
             //广度式搜索
-            Queue<Transform> parents = new Queue<Transform>();
+            Queue<Transform> queue = new Queue<Transform>();
             Transform root = gameObject.transform;
             List<CustomTuple<Component, UIType>> results = new();
-            parents.Enqueue(root);
+            queue.Enqueue(root);
 
             //获取视图的所有嵌套视图
             List<IView> nestedViews = null;
@@ -38,31 +37,44 @@ namespace UniVue.Utils
                 }
             }
 
-            while (parents.Count > 0)
+            //如果当前视图类型为ListView、GridView类型则跳过Content下的所有GameObject
+            //原因：ListView、GridView中Content下的每个子物体都将被创建一个DynamicView的视图,防止重复
+            Transform content = null;
+            if(view!=null && (view is ListView || view is GridView))
             {
-                Transform transform = parents.Dequeue();
+                content = ComponentFindUtil.BreadthFind<ScrollRect>(view.viewObject).content;
+            }
+
+            while (queue.Count > 0)
+            {
+                Transform transform = queue.Dequeue();
 
                 for (int i = 0; i < transform.childCount; i++)
                 {
                     Transform child = transform.GetChild(i);
 
-                    //检查当前chid是否嵌套视图的viewObject
-                    //如果当前chid是viewObject则跳过
-                    if(nestedViews != null)
-                    {
-                        for (int j = 0; j < nestedViews.Count; j++)
-                        {
-                            if(child.gameObject == nestedViews[j].viewObject) { continue;}
-                        }
-                    }
+                    //如果当前视图类型为ListView、GridView类型则跳过Content下的所有GameObject
+                    if (content != null && child == content) { continue; }
 
                     //排除开以字符~开头的GameObject
                     //被'~'标记的GameObject及其后代都不会被进行组件查找
                     if (child.name.StartsWith('~')) { continue; }
 
+                    //检查当前chid是否嵌套视图的viewObject
+                    //如果当前chid是viewObject则跳过
+                    if (nestedViews != null)
+                    {
+                        bool flag = false;
+                        for (int j = 0; j < nestedViews.Count; j++)
+                        {
+                            if(child.gameObject == nestedViews[j].viewObject) { flag = true;break; }
+                        }
+                        if (flag) { continue; }
+                    }
+
                     if (child.childCount != 0) //叶子节点无需再入队
                     {
-                        parents.Enqueue(child);
+                        queue.Enqueue(child);
                     }
 
                     //排除以字符'@'开头的GameObject

@@ -25,8 +25,14 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(string propertyName, string propertyValue){ }
 
+        //为null时隐藏显示
         public override void UpdateUI(string propertyName, Sprite propertyValue)
         {
+            if(propertyValue == null) { _img.gameObject.SetActive(false); }
+            else
+            {
+                if (!_img.gameObject.activeSelf) { _img.gameObject.SetActive(true); }
+            }
             _img.sprite = propertyValue;
         }
 

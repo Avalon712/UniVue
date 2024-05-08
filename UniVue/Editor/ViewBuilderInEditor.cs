@@ -66,6 +66,17 @@ namespace UniVue.Editor
             }
         }
 
+        public static void CreateTipViewConfig(string fileName, string directory)
+        {
+            string path = $"{directory}{fileName}.asset";
+            BaseView config;
+            if (!Contains(path, out config))
+            {
+                config = ScriptableObject.CreateInstance<TipView>();
+                AssetDatabase.CreateAsset(config, path);
+            }
+        }
+
         private static bool Contains<T>(string path,out T config) where T : ScriptableObject
         {
             config = AssetDatabase.LoadAssetAtPath<T>(path);
