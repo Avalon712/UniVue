@@ -54,6 +54,7 @@ namespace UniVue.View.Views
                 var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
                 //模型到视图的绑定
                 Vue.Updater.BindViewAndModel(name, model, uis, modelName, allowUIUpdateModel);
+                model.NotifyAll();
             }
 #if UNITY_EDITOR
             else

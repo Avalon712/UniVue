@@ -78,8 +78,9 @@ namespace UniVue.Rule
             }
             else
             {
-                //视图事件的索引为1
-                return CheckRouterEventMatch(uiName.Split(" & ")[1], eventName, out viewName);
+                //视图事件的索引为倒数第二
+                string[] strs = uiName.Split(" & ");
+                return CheckRouterEventMatch(strs[strs.Length-2], eventName, out viewName);
             }
         }
 

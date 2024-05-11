@@ -148,6 +148,50 @@ BaseModel实现了IUIUpdater, IModelUpdater接口。所有能被进行数据绑�
 
 同GridView。与GridView不同的是提供了无限滚动的功能，GridView提供这个功能感觉没有什么应用场景就没有提供，之前有的，后来删掉了这个功能。
 
+### 6.TipView : BaseView
+
+用于显示打开提示消息的视图，只显示一段提示消息。打开此视图建议通过TipView提高的Open()方法来指定要显示的提示消息的内容，如下所示：
+
+```C#
+        /// <summary>
+        /// 打开当前的消息提示视图
+        /// </summary>
+        /// <param name="message">提示消息</param>
+        /// <param name="top">是否显示与顶部</param>
+        public void Open(string message,bool top=true)
+        {
+            _runtime.text.text = message;
+            Vue.Router.Open(name, top);
+        }
+```
+
+
+
+### 7.EnsuerTipView : BaseView
+
+可以进行交互，玩家选择"确认"、"取消"选项。打开此视图建议通过EnsureTipView提供的Open()方法进行打开，可以绑定点击确认按钮时的回调，点击取消按钮时的回调。注意，这些回调函数是一次性的，当视图关闭后会自动注销这些事件。
+
+```C#
+/// <summary>
+/// 打开此视图
+/// </summary>
+/// <remarks>注：事件绑定是暂时的，当视图关闭后会自动注销回调事件</remarks>
+/// <param name="title">消息的标题,可以为null</param>
+/// <param name="message">要显示的消息</param>
+/// <param name="sure">点击"确定"按钮时回调函数</param>
+/// <param name="cancel">点击"取消"按钮时回调函数</param>
+public void Open(string title,string message,UnityAction sure,UnityAction cancel)
+{
+    if (_runtime.title != null) { _runtime.title.text = title; }
+    _runtime.message.text = message;
+    if(sure != null) { _runtime.sureBtn.onClick.AddListener(sure); }
+    if(cancel != null) { _runtime.cancelBtn.onClick.AddListener(cancel); }
+    Vue.Router.Open(name);
+}
+```
+
+
+
 ### 6.ViewRouter
 
 这个类管理这所有的视图以及控制视图的打开、关闭行为。

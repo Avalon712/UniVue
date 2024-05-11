@@ -10,7 +10,7 @@ namespace UniVue.Utils
         /// <summary>
         /// 从自身开始查找一个指定名称的GameObject(深度优先)
         /// </summary>
-        public static GameObject DepthFindSelf(string name,GameObject self)
+        public static GameObject DepthFind(string name,GameObject self)
         {
             if (string.IsNullOrEmpty(name)) { return null; }
 
@@ -26,7 +26,7 @@ namespace UniVue.Utils
                 }
                 else
                 {
-                    GameObject obj = DepthFindSelf(name,curr);
+                    GameObject obj = DepthFind(name,curr);
                     if (obj != null) { return obj; }
                 }
             }
@@ -37,7 +37,7 @@ namespace UniVue.Utils
         /// <summary>
         /// 从自身开始查找一个指定名称的GameObject(广度优先)
         /// </summary>
-        public static GameObject BreadthFindSelf(string name,GameObject self)
+        public static GameObject BreadthFind(string name,GameObject self)
         {
             if (string.IsNullOrEmpty(name)) { return null; }
 
@@ -68,5 +68,45 @@ namespace UniVue.Utils
             return null;
         }
 
+        /// <summary>
+        /// 从自身开始查找多个指定名称的GameObject(广度优先)，不会进行全部遍历，一旦找到某个名字的GameObject，那么该GameObject下的所有GameObject都不会被进行查找
+        /// </summary>
+        /// <remarks>请不要查询名字重复的</remarks>
+        public static IEnumerable<GameObject> BreadthFind(GameObject self,params string[] names)
+        {
+            if(names == null) { yield return null; }
+            else
+            {
+                Queue<Transform> queue = new Queue<Transform>();
+                queue.Enqueue(self.transform);
+
+                Dictionary<string, bool> record = new Dictionary<string, bool>(names.Length);
+                for (int i = 0; i < names.Length; i++)
+                {
+                    if (!record.ContainsKey(names[i])) { record.Add(names[i], false); }
+                }
+                
+                while (queue.Count > 0)
+                {
+                    Transform transform = queue.Dequeue();
+
+                    for (int i = 0; i < transform.childCount; i++)
+                    {
+                        Transform child = transform.GetChild(i);
+                        if (record.ContainsKey(child.name) && !record[child.name])
+                        {
+                            record[child.name] = true;
+                            yield return child.gameObject;
+                        }
+                        else if (child.childCount != 0) //非叶子节点再入队
+                        {
+                            queue.Enqueue(child);
+                        }
+                    }
+                }
+
+                record.Clear();
+            }
+        }
     }
 }

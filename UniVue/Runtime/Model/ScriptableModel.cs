@@ -9,7 +9,6 @@ namespace UniVue.Model
         public void Bind(string viewName, bool allowUIUpdateModel = true)
         {
             Vue.Router.GetView(viewName).BindModel(this, allowUIUpdateModel);
-            NotifyAll();
         }
 
         /// <summary>

@@ -21,7 +21,7 @@ namespace UniVue.View
         internal ViewRouter() 
         {
             _views = new Dictionary<string, IView>();
-            _histories = new List<string>(5);
+            _histories = new List<string>(20);
         }
 
         /// <summary>

@@ -201,6 +201,7 @@ namespace UniVue.View.Views
                 var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
                 //模型到视图的绑定
                 Vue.Updater.BindViewAndModel(viewName, model, uis, modelName, allowUIUpdateModel);
+                model.NotifyAll();
             }
 #if UNITY_EDITOR
             else
@@ -311,7 +312,7 @@ namespace UniVue.View.Views
         {
             if (!draggable || string.IsNullOrEmpty(receiveDragInput)) { return; }
 
-            GameObject receiver = GameObjectFindUtil.BreadthFindSelf(receiveDragInput, viewObject);
+            GameObject receiver = GameObjectFindUtil.BreadthFind(receiveDragInput, viewObject);
             if (receiver == null) { receiver = viewObject; }
             DragInput.ReceiveInput(receiver, viewObject);
         }

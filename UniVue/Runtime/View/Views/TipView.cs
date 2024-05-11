@@ -19,7 +19,7 @@ namespace UniVue.View.Views
 
         public override void OnLoad()
         {
-            _runtime.text = GameObjectFindUtil.DepthFindSelf(content, viewObject).GetComponent<TMP_Text>();
+            _runtime.text = GameObjectFindUtil.DepthFind(content, viewObject).GetComponent<TMP_Text>();
            
             if (string.IsNullOrEmpty(content) || _runtime.text == null)
             {

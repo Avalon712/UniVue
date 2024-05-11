@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UniVue.Model;
 
 namespace UniVue.Utils
 {
@@ -40,6 +41,21 @@ namespace UniVue.Utils
                 list.Add(item);
             }
             else { list.Add(item); }
+        }
+
+        /// <summary>
+        /// 将target中的数据拷贝到source中，同时删掉source中原有的数据
+        /// </summary>
+        public static void Copy<T1, T2>(List<T1> source, List<T2> target) where T2 : T1
+        {
+            if (source.Count > target.Count)
+            {
+                source.RemoveRange(target.Count - 1, source.Count - target.Count);
+            }
+            for (int i = 0; i < target.Count; i++)
+            {
+                source.Insert(i, target[i]);
+            }
         }
     }
 }

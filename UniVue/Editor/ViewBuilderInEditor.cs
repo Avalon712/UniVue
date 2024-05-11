@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using UniVue.View.Config;
-using UniVue.View.Views;
 
 namespace UniVue.Editor
 {
@@ -19,6 +18,10 @@ namespace UniVue.Editor
                 AssetDatabase.CreateAsset(config, path);
                 config.sceneName = sceneName;
             }
+            else
+            {
+                Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
+            }
         }
 
         public static void CreateCanvasConfig(string fileName, string directory)
@@ -31,49 +34,24 @@ namespace UniVue.Editor
                 AssetDatabase.CreateAsset(config, path);
                 config.canvasName = fileName;
             }
-        }
-
-        public static void CreateViewConfig(string fileName,string directory)
-        {
-            string path = $"{directory}{fileName}.asset";
-            BaseView config;
-            if(!Contains(path,out config))
+            else
             {
-                config = ScriptableObject.CreateInstance<BaseView>();
-                AssetDatabase.CreateAsset(config, path);
+                Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
             }
         }
 
-        public static void CreateListViewConfig(string fileName, string directory)
+        public static void CreateViewConfig<V>(string fileName, string directory) where V : ScriptableObject
         {
             string path = $"{directory}{fileName}.asset";
-            ListView config;
+            V config;
             if (!Contains(path, out config))
             {
-                config = ScriptableObject.CreateInstance<ListView>();
+                config = ScriptableObject.CreateInstance<V>();
                 AssetDatabase.CreateAsset(config, path);
             }
-        }
-
-        public static void CreateGridViewConfig(string fileName, string directory)
-        {
-            string path = $"{directory}{fileName}.asset";
-            GridView config;
-            if (!Contains(path, out config))
+            else
             {
-                config = ScriptableObject.CreateInstance<GridView>();
-                AssetDatabase.CreateAsset(config, path);
-            }
-        }
-
-        public static void CreateTipViewConfig(string fileName, string directory)
-        {
-            string path = $"{directory}{fileName}.asset";
-            BaseView config;
-            if (!Contains(path, out config))
-            {
-                config = ScriptableObject.CreateInstance<TipView>();
-                AssetDatabase.CreateAsset(config, path);
+                Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
             }
         }
 

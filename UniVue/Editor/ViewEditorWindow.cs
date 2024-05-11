@@ -1,6 +1,7 @@
 ﻿using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UniVue.View.Views;
 
 namespace UniVue.Editor
 {
@@ -73,16 +74,19 @@ namespace UniVue.Editor
             switch (_viewConfigType)
             {
                 case ViewType.BaseView:
-                    ViewBuilderInEditor.CreateViewConfig(_configFileName, _saveDirectory);
+                    ViewBuilderInEditor.CreateViewConfig<BaseView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ListView:
-                    ViewBuilderInEditor.CreateListViewConfig(_configFileName, _saveDirectory);
+                    ViewBuilderInEditor.CreateViewConfig<ListView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.GridView:
-                    ViewBuilderInEditor.CreateGridViewConfig(_configFileName, _saveDirectory);
+                    ViewBuilderInEditor.CreateViewConfig<GridView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.TipView:
-                    ViewBuilderInEditor.CreateTipViewConfig(_configFileName, _saveDirectory);
+                    ViewBuilderInEditor.CreateViewConfig<TipView>(_configFileName, _saveDirectory);
+                    break;
+                case ViewType.EnsureTipView:
+                    ViewBuilderInEditor.CreateViewConfig<EnsureTipView>(_configFileName, _saveDirectory);
                     break;
             }
 
@@ -176,5 +180,7 @@ namespace UniVue.Editor
         ListView,
         GridView,
         TipView,
+        EnsureTipView,
+        ChatView,
     }
 }

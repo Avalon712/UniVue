@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Utils;
 using UniVue.View.Config;
@@ -31,11 +32,19 @@ namespace UniVue.View
 
         private static void Build(CanvasConfig canvasConfig)
         {
-            Build(GameObject.Find(canvasConfig.canvasName),canvasConfig.views);
+            GameObject canvas = GameObject.Find(canvasConfig.canvasName);
+            
+            if (canvas == null)
+            {
+                throw new ArgumentException($"请检查你的Canvas配置的canvasName是否正确,没有在当前场景中找到名称为{canvasConfig.canvasName}的Canvas对象!采用的是Unity自动的GameObject.Find(string)方法进行的Canvas查找。");
+            }
+
+            Build(canvas, canvasConfig.views);
         }
 
-        public static void Build(GameObject canvas,List<BaseView> views)
+        private static void Build(GameObject canvas,List<BaseView> views)
         {
+
             //先加载所有没有父视图的视图
             for (int j = 0; j < views.Count; j++)
             {
@@ -47,7 +56,7 @@ namespace UniVue.View
                     for (int k = 0; k < nestedViews.Length; k++)
                     {
                         //注：这儿找嵌套视图时是通过viewName来进行查找的，因此要保证嵌套视图的名称与视图对象（ViewObject）的名称保证一致
-                        GameObject nestedViewObject = GameObjectFindUtil.BreadthFindSelf(nestedViews[k].name, views[j].viewObject);
+                        GameObject nestedViewObject = GameObjectFindUtil.BreadthFind(nestedViews[k].name, views[j].viewObject);
                         if(nestedViewObject == null)
                         {
 #if UNITY_EDITOR

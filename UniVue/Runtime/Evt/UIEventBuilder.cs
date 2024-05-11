@@ -52,6 +52,9 @@ namespace UniVue.Evt
                             case UIType.Toggle:
                                 events.Add(new ToggleEvent(viewName, evtName, result.Item1 as Toggle));
                                 break;
+                            case UIType.ToggleGroup:
+                                events.Add(new ToggleEvent(viewName, evtName, result.Item1 as Toggle));
+                                break;
                             case UIType.Slider:
                                 events.Add(new SliderEvent(viewName, evtName, result.Item1 as Slider));
                                 break;

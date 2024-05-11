@@ -22,6 +22,7 @@ namespace UniVue.View.Views
             public List<IBindableModel> models;
             public bool isDirty; //当数据被修改时，设为true===>Refresh
             public bool flag;//标志当前所有的Item是否都已经生成UIBundle了
+            public int hash; //RebindData()时判断新绑定的数据和之前绑定的数据是否是同一个对象
         }
 
         #region 配置信息
@@ -80,6 +81,25 @@ namespace UniVue.View.Views
         }
 
         /// <summary>
+        /// 重新绑定数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="newData">绑定的新数据，注意必须与旧数据的类型一致！</param>
+        public void RebindData<T>(List<T> newData) where T : IBindableModel
+        {
+            if (_runtime.models == null)
+            {
+                BindData(newData);
+            }
+            else if(_runtime.hash != newData.GetHashCode())
+            {
+                ListUtil.Copy(_runtime.models, newData);
+                Refresh(); //刷新数据
+                _runtime.hash = newData.GetHashCode();
+            }
+        }
+
+        /// <summary>
         /// 绑定item数据
         /// <para>若为引用绑定，则无需使用AddData/RemoveData函数进行对数据的增删</para>
         /// </summary>
@@ -94,6 +114,7 @@ namespace UniVue.View.Views
                 return;
             }
 
+            _runtime.hash = data.GetHashCode();
             _runtime.models = new List<IBindableModel>(data.Count);
             for (int i = 0; i < data.Count; i++) { _runtime.models.Add(data[i]); }
 
@@ -112,8 +133,7 @@ namespace UniVue.View.Views
 
                 if (_runtime.trial < data.Count)
                 {
-                    dynamicView.BindModel(data[_runtime.trial]);
-                    data[_runtime.trial++].NotifyAll();
+                    dynamicView.BindModel(data[_runtime.trial++]);
                 }
                 else
                 {
