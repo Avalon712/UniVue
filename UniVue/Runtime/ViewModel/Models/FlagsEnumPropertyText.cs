@@ -12,7 +12,7 @@ namespace UniVue.ViewModel.Models
         }
 
 
-        public override void UpdateUI(string propertyName, int propertyValue)
+        public override void UpdateUI(int propertyValue)
         {
             string str = string.Empty;
             for (int i = 0; i < _enums.Count; i++)

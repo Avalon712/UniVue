@@ -41,7 +41,7 @@ namespace UniVue.ViewModel.Models
             base.Dispose();
         }
 
-        public override void UpdateUI(string propertyName, float propertyValue)
+        public override void UpdateUI(float propertyValue)
         {
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //指示不用更新当前的UI

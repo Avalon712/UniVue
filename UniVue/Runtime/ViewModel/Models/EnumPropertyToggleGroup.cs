@@ -36,7 +36,7 @@ namespace UniVue.ViewModel.Models
             }
         }
 
-        public override void UpdateUI(string propertyName, int propertyValue)
+        public override void UpdateUI(int propertyValue)
         {
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //不要触发OnValueChanged事件

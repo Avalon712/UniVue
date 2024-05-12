@@ -9,7 +9,7 @@ namespace UniVue.ViewModel.Models
         {
         }
 
-        public override void UpdateUI(string propertyName, int propertyValue)
+        public override void UpdateUI(int propertyValue)
         {
             for (int i = 0; i < _ui.Length; i++)
             {

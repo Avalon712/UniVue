@@ -18,12 +18,12 @@ namespace UniVue.ViewModel.Models
 
         public override void Dispose() { _notifier = null;_propertyName = null;  _ui = default; }
 
-        public sealed override void UpdateUI(string propertyName, int propertyValue) { }
+        public sealed override void UpdateUI(int propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, float propertyValue) { }
+        public sealed override void UpdateUI(float propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, Sprite propertyValue) { }
+        public sealed override void UpdateUI(Sprite propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, bool propertyValue) { }
+        public sealed override void UpdateUI(bool propertyValue) { }
     }
 }

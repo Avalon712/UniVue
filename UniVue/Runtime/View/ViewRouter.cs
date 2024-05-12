@@ -236,10 +236,10 @@ namespace UniVue.View
 
             //1.检查当前视图是否以及处于关闭状态
             //2.检查是否为Permanent级别
-            if (!closing.state || closing.level == ViewLevel.Permanent) { return; }
+            if (!closing.state) { return; }
 
             //2.视图级别检查
-            if(closing.level == ViewLevel.Permanent || closing.level == ViewLevel.Transient)
+            if(closing.level == ViewLevel.Permanent)
             {
 #if UNITY_EDITOR
                 LogUtil.Warning($"不能关闭一个视图级别为{closing.level}的视图!");

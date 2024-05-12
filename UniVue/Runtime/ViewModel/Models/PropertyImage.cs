@@ -19,14 +19,14 @@ namespace UniVue.ViewModel.Models
             _img = null; _propertyName = null; _notifier = null;
         }
 
-        public override void UpdateUI(string propertyName, int propertyValue){ }
+        public override void UpdateUI(int propertyValue){ }
 
-        public override void UpdateUI(string propertyName, float propertyValue){ }
+        public override void UpdateUI(float propertyValue){ }
 
-        public override void UpdateUI(string propertyName, string propertyValue){ }
+        public override void UpdateUI(string propertyValue){ }
 
         //为null时隐藏显示
-        public override void UpdateUI(string propertyName, Sprite propertyValue)
+        public override void UpdateUI(Sprite propertyValue)
         {
             if(propertyValue == null) { _img.gameObject.SetActive(false); }
             else
@@ -36,6 +36,6 @@ namespace UniVue.ViewModel.Models
             _img.sprite = propertyValue;
         }
 
-        public override void UpdateUI(string propertyName, bool propertyValue) { }
+        public override void UpdateUI(bool propertyValue) { }
     }
 }

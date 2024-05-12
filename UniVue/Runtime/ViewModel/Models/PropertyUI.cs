@@ -43,11 +43,11 @@ namespace UniVue.ViewModel.Models
             return _propertyName;
         }
 
-        public abstract void UpdateUI(string propertyName, int propertyValue);
-        public abstract void UpdateUI(string propertyName, float propertyValue);
-        public abstract void UpdateUI(string propertyName, string propertyValue);
-        public abstract void UpdateUI(string propertyName, Sprite propertyValue);
-        public abstract void UpdateUI(string propertyName, bool propertyValue);
+        public abstract void UpdateUI(int propertyValue);
+        public abstract void UpdateUI(float propertyValue);
+        public abstract void UpdateUI(string propertyValue);
+        public abstract void UpdateUI(Sprite propertyValue);
+        public abstract void UpdateUI(bool propertyValue);
     }
 
 }

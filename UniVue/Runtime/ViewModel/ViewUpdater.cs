@@ -119,6 +119,81 @@ namespace UniVue.ViewModel
         }
 
         /// <summary>
+        /// 更新UI
+        /// </summary>
+        /// <param name="bundleName">UIBundle的名称</param>
+        public void UpdateUI(string bundleName, string propertyName, List<int> propertyValue)
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (_bundles[i].Name == bundleName)
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        /// <param name="bundleName">UIBundle的名称</param>
+        public void UpdateUI(string bundleName, string propertyName, List<float> propertyValue)
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (_bundles[i].Name == bundleName)
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        /// <param name="bundleName">UIBundle的名称</param>
+        public void UpdateUI(string bundleName, string propertyName, List<string> propertyValue)
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (_bundles[i].Name == bundleName)
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        /// <param name="bundleName">UIBundle的名称</param>
+        public void UpdateUI(string bundleName, string propertyName, List<bool> propertyValue)
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (_bundles[i].Name == bundleName)
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        /// <param name="bundleName">UIBundle的名称</param>
+        public void UpdateUI(string bundleName, string propertyName, List<Sprite> propertyValue)
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (_bundles[i].Name == bundleName)
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
         /// 卸载指定视图的所有UIBundle
         /// </summary>
         /// <param name="viewName">要卸载UIBundle的视图名称</param>

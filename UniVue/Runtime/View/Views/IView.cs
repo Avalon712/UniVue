@@ -70,8 +70,9 @@ namespace UniVue.View.Views
         /// <param name="model">绑定的模型数据</param>
         /// <param name="allowUIUpdateModel">是否允许通过UI修改模型的值</param>
         /// <param name="modelName">模型名称，若为null则默认为该类型的TypeName</param>
+        /// <param name="forceRebind">当已经绑定了数据时是否指示进行强制重新绑定</param>
         /// <returns>IView</returns>
-        IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel;
+        IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel;
 
         /// <summary>
         /// 打开视图

@@ -18,13 +18,13 @@ namespace UniVue.ViewModel.Models
             _ui = ui;
         }
 
-        public sealed override void UpdateUI(string propertyName, bool propertyValue) { }
+        public sealed override void UpdateUI(bool propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, int propertyValue) { }
+        public sealed override void UpdateUI(int propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, string propertyValue) { }
+        public sealed override void UpdateUI(string propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, Sprite propertyValue) { }
+        public sealed override void UpdateUI(Sprite propertyValue) { }
 
         public override void Dispose() { _notifier = null;_propertyName=null ; _ui = default; }
 

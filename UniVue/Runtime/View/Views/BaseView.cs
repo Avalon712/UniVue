@@ -193,7 +193,8 @@ namespace UniVue.View.Views
 
         #region 数据绑定
 
-        public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
+        
+        public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind=false) where T : IBindableModel
         {
             if (!Vue.Updater.HadBinded(viewName, model))
             {
@@ -202,6 +203,10 @@ namespace UniVue.View.Views
                 //模型到视图的绑定
                 Vue.Updater.BindViewAndModel(viewName, model, uis, modelName, allowUIUpdateModel);
                 model.NotifyAll();
+            }
+            else if (forceRebind)
+            {
+                Vue.Updater.Rebind(name, model);
             }
 #if UNITY_EDITOR
             else

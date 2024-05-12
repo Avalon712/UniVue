@@ -12,7 +12,7 @@ namespace UniVue.ViewModel.Models
         }
 
 
-        public override void UpdateUI(string propertyName, int propertyValue)
+        public override void UpdateUI(int propertyValue)
         {
             _ui.text = GetAlias(propertyValue);
         }

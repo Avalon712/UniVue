@@ -91,12 +91,12 @@ namespace UniVue.ViewModel.Models
             return 0;
         }
 
-        public sealed override void UpdateUI(string propertyName, bool propertyValue) { }
+        public sealed override void UpdateUI(bool propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, float propertyValue) { }
+        public sealed override void UpdateUI(float propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, string propertyValue) { }
+        public sealed override void UpdateUI(string propertyValue) { }
 
-        public sealed override void UpdateUI(string propertyName, Sprite propertyValue) { }
+        public sealed override void UpdateUI(Sprite propertyValue) { }
     }
 }

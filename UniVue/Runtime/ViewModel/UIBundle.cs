@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UniVue.Model;
 using UniVue.ViewModel.Models;
 
@@ -25,7 +26,7 @@ namespace UniVue.ViewModel
             Model = model;
         }
 
-        internal void SetProperties(PropertyUI[] properties)
+        public void SetProperties(PropertyUI[] properties)
         {
             _properties = properties;
         }
@@ -39,7 +40,7 @@ namespace UniVue.ViewModel
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyName, propertyValue);
+                    _properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -53,7 +54,7 @@ namespace UniVue.ViewModel
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyName, propertyValue);
+                    _properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -67,7 +68,7 @@ namespace UniVue.ViewModel
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyName, propertyValue);
+                    _properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -81,7 +82,7 @@ namespace UniVue.ViewModel
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyName, propertyValue);
+                    _properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -95,11 +96,91 @@ namespace UniVue.ViewModel
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyName, propertyValue);
+                    _properties[i].UpdateUI(propertyValue);
                 }
             }
         }
 
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI(string propertyName, List<int> propertyValue)
+        {
+            int k = 0;
+            for (int i = 0; i < _properties.Length; i++)
+            {
+                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                {
+                    _properties[i].UpdateUI(propertyValue[k++]);
+                }
+                if (k == propertyValue.Count) { break; }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI(string propertyName, List<float> propertyValue)
+        {
+            int k = 0;
+            for (int i = 0; i < _properties.Length; i++)
+            {
+                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                {
+                    _properties[i].UpdateUI(propertyValue[k++]);
+                }
+                if (k == propertyValue.Count) { break; }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI(string propertyName, List<string> propertyValue)
+        {
+            int k = 0;
+            for (int i = 0; i < _properties.Length; i++)
+            {
+                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                {
+                    _properties[i].UpdateUI(propertyValue[k++]);
+                }
+                if (k == propertyValue.Count) { break; }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI(string propertyName, List<bool> propertyValue)
+        {
+            int k = 0;
+            for (int i = 0; i < _properties.Length; i++)
+            {
+                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                {
+                    _properties[i].UpdateUI(propertyValue[k++]);
+                }
+                if (k == propertyValue.Count) { break; }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI(string propertyName, List<Sprite> propertyValue)
+        {
+            int k = 0;
+            for (int i = 0; i < _properties.Length; i++)
+            {
+                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                {
+                    _properties[i].UpdateUI(propertyValue[k++]);
+                }
+
+                if(k == propertyValue.Count) { break; }
+            }
+        }
 
         /// <summary>
         /// 重新绑定模型，能够重新绑定的条件是新绑定的模型与旧模型必须是同一类型但是不是同一对象

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UniVue.Model;
-using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
 {
@@ -29,12 +28,12 @@ namespace UniVue.ViewModel.Models
             base.Dispose();
         }
 
-        public override void UpdateUI(string propertyName, int propertyValue)
+        public override void UpdateUI(int propertyValue)
         {
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //指示不要触发OnValueChanged事件
 
-            LogUtil.Info($"EnumPropertyDropdown::UpdateUI({propertyName}, {propertyValue})");
+           // LogUtil.Info($"EnumPropertyDropdown::UpdateUI({propertyName}, {propertyValue})");
 
             List<TMP_Dropdown.OptionData> optionDatas = _ui.options;
             string str = GetAlias(propertyValue);

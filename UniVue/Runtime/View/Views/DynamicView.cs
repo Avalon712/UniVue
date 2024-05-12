@@ -46,7 +46,7 @@ namespace UniVue.View.Views
             OnLoad();
         }
 
-        public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
+        public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel
         {
             if (!Vue.Updater.HadBinded(name, model))
             {
@@ -55,6 +55,10 @@ namespace UniVue.View.Views
                 //模型到视图的绑定
                 Vue.Updater.BindViewAndModel(name, model, uis, modelName, allowUIUpdateModel);
                 model.NotifyAll();
+            }
+            else if (forceRebind)
+            {
+                Vue.Updater.Rebind(name, model);
             }
 #if UNITY_EDITOR
             else

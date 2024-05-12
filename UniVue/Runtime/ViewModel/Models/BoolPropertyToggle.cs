@@ -38,15 +38,15 @@ namespace UniVue.ViewModel.Models
             _notifier = null;_propertyName = null; _toggle = null;
         }
 
-        public override void UpdateUI(string propertyName, int propertyValue) { }
+        public override void UpdateUI(int propertyValue) { }
 
-        public override void UpdateUI(string propertyName, float propertyValue) { }
+        public override void UpdateUI(float propertyValue) { }
 
-        public override void UpdateUI(string propertyName, string propertyValue) { }
+        public override void UpdateUI(string propertyValue) { }
 
-        public override void UpdateUI(string propertyName, Sprite propertyValue) { }
+        public override void UpdateUI(Sprite propertyValue) { }
 
-        public override void UpdateUI(string propertyName, bool propertyValue)
+        public override void UpdateUI(bool propertyValue)
         {
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //不要触发OnValueChanged事件

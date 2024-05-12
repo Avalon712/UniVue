@@ -25,7 +25,7 @@ namespace UniVue.ViewModel.Models
             base.Dispose();
         }
 
-        public override void UpdateUI(string propertyName, string propertyValue)
+        public override void UpdateUI(string propertyValue)
         {
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //不用触发OnValueChanged事件
