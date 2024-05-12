@@ -44,33 +44,49 @@ namespace UniVue.View
 
         private static void Build(GameObject canvas,List<BaseView> views)
         {
+            Queue<BaseView> roots = new Queue<BaseView>();
 
-            //先加载所有没有父视图的视图
+            //先加载所有没有根视图的视图
             for (int j = 0; j < views.Count; j++)
             {
                 views[j].viewObject = PrefabCloneUtil.RectTransformClone(views[j].viewObjectPrefab, canvas.transform);
-                //加载子视图
-                if (views[j].nestedViews != null)
-                {
-                    BaseView[] nestedViews = views[j].nestedViews;
-                    for (int k = 0; k < nestedViews.Length; k++)
-                    {
-                        //注：这儿找嵌套视图时是通过viewName来进行查找的，因此要保证嵌套视图的名称与视图对象（ViewObject）的名称保证一致
-                        GameObject nestedViewObject = GameObjectFindUtil.BreadthFind(nestedViews[k].name, views[j].viewObject);
-                        if(nestedViewObject == null)
-                        {
-#if UNITY_EDITOR
-                            LogUtil.Warning($"没有在根视图{views[j].name}下找到嵌套视图{nestedViews[k].name}!");
-#endif
-                        }
-                        else
-                        {
-                            nestedViews[k].viewObject = nestedViewObject;
-                        }
-                    }
-                }
+                if(views[j].nestedViews != null) { roots.Enqueue(views[j]); }
             }
 
+            //加载所有嵌套视图
+            while (roots.Count > 0)
+            {
+                BaseView root = roots.Dequeue();
+                BaseView[] nestedViews = root.nestedViews;
+                string[] strs = new string[nestedViews.Length];
+
+                for (int k = 0; k < nestedViews.Length; k++)
+                {
+                    strs[k] = nestedViews[k].name;
+                    if (nestedViews[k].nestedViews != null) { roots.Enqueue(nestedViews[k]); }
+                }
+
+                //注：这儿找嵌套视图时是通过viewName来进行查找的，因此要保证嵌套视图的名称与视图对象（ViewObject）的名称保证一致
+                using (var it = GameObjectFindUtil.BreadthFind(root.viewObject,strs).GetEnumerator())
+                {
+                    while (it.MoveNext())
+                    {
+                        BaseView view = Array.Find(nestedViews, (v) => v.name == it.Current.name);
+                        view.viewObject = it.Current; //不可能为空指针
+                    }
+                }
+
+                //在编辑器模式下检查是否正确找到了所有嵌套视图的ViewObject对象，如果没有进行提醒
+#if UNITY_EDITOR
+                for (int k = 0; k < nestedViews.Length; k++)
+                {
+                    if (nestedViews[k].viewObject == null)
+                    {
+                        LogUtil.Warning($"视图名称为{nestedViews[k]}未能在它的根视图下面找到它的ViewObject对象,请确保嵌套视图的名称与视图对象（ViewObject）的名称保证一致");
+                    }
+                }
+#endif
+            }
 
             //按order进行排序
             views.Sort((v1, v2) => v1.order - v2.order); //升序
