@@ -130,25 +130,41 @@ BaseModel实现了IUIUpdater, IModelUpdater接口。所有能被进行数据绑�
 
 定义了视图的所有行为。
 
-### 2.DynamincView : IView
+### 2.FlexibleView : IView
 
 这个视图可以通过new的方式动态地创建视图。它和BaseView的唯一区别就是DynamicView不继承自ScriptableObject。如果你想拓展自己的视图可以继承这个类或者实现IView接口，实现更多你自己想要实现的效果。
 
-### 3.BaseView : ScriptableObject, IView
+### 3.FTipView : FlexibleView
+
+作用同TipView，但是可以通过new的方式.
+
+### 4.FEnsureTipView : FlexibleView
+
+作用同EnsureTipView，但是可以通过new的方式创建.
+
+### 5.FListView : FlexibleView
+
+作用同ListView，但是可以通过new的方式创建.
+
+### 6.FGridView : FlexibleView
+
+作用同GridView，但是可以通过new的方式创建
+
+### 7.BaseView : ScriptableObject, IView
 
 这是一个基类，但它不是抽象，他是一个UI界面的通用性。
 
 这个类继承了ScipatbleObject，使得UI视图逻辑可以像资源那样被方便进行资源热更新。
 
-### 4.GridView : BaseView
+### 8.GridView : BaseView
 
 如果你想实现一个背包或网格视图。创建此类型视图是好的选择。没有复杂的API、没有复杂的代码就能实现一个高性能的滚动视图，即使是展现大量数据。同时利用绑定模型功能，可以轻松实现数据显示以及更新。
 
-### 5.ListView : BaseView
+### 9.ListView : BaseView
 
 同GridView。与GridView不同的是提供了无限滚动的功能，GridView提供这个功能感觉没有什么应用场景就没有提供，之前有的，后来删掉了这个功能。
 
-### 6.TipView : BaseView
+### 10.TipView : BaseView
 
 用于显示打开提示消息的视图，只显示一段提示消息。打开此视图建议通过TipView提高的Open()方法来指定要显示的提示消息的内容，如下所示：
 
@@ -167,7 +183,7 @@ BaseModel实现了IUIUpdater, IModelUpdater接口。所有能被进行数据绑�
 
 
 
-### 7.EnsuerTipView : BaseView
+### 11.EnsuerTipView : BaseView
 
 可以进行交互，玩家选择"确认"、"取消"选项。打开此视图建议通过EnsureTipView提供的Open()方法进行打开，可以绑定点击确认按钮时的回调，点击取消按钮时的回调。注意，这些回调函数是一次性的，当视图关闭后会自动注销这些事件。
 
@@ -192,15 +208,15 @@ public void Open(string title,string message,UnityAction sure,UnityAction cancel
 
 
 
-### 6.ViewRouter
+### 12.ViewRouter
 
 这个类管理这所有的视图以及控制视图的打开、关闭行为。
 
-### 7.IUIAudioEffectController
+### 13.IUIAudioEffectController
 
 该接口定义了打开视图时播放的音效以及当视图被打开后执行回调函数、视图关闭后执行的回调函数。该接口可以方便地与你的音效系统进行绑定使用。
 
-### 8.BaseView系列的使用讲解
+### 14.BaseView系列的使用讲解
 
 在一个场景下你需要先创建一个**SceneConfig**配置文件（通过**ViewEditor**[ViewEditorWindow](#九.编辑器扩展功能)创建此文件），此文件包含了当前场景下所有的视图；此外还需要创建一个或多个**CanvasConfig**配置文件（通过**ViewEditor**[ViewEditorWindow](#九.编辑器扩展功能)创建此文件），此文件记录了哪些视图应该位于那个Canvas下（注意这个Canvas是指场景中存在的，而不是视图身上自带的Canvas）。之后将这些CanvasConfig配置文件引用给SceneConfig配置文件。最后当你需要加载当前场景下的视图时，只需加载当前场景的SceneConfig配置文件，然后使用下面的代码完成视图加载：
 
@@ -307,6 +323,18 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 - string
 
 - Sprite（精灵图）
+
+- List<int>
+
+- List<string>
+
+- List<Sprite>
+
+- List<flaot>
+
+- List<bool>
+
+- List<enum>
 
   
 
