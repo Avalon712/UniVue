@@ -324,17 +324,17 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 - Sprite（精灵图）
 
-- List<int>
+- List&lt;int&gt;
 
-- List<string>
+- List&lt;string&gt;
 
-- List<Sprite>
+- List&lt;Sprite&gt;
 
-- List<flaot>
+- List&lt;flaot&gt;
 
-- List<bool>
+- List&lt;bool&gt;
 
-- List<enum>
+- List&lt;enum&gt;
 
   
 
