@@ -118,7 +118,7 @@ namespace UniVue.ViewModel
                             break;
 
                         case UIType.Toggle:
-                            if (bindableType == BindablePropertyType.Bool)
+                            if (bindableType == BindablePropertyType.Bool || bindableType == BindablePropertyType.ListBool)
                             {
                                 for (int j = 0; j < components.Count; j++)
                                 {
@@ -139,13 +139,14 @@ namespace UniVue.ViewModel
                                         multiChoice.Add((Toggle)components[j]);
                                     }
                                 }
-                            }else if(bindableType == BindablePropertyType.Int)
+                            }
+                            else if (bindableType == BindablePropertyType.Int)
                             {
                                 for (int j = 0; j < components.Count; j++)
                                 {
                                     if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyInfo.Name))
                                     {
-                                        if(intToToggles == null) { intToToggles = new List<Toggle>(); }
+                                        if (intToToggles == null) { intToToggles = new List<Toggle>(); }
                                         intToToggles.Add((Toggle)components[j]);
                                     }
                                 }
@@ -164,7 +165,7 @@ namespace UniVue.ViewModel
                             break;
 
                         case UIType.ToggleGroup:
-                            if (bindableType == BindablePropertyType.Enum)
+                            if (bindableType == BindablePropertyType.Enum || bindableType == BindablePropertyType.ListEnum)
                             {
                                 for (int j = 0; j < components.Count; j++)
                                 {
@@ -188,7 +189,7 @@ namespace UniVue.ViewModel
 
                         case UIType.Image:
                             {
-                                if(bindableType == BindablePropertyType.Sprite)
+                                if(bindableType == BindablePropertyType.Sprite || bindableType== BindablePropertyType.ListSprite)
                                 {
                                     for (int j = 0; j < components.Count; j++)
                                     {

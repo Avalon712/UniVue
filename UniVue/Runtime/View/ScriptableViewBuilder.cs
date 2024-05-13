@@ -57,6 +57,7 @@ namespace UniVue.View
             while (roots.Count > 0)
             {
                 BaseView root = roots.Dequeue();
+
                 BaseView[] nestedViews = root.nestedViews;
                 string[] strs = new string[nestedViews.Length];
 
@@ -88,33 +89,34 @@ namespace UniVue.View
 #endif
             }
 
-            //按order进行排序
+            //按order对根视图进行排序
             Array.Sort(views, (v1, v2) => v1.order - v2.order); 
 
-            ViewRouter router = Vue.Router;
-
+            //先调用根视图的OnLoad()函数
             for (int i = 0; i < views.Length; i++)
             {
                 //调用OnLoad函数
                 views[i].OnLoad();
 
-                //调用嵌套视图的OnLoad函数
-                if (views[i].nestedViews != null)
-                {
-                    BaseView[] nestedViews = views[i].nestedViews;
-                    for (int k = 0; k < nestedViews.Length; k++)
-                    {
-                        //只有嵌套视图的ViewObject不为null才能调用其OnLoad()函数
-                        if (nestedViews[k].viewObject != null)
-                        {
-                            nestedViews[k].OnLoad();
-                        }
-                    }
-                }
+                if (views[i].nestedViews != null) { roots.Enqueue(views[i]); }
 
                 //设置视图排序顺序
-                router.GetView(views[i].name).viewObject.transform.SetAsFirstSibling();
+                views[i].viewObject.transform.SetAsFirstSibling();
             }
+
+            //按层级深度依次调用所有嵌套视图的OnLoad()函数
+            while (roots.Count > 0)
+            {
+                BaseView root = roots.Dequeue();
+                BaseView[] nestedViews = root.nestedViews;
+                for (int i = 0; i < nestedViews.Length; i++)
+                {
+                    nestedViews[i].OnLoad();
+                    if (nestedViews[i].nestedViews != null) { roots.Enqueue(nestedViews[i]); }
+                }
+            }
+
+
         }
 
     }

@@ -84,6 +84,12 @@ namespace UniVue.Utils
                 for (int i = 0; i < names.Length; i++)
                 {
                     if (!record.ContainsKey(names[i])) { record.Add(names[i], false); }
+#if UNITY_EDITOR
+                    else
+                    {
+                        LogUtil.Warning($"你当前要进行查找的所有GameObject中存在同名现象,[{string.Join(", ",names)}],这将导致无法正确找到所有的GameObject!");
+                    }
+#endif
                 }
                 
                 while (queue.Count > 0)
