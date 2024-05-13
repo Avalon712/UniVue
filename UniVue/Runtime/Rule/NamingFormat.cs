@@ -4,13 +4,6 @@ namespace UniVue.Rule
 {
     /// <summary>
     /// 常见的命名格式
-    /// <para>各种UI组件的名称</para>
-    /// <para>Toggle => Toggle或toggle</para>
-    /// <para>Image => Img或img</para>
-    /// <para>Slider => Slider或slider</para>
-    /// <para>InputField => Input或input</para>
-    /// <para>Text => Txt或txt</para>
-    /// <para>Button => Btn或btn</para>
     /// </summary>
     [Flags]
     public enum NamingFormat

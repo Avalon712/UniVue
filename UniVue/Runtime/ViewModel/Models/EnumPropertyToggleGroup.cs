@@ -24,6 +24,9 @@ namespace UniVue.ViewModel.Models
             }
         }
 
+        //空实现
+        public override void SetActive(bool active){ }
+
         private void UpdateModel(bool isOn)
         {
             if (isOn)

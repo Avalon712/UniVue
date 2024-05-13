@@ -11,6 +11,13 @@ namespace UniVue.ViewModel.Models
         {
         }
 
+        public override void SetActive(bool active)
+        {
+            if (active != _ui.gameObject.activeSelf)
+            {
+                _ui.gameObject.SetActive(active);
+            }
+        }
 
         public override void UpdateUI(int propertyValue)
         {

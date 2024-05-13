@@ -15,6 +15,6 @@ namespace UniVue.View.Config
 
 
         [Header("Canvas渲染的视图")]
-        public List<BaseView> views;
+        public BaseView[] views;
     }
 }

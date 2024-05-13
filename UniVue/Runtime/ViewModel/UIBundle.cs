@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
 using UniVue.ViewModel.Models;
@@ -106,14 +107,23 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI(string propertyName, List<int> propertyValue)
         {
-            int k = 0;
+            int k = 0; 
+            bool congfig = Vue.Config.WhenListLessThanUIThenHide;
+            
             for (int i = 0; i < _properties.Length; i++)
             {
-                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyValue[k++]);
+                    if (k < propertyValue.Count)
+                    {
+                        _properties[i].SetActive(true);
+                        _properties[i].UpdateUI(propertyValue[k++]);
+                    }
+                    else if (congfig)
+                    {
+                        _properties[i].SetActive(false);
+                    }
                 }
-                if (k == propertyValue.Count) { break; }
             }
         }
 
@@ -123,13 +133,44 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<float> propertyValue)
         {
             int k = 0;
+            bool congfig = Vue.Config.WhenListLessThanUIThenHide;
+
             for (int i = 0; i < _properties.Length; i++)
             {
-                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyValue[k++]);
+                    if (k < propertyValue.Count)
+                    {
+                        _properties[i].SetActive(true);
+                        _properties[i].UpdateUI(propertyValue[k++]); 
+                    }
+                    else if (congfig)
+                    {
+                        _properties[i].SetActive(false);
+                    }
                 }
-                if (k == propertyValue.Count) { break; }
+            }
+        }
+
+        public void UpdateUI<T>(string propertyName, List<T> propertyValue) where T : Enum
+        {
+            int k = 0;
+            bool congfig = Vue.Config.WhenListLessThanUIThenHide;
+
+            for (int i = 0; i < _properties.Length; i++)
+            {
+                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                {
+                    if (k < propertyValue.Count)
+                    {
+                        _properties[i].SetActive(true);
+                        _properties[i].UpdateUI(Convert.ToInt32(propertyValue[k++]));
+                    }
+                    else if (congfig)
+                    {
+                        _properties[i].SetActive(false);
+                    }
+                }
             }
         }
 
@@ -139,13 +180,22 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<string> propertyValue)
         {
             int k = 0;
+            bool congfig = Vue.Config.WhenListLessThanUIThenHide;
+
             for (int i = 0; i < _properties.Length; i++)
             {
-                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyValue[k++]);
+                    if (k < propertyValue.Count)
+                    {
+                        _properties[i].SetActive(true);
+                        _properties[i].UpdateUI(propertyValue[k++]);
+                    }
+                    else if (congfig)
+                    {
+                        _properties[i].SetActive(false);
+                    }
                 }
-                if (k == propertyValue.Count) { break; }
             }
         }
 
@@ -155,13 +205,22 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<bool> propertyValue)
         {
             int k = 0;
+            bool congfig = Vue.Config.WhenListLessThanUIThenHide;
+
             for (int i = 0; i < _properties.Length; i++)
             {
-                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyValue[k++]);
+                    if (k < propertyValue.Count)
+                    {
+                        _properties[i].SetActive(true);
+                        _properties[i].UpdateUI(propertyValue[k++]);
+                    }
+                    else if (congfig)
+                    {
+                        _properties[i].SetActive(false);
+                    }
                 }
-                if (k == propertyValue.Count) { break; }
             }
         }
 
@@ -171,14 +230,22 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<Sprite> propertyValue)
         {
             int k = 0;
+            bool congfig = Vue.Config.WhenListLessThanUIThenHide;
+
             for (int i = 0; i < _properties.Length; i++)
             {
-                if (k < propertyValue.Count && propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
-                    _properties[i].UpdateUI(propertyValue[k++]);
+                    if (k < propertyValue.Count)
+                    {
+                        _properties[i].SetActive(true);
+                        _properties[i].UpdateUI(propertyValue[k++]);
+                    }
+                    else if (congfig)
+                    {
+                        _properties[i].SetActive(false);
+                    }
                 }
-
-                if(k == propertyValue.Count) { break; }
             }
         }
 

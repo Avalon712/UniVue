@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
 using UniVue.Utils;
@@ -108,6 +109,90 @@ namespace UniVue.ViewModel
         /// 更新UI
         /// </summary>
         public void UpdateUI<T>(T model,string propertyName, Sprite propertyValue) where T : IBindableModel
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (ReferenceEquals(_bundles[i].Model, model))
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI<T>(T model, string propertyName, List<int> propertyValue) where T : IBindableModel
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (ReferenceEquals(_bundles[i].Model, model))
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI<T>(T model, string propertyName, List<float> propertyValue) where T : IBindableModel
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (ReferenceEquals(_bundles[i].Model, model))
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI<T>(T model, string propertyName, List<string> propertyValue) where T : IBindableModel
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (ReferenceEquals(_bundles[i].Model, model))
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI<T>(T model, string propertyName, List<bool> propertyValue) where T : IBindableModel
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (ReferenceEquals(_bundles[i].Model, model))
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI<T>(T model, string propertyName, List<Sprite> propertyValue) where T : IBindableModel
+        {
+            for (int i = 0; i < _bundles.Count; i++)
+            {
+                if (ReferenceEquals(_bundles[i].Model, model))
+                {
+                    _bundles[i].UpdateUI(propertyName, propertyValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新UI
+        /// </summary>
+        public void UpdateUI<T,V>(V model, string propertyName, List<T> propertyValue) where T : Enum
         {
             for (int i = 0; i < _bundles.Count; i++)
             {

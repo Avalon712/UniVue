@@ -15,6 +15,18 @@ namespace UniVue.ViewModel.Models
 
         Sprite,
 
+        ListEnum,
+
+        ListBool,
+
+        ListFloat,
+
+        ListInt,
+
+        ListString,
+
+        ListSprite,
+
         /// <summary>
         /// 不能进行绑定的类型
         /// </summary>

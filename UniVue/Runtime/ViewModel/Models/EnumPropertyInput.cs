@@ -11,6 +11,14 @@ namespace UniVue.ViewModel.Models
             if (allowUIUpdateModel) { ui.onEndEdit.AddListener(UpdateModel); }
         }
 
+        public override void SetActive(bool active)
+        {
+            if (active != _ui.gameObject.activeSelf)
+            {
+                _ui.gameObject.SetActive(active);
+            }
+        }
+
         private void UpdateModel(string str) 
         {
             if (!_needUpdate) { _needUpdate = true; return; }

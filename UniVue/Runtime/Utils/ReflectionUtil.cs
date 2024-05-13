@@ -40,6 +40,33 @@ namespace UniVue.Utils
             }else if(type == typeof(Sprite))
             {
                 return BindablePropertyType.Sprite;
+            }else if(type == typeof(List<Sprite>))
+            {
+                return BindablePropertyType.ListSprite;
+            }else if(type == typeof(List<int>))
+            {
+                return BindablePropertyType.ListInt;
+            }
+            else if (type == typeof(List<float>))
+            {
+                return BindablePropertyType.ListFloat;
+            }
+            else if (type == typeof(List<string>))
+            {
+                return BindablePropertyType.ListString;
+            }
+            else if (type == typeof(List<bool>))
+            {
+                return BindablePropertyType.ListBool;
+            }
+
+            if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                Type[] types = type.GenericTypeArguments;
+                if (types != null && types.Length == 1)
+                {
+                    if (types[0].IsEnum) { return BindablePropertyType.ListEnum; }
+                }
             }
 
             return BindablePropertyType.None;

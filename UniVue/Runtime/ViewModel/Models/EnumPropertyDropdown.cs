@@ -13,6 +13,14 @@ namespace UniVue.ViewModel.Models
             if (_allowUIUpdateModel) { ui.onValueChanged.AddListener(UpdateModel); }
         }
 
+        public override void SetActive(bool active)
+        {
+            if (active != _ui.gameObject.activeSelf)
+            {
+                _ui.gameObject.SetActive(active);
+            }
+        }
+
         private void UpdateModel(int optionIdx)
         {
             if (!_needUpdate) { _needUpdate = true; return; }

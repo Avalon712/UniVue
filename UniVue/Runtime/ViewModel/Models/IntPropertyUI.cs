@@ -4,7 +4,7 @@ using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
 {
-    public abstract class IntPropertyUI<UI> : PropertyUI
+    public abstract class IntPropertyUI<UI> : PropertyUI  where UI : class
     {
         /// <summary>
         /// 绑定的UI组件
@@ -15,6 +15,13 @@ namespace UniVue.ViewModel.Models
             : base(notifier, propertyName, allowUIUpdateModel)
         {
             _ui = ui;
+        }
+        public override void SetActive(bool active)
+        {
+            if (active != (_ui as Component)?.gameObject.activeSelf)
+            {
+                (_ui as Component)?.gameObject.SetActive(active);
+            }
         }
 
         public override void Dispose()

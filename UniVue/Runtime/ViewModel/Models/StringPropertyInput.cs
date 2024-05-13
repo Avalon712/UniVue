@@ -30,6 +30,8 @@ namespace UniVue.ViewModel.Models
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //不用触发OnValueChanged事件
 
+            SetActive(!string.IsNullOrEmpty(propertyValue) || !Vue.Config.WhenValueIsNullThenHide);
+
             _ui.text = propertyValue;
         }
     }

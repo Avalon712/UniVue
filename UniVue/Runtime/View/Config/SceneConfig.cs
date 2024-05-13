@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace UniVue.View.Config
 {
@@ -15,8 +14,7 @@ namespace UniVue.View.Config
         /// 场景下所有视图配置
         /// </summary>
         [Header("场景下所有视图配置")]
-        public List<CanvasConfig> canvasConfigs;
+        public CanvasConfig[] canvasConfigs;
 
-        
     }
 }

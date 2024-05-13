@@ -25,6 +25,14 @@ namespace UniVue.ViewModel.Models
             }
         }
 
+        public override void SetActive(bool active)
+        {
+            if (active != _toggle.gameObject.activeSelf)
+            {
+                _toggle.gameObject.SetActive(active);
+            }
+        }
+
         private void UpdateModel(bool value)
         {
             if (!_needUpdate) { _needUpdate = true; return; }

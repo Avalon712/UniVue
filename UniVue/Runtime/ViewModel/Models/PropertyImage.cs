@@ -14,6 +14,14 @@ namespace UniVue.ViewModel.Models
             _img = img;
         }
 
+        public override void SetActive(bool active)
+        {
+            if (active != _img.gameObject.activeSelf)
+            {
+                _img.gameObject.SetActive(active);
+            }
+        }
+
         public override void Dispose()
         {
             _img = null; _propertyName = null; _notifier = null;
@@ -28,11 +36,8 @@ namespace UniVue.ViewModel.Models
         //为null时隐藏显示
         public override void UpdateUI(Sprite propertyValue)
         {
-            if(propertyValue == null) { _img.gameObject.SetActive(false); }
-            else
-            {
-                if (!_img.gameObject.activeSelf) { _img.gameObject.SetActive(true); }
-            }
+            SetActive(propertyValue != null || !Vue.Config.WhenValueIsNullThenHide);
+
             _img.sprite = propertyValue;
         }
 

@@ -21,7 +21,7 @@ namespace UniVue.View
         internal ViewRouter() 
         {
             _views = new Dictionary<string, IView>();
-            _histories = new List<string>(20);
+            _histories = new List<string>(Vue.Config.MaxHistoryRecord);
         }
 
         /// <summary>
@@ -333,7 +333,7 @@ namespace UniVue.View
         /// <summary>
         /// 清空场景视图
         /// </summary>
-        public void UnloadViews()
+        public void UnloadAllViews()
         {
             foreach (IView view in _views.Values)
             {

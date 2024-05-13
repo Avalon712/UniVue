@@ -45,7 +45,7 @@ namespace UniVue.Rule
         {
             if(!uiName.Contains(" & "))
             {
-                NamingFormat format = Vue.Format;
+                NamingFormat format = Vue.Config.Format;
                 return Regex.IsMatch(uiName, GetDataBindRegex(ref format, modelName, propertyName));
             }
             else
@@ -65,7 +65,7 @@ namespace UniVue.Rule
         public static bool CheckRouterEventMatch(string uiName,RouterEvent eventName, out string viewName)
         {
             viewName = null;
-            NamingFormat format = Vue.Format;
+            NamingFormat format = Vue.Config.Format;
             if (!uiName.Contains(" & "))
             {
                 int viewNameGroupIdx;
@@ -96,7 +96,7 @@ namespace UniVue.Rule
         public static bool CheckCustomEventAndArgMatch(string uiName, out string eventName, out string argName,out bool isOnlyEvt,out bool isOnlyArg)
         {
             eventName = argName = null;
-            NamingFormat format = Vue.Format;
+            NamingFormat format = Vue.Config.Format;
             if (!uiName.Contains(" & "))
             {
                 isOnlyEvt = false;
@@ -295,7 +295,7 @@ namespace UniVue.Rule
 
         private static string GetRouterEventRegex(ref NamingFormat format, ref RouterEvent eventName, out int viewNameGroupIdx)
         {
-            viewNameGroupIdx = (Vue.Format & NamingFormat.UI_Suffix) == NamingFormat.UI_Suffix ? 1 : 2;
+            viewNameGroupIdx = (Vue.Config.Format & NamingFormat.UI_Suffix) == NamingFormat.UI_Suffix ? 1 : 2;
 
             switch (format)
             {

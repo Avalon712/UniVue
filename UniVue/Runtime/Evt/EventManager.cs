@@ -296,7 +296,7 @@ namespace UniVue.Evt
         /// 注销所有UI事件
         /// 注：在场景切换时调用
         /// </summary>
-        public void UnregisterUIEvents()
+        public void UnregisterAllUIEvents()
         {
             for (int i = 0; i < _events.Count; i++)
             {

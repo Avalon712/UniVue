@@ -32,6 +32,11 @@ namespace UniVue.ViewModel.Models
             _allowUIUpdateModel = allowUIUpdateModel;
         }
 
+        /// <summary>
+        /// 显示或隐藏UI的展示
+        /// </summary>
+        /// <param name="active">true:显示</param>
+        public abstract void SetActive(bool active);
 
         /// <summary>
         /// 解除UI与模型的关系 

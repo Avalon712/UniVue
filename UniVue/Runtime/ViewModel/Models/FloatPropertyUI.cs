@@ -6,7 +6,7 @@ namespace UniVue.ViewModel.Models
     /// <summary>
     /// 单精度浮点型的属性绑定UI
     /// </summary>
-    public abstract class FloatPropertyUI<UI> : PropertyUI
+    public abstract class FloatPropertyUI<UI> : PropertyUI where UI : Component
     {
         /// <summary>
         /// 绑定的UI组件
@@ -16,6 +16,14 @@ namespace UniVue.ViewModel.Models
         protected FloatPropertyUI(UI ui,IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) : base(notifier, propertyName, allowUIUpdateModel)
         {
             _ui = ui;
+        }
+
+        public override void SetActive(bool active)
+        {
+            if (active != _ui.gameObject.activeSelf)
+            {
+                _ui.gameObject.SetActive(active);
+            }
         }
 
         public sealed override void UpdateUI(bool propertyValue) { }

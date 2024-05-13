@@ -9,6 +9,8 @@ namespace UniVue.ViewModel.Models
         {
         }
 
+        public override void SetActive(bool active) { }
+
         public override void UpdateUI(int propertyValue)
         {
             for (int i = 0; i < _ui.Length; i++)

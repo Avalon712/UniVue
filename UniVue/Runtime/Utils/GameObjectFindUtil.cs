@@ -74,7 +74,7 @@ namespace UniVue.Utils
         /// <remarks>请不要查询名字重复的</remarks>
         public static IEnumerable<GameObject> BreadthFind(GameObject self,params string[] names)
         {
-            if(names == null) { yield return null; }
+            if(names == null || self==null) { yield return null; }
             else
             {
                 Queue<Transform> queue = new Queue<Transform>();

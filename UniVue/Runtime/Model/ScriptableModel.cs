@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
@@ -66,6 +67,36 @@ namespace UniVue.Model
         }
 
         public void NotifyUIUpdate(string propertyName, Sprite propertyValue)
+        {
+            Vue.Updater.UpdateUI(this, propertyName, propertyValue);
+        }
+
+        public void NotifyUIUpdate(string propertyName, List<int> propertyValue)
+        {
+            Vue.Updater.UpdateUI(this, propertyName, propertyValue);
+        }
+
+        public void NotifyUIUpdate(string propertyName, List<string> propertyValue)
+        {
+            Vue.Updater.UpdateUI(this, propertyName, propertyValue);
+        }
+
+        public void NotifyUIUpdate(string propertyName, List<bool> propertyValue)
+        {
+            Vue.Updater.UpdateUI(this, propertyName, propertyValue);
+        }
+
+        public void NotifyUIUpdate(string propertyName, List<float> propertyValue)
+        {
+            Vue.Updater.UpdateUI(this, propertyName, propertyValue);
+        }
+
+        public void NotifyUIUpdate(string propertyName, List<Sprite> propertyValue)
+        {
+            Vue.Updater.UpdateUI(this, propertyName, propertyValue);
+        }
+
+        public void NotifyUIUpdate<T>(string propertyName, List<T> propertyValue) where T : Enum
         {
             Vue.Updater.UpdateUI(this, propertyName, propertyValue);
         }
