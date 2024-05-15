@@ -137,18 +137,23 @@ namespace UniVue.Evt
                 {
                     object value = args[j].GetArgumentValue();
 
-                    if (value.GetType() != parameterType)
+                    Type valueType = value.GetType();
+
+                    //如果是枚举类型
+                    if (argType == SupportableArgType.Enum && (valueType==typeof(string) || valueType==typeof(int)))
+                    {
+                        if(Enum.TryParse(parameterType, value.ToString(), out _parameters[i]))
+                        {
+                            return;
+                        }
+                    }
+
+                    if (valueType != parameterType)
                     {
 #if UNITY_EDITOR
                         LogUtil.Warning($"方法[{_call.Name}]: 参数名为{argName}的类型为{parameterType}，与UI返回的事件参数类型{value.GetType()}不一致，无法正确进行赋值!");
 #endif
                         return;
-                    }
-
-                    //如果是枚举类型
-                    if (argType == SupportableArgType.Enum)
-                    {
-                        _parameters[i] = Enum.ToObject(parameterType, value);
                     }
                     else
                     {

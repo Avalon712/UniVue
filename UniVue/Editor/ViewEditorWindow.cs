@@ -1,6 +1,7 @@
 ﻿using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UniVue.Runtime.View.Views;
 using UniVue.View.Views;
 
 namespace UniVue.Editor
@@ -87,6 +88,9 @@ namespace UniVue.Editor
                     break;
                 case ViewType.EnsureTipView:
                     ViewBuilderInEditor.CreateViewConfig<EnsureTipView>(_configFileName, _saveDirectory);
+                    break;
+                case ViewType.ClampListView:
+                    ViewBuilderInEditor.CreateViewConfig<ClampListView>(_configFileName, _saveDirectory);
                     break;
             }
 
@@ -182,5 +186,6 @@ namespace UniVue.Editor
         TipView,
         EnsureTipView,
         ChatView,
+        ClampListView,
     }
 }

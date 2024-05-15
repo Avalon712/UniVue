@@ -23,5 +23,10 @@ namespace UniVue.Evt.Evts
             _dropdown = null;
             base.Unregister();
         }
+
+        public override T GetEventUI<T>()
+        {
+            return _dropdown as T;
+        }
     }
 }

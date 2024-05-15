@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UniVue.Evt;
 using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
@@ -64,14 +65,24 @@ namespace UniVue.View.Views
 
         public override void OnLoad()
         {
-            base.OnLoad();
-
             _runtime.scrollRect = ComponentFindUtil.BreadthFind<ScrollRect>(viewObject);
 
             if (_runtime.scrollRect == null)
             {
                 throw new Exception("viewObject身上未包含一个ScrollRect组件，该功能依赖该组件！");
             }
+
+            base.OnLoad();
+        }
+
+        protected override void AutoBindEvent()
+        {
+            //获取所有的ui组件
+            var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this, _runtime.scrollRect.content.gameObject);
+            //构建UIEvent
+            UIEventBuilder.Build(name, uis);
+            //处理路由事件
+            Vue.Router.BindRouteEvt(name, uis);
         }
 
         public override void OnUnload()

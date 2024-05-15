@@ -13,9 +13,11 @@ namespace UniVue.Utils
         /// <summary>
         /// 获取一个GameObject下所有的具有特殊命名的UI组件
         /// </summary>
-        /// <param name="gameObject"></param>
+        /// <param name="gameObject">要找到组件的根对象</param>
+        /// <param name="view">指定当前的GameObject是否是ViewObject，如果是则需要传递此参数</param>
+        /// <param name="exclude">要排除的后代（这些GameObject的后代都不会进行查找）</param>
         /// <returns>List<CustomTuple<Component, UIType>></returns>
-        public static List<CustomTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject,IView view=null)
+        public static List<CustomTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject,IView view = null, params GameObject[] exclude)
         {
             //广度式搜索
             Queue<Transform> queue = new Queue<Transform>();
@@ -37,14 +39,6 @@ namespace UniVue.Utils
                 }
             }
 
-            //如果当前视图类型为ListView、GridView类型则跳过Content下的所有GameObject
-            //原因：ListView、GridView中Content下的每个子物体都将被创建一个DynamicView的视图,防止重复
-            Transform content = null;
-            if(view!=null && (view is ListView || view is GridView))
-            {
-                content = ComponentFindUtil.BreadthFind<ScrollRect>(view.viewObject).content;
-            }
-
             while (queue.Count > 0)
             {
                 Transform transform = queue.Dequeue();
@@ -53,8 +47,16 @@ namespace UniVue.Utils
                 {
                     Transform child = transform.GetChild(i);
 
-                    //如果当前视图类型为ListView、GridView类型则跳过Content下的所有GameObject
-                    if (content != null && child == content) { continue; }
+                    //判断当前是否是要被排除查找的GameObject
+                    if (exclude != null)
+                    {
+                        bool skip = false;
+                        for (int j = 0; j < exclude.Length; j++)
+                        {
+                            if (exclude[j] == child.gameObject) { skip = true; break; }
+                        }
+                        if(skip) { continue; }
+                    }
 
                     //排除开以字符~开头的GameObject
                     //被'~'标记的GameObject及其后代都不会被进行组件查找

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UniVue.Evt;
 using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
@@ -60,8 +61,6 @@ namespace UniVue.View.Views
 
         public override void OnLoad()
         {
-            base.OnLoad();
-
             _runtime.scrollRect = ComponentFindUtil.BreadthFind<ScrollRect>(viewObject);
 
             if (_runtime.scrollRect == null)
@@ -73,6 +72,18 @@ namespace UniVue.View.Views
             _runtime.deltaPos = scrollDir == Direction.Vertical ? new Vector3(0, distance, 0) : new Vector3(distance, 0, 0);
             //设置是否无限滚动
             _runtime.scrollRect.movementType = isLoop ? MovementType.Unrestricted : MovementType.Elastic;
+
+            base.OnLoad();
+        }
+
+        protected override void AutoBindEvent()
+        {
+            //获取所有的ui组件
+            var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this,_runtime.scrollRect.content.gameObject);
+            //构建UIEvent
+            UIEventBuilder.Build(name, uis);
+            //处理路由事件
+            Vue.Router.BindRouteEvt(name, uis);
         }
 
         public override void OnUnload()
@@ -202,7 +213,7 @@ namespace UniVue.View.Views
         }
 
         /// <summary>
-        /// 刷新视图，当List中某个数据发生了更改可调用此函数进行更新
+        /// 刷新视图
         /// </summary>
         public void Refresh()
         {

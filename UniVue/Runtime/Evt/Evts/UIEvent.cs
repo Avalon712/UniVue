@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UniVue.Evt.Evts
 {
@@ -27,6 +28,13 @@ namespace UniVue.Evt.Evts
             //交给EventManger管理
             Vue.Event.AddUIEvent(this);
         }
+
+        /// <summary>
+        /// 获取触发当前事件的UI组件
+        /// </summary>
+        /// <typeparam name="T">UI组件类型</typeparam>
+        /// <returns>组件类型</returns>
+        public abstract T GetEventUI<T>() where T : Component;
 
         /// <summary>
         /// 为当前事件设置事件参数

@@ -175,8 +175,14 @@ namespace UniVue.View.Views
 
             //将当前视图对象交给ViewRouter管理
             Vue.Router.AddView(this);
+
+            AutoBindEvent();
+        }
+
+        protected virtual void AutoBindEvent()
+        {
             //获取所有的ui组件
-            var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject,this);
+            var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
             //构建UIEvent
             UIEventBuilder.Build(viewName, uis);
             //处理路由事件

@@ -17,10 +17,10 @@ namespace UniVue.Utils
             if (type == typeof(bool)) { return SupportableArgType.Bool; }
             if (type.IsEnum) { return SupportableArgType.Enum; }
             if (type == typeof(Sprite)) { return SupportableArgType.Sprite; }
-            if (ReflectionUtil.IsCustomType(type)) { return SupportableArgType.Custom; }
             if (type == typeof(UIEvent)) { return SupportableArgType.UIEvent; }
             if (type == typeof(EventCall)) { return SupportableArgType.EventCall; }
             if (type == typeof(EventArg[])) { return SupportableArgType.EventArg; }
+            if (ReflectionUtil.IsCustomType(type)) { return SupportableArgType.Custom; } //必须防止最后一个进行判断
             return SupportableArgType.None;
         }
     }

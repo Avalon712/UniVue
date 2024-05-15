@@ -12,6 +12,11 @@ namespace UniVue.Evt.Evts
             btn.onClick.AddListener(Trigger);
         }
 
+        public override T GetEventUI<T>()
+        {
+            return _btn as T;
+        }
+
         public override void Unregister()
         {
             _btn.onClick.RemoveListener(Trigger);

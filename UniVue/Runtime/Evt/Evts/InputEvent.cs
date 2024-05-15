@@ -23,5 +23,10 @@ namespace UniVue.Evt.Evts
             _input = null;
             base.Unregister();
         }
+
+        public override T GetEventUI<T>()
+        {
+            return _input as T;
+        }
     }
 }

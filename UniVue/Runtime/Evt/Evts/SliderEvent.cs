@@ -23,5 +23,10 @@ namespace UniVue.Evt.Evts
             _slider = null;
             base.Unregister();
         }
+
+        public override T GetEventUI<T>()
+        {
+            return _slider as T;
+        }
     }
 }
