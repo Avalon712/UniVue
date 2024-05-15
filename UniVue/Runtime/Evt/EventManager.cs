@@ -224,7 +224,7 @@ namespace UniVue.Evt
         /// </summary>
         /// <param name="eventName">触发事件的名称</param>
         /// <param name="viewNames">指定哪些视图下的此事件进行触发，如果为null，则所有定义了此事件的视图都将进行触发</param>
-        public void TriggerEvent(string eventName, params string[] viewNames)
+        public void TriggerUIEvent(string eventName, params string[] viewNames)
         {
             for (int i = 0; i < _events.Count; i++)
             {

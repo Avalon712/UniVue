@@ -29,6 +29,7 @@ namespace UniVue.ViewModel.Models
                     str = string.Concat(str, _enums[i].Item2, '\\');
                 }
             }
+            SetActive(!string.IsNullOrEmpty(str) || !Vue.Config.WhenValueIsNullThenHide);
 
             _ui.text = str;
         }

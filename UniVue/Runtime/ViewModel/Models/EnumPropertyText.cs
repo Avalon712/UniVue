@@ -21,7 +21,11 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
-            _ui.text = GetAlias(propertyValue);
+            string v = GetAlias(propertyValue);
+
+            SetActive(!string.IsNullOrEmpty(v) || !Vue.Config.WhenValueIsNullThenHide);
+
+            _ui.text = v;
         }
 
     }

@@ -39,7 +39,10 @@ namespace UniVue.ViewModel.Models
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //不要触发OnVauleChanged
 
-            _ui.text = GetAlias(propertyValue);
+            string v = GetAlias(propertyValue);
+            SetActive(!string.IsNullOrEmpty(v) || !Vue.Config.WhenValueIsNullThenHide);
+
+            _ui.text = v;
         }
 
     }
