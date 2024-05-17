@@ -36,6 +36,7 @@ namespace UniVue.View.Views
         /// 注：此值只有当前视图不是嵌套视图时才生效
         /// </summary>
         [Tooltip("当前视图在Canvas下的排序,序号越小越先被渲染")]
+        [Range(0,20)]
         [SerializeField] internal int order = 0;
 
         /// <summary>
@@ -51,13 +52,13 @@ namespace UniVue.View.Views
         /// <summary>
         /// 视图游戏对象
         /// </summary>
-        [Header("视图对象预制体")]
+        [Tooltip("视图对象预制体")]
         [SerializeField] internal GameObject viewObjectPrefab;
 
         /// <summary>
         /// ViewLevel.Transient视图显示时间
         /// </summary>
-        [Header("ViewLevel.Transient视图显示时间")]
+        [Tooltip("ViewLevel.Transient视图显示时间")]
         [SerializeField] private float transientTime = -1;
 
         /// <summary>
@@ -75,13 +76,13 @@ namespace UniVue.View.Views
         /// <summary>
         /// 当前视图是否可以拖动
         /// </summary>
-        [Header("视图是否可以拖动")]
+        [Tooltip("视图是否可以拖动")]
         [SerializeField] private bool draggable;
 
         /// <summary>
         /// 注意接受输入信号区域
         /// </summary>
-        [Header("可以接受拖拽信息的GameObject名称")]
+        [Tooltip("可以接受拖拽信息的GameObject名称")]
         [SerializeField] private string receiveDragInput;
 
         /// <summary>
@@ -243,7 +244,6 @@ namespace UniVue.View.Views
                     if (nestedViews[i] != null) { yield return nestedViews[i]; }
                 }
             }
-            yield return null;
         }
 
 

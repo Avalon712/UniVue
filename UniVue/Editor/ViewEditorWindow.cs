@@ -14,14 +14,16 @@ namespace UniVue.Editor
         private string _configFileName;
         private string _sceneName;
 
-        private string _saveDirectory = "Assets/Configs/Views/";
+        private string _saveDirectory = "Assets/";
 
+        private bool _attachToRoot;
+        private BaseView _root;
 
         [MenuItem("UniVue/ViewEditor")]
         public static void OpenEditorWindow()
         {
             var window = GetWindow<ViewEditorWindow>("视图配置编辑器");
-            window.position = new Rect(320, 240, 340, 160);
+            window.position = new Rect(320, 240, 340, 240);
             window.Show();
 
             window._sceneName = EditorSceneManager.GetActiveScene().name;
@@ -72,29 +74,45 @@ namespace UniVue.Editor
                 return false;
             }
 
+            BaseView view = null;
+
             switch (_viewConfigType)
             {
                 case ViewType.BaseView:
-                    ViewBuilderInEditor.CreateViewConfig<BaseView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<BaseView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ListView:
-                    ViewBuilderInEditor.CreateViewConfig<ListView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<ListView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.GridView:
-                    ViewBuilderInEditor.CreateViewConfig<GridView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<GridView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.TipView:
-                    ViewBuilderInEditor.CreateViewConfig<TipView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<TipView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.EnsureTipView:
-                    ViewBuilderInEditor.CreateViewConfig<EnsureTipView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<EnsureTipView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ClampListView:
-                    ViewBuilderInEditor.CreateViewConfig<ClampListView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<ClampListView>(_configFileName, _saveDirectory);
                     break;
             }
 
-            return true;
+            if (_attachToRoot && _root != null && view!=null)
+            {
+                Undo.RegisterCreatedObjectUndo(view, "create view");
+                (view as ScriptableObject).name = _configFileName;
+                AssetDatabase.AddObjectToAsset(view, _root);
+                AssetDatabase.SaveAssets();
+            }
+            else if(view != null)
+            {
+                (view as ScriptableObject).name = _configFileName;
+                AssetDatabase.CreateAsset(view, $"{_saveDirectory}{_configFileName}.asset");
+                AssetDatabase.SaveAssets();
+            }
+
+            return view!=null;
         }
 
         private bool CreateCanvasConfig()
@@ -162,6 +180,21 @@ namespace UniVue.Editor
             _configFileName = EditorGUILayout.TextField(_configFileName);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("要创建的视图是否是嵌套视图");
+            _attachToRoot = EditorGUILayout.Toggle(_attachToRoot);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
+
+            if (_attachToRoot)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("选择此视图的根视图");
+                _root = (BaseView)EditorGUILayout.ObjectField(_root, typeof(BaseView), false);
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.Space();
+            }
 
             EditorGUILayout.LabelField("保存目录 (注: 相对路径,必须以Assets开头,必须存在)");
             _saveDirectory = EditorGUILayout.TextField(_saveDirectory);

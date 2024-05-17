@@ -128,10 +128,9 @@ namespace UniVue.View.Views.Flexible
             {
                 for (int i = 0; i < views.Length; i++)
                 {
-                    yield return views[i];
+                    if (views[i] != null) { yield return views[i]; }
                 }
             }
-            yield return null;
         }
 
         public virtual void OnLoad(){ }

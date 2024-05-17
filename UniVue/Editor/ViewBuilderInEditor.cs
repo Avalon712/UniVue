@@ -40,19 +40,20 @@ namespace UniVue.Editor
             }
         }
 
-        public static void CreateViewConfig<V>(string fileName, string directory) where V : ScriptableObject
+        public static V CreateViewConfig<V>(string fileName, string directory) where V : ScriptableObject
         {
             string path = $"{directory}{fileName}.asset";
             V config;
             if (!Contains(path, out config))
             {
                 config = ScriptableObject.CreateInstance<V>();
-                AssetDatabase.CreateAsset(config, path);
+                return config;
             }
             else
             {
                 Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
             }
+            return null;
         }
 
         private static bool Contains<T>(string path,out T config) where T : ScriptableObject
