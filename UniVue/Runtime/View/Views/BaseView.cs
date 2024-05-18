@@ -281,7 +281,7 @@ namespace UniVue.View.Views
 
             if (viewLevel == ViewLevel.Transient)
             {
-                TweenBehavior.Timer(Close).Delay(transientTime);
+                TweenBehavior.Timer(()=>Vue.Router.Close(viewName)).Delay(transientTime);
             }
         }
 
