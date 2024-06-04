@@ -3,18 +3,52 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UniVue.Model;
+using UniVue.Tween;
 using UniVue.Utils;
 
 namespace UniVue.View.Views
 {
-    public sealed class FGridView : FlexibleView
+    /// <summary>
+    /// 网格视图
+    /// <para>注意:Item的锚点位置为左上角</para>
+    /// </summary>
+    public sealed class SGridView : ScriptableView 
     {
-        private GridComp _gridComp;
+        #region 配置信息
+        /// <summary>
+        /// 设置滚动方向，若为垂直滚动，那么可视域内为5*6那么实际创建的网格为6*6，即多一行；
+        /// 若为水平滚动，那么可视域内为5*6那么实际创建的网格为5*7，即多一列
+        /// </summary>
+        [Header("滚动方向 Horizontal|Vercital")]
+        [SerializeField] private Direction scrollDir = Direction.Vertical;
 
-        public FGridView(GridComp gridComp, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
-        {
-            _gridComp = gridComp;
-        }
+        /// <summary>
+        /// 网格视图行数(实际的行数=可视域的行数+1)
+        /// </summary>
+        [Header("可见行数")]
+        [SerializeField] private int rows;
+
+        /// <summary>
+        /// 网格视图列数(实际的列数=可视域的列数+1)
+        /// </summary>
+        [Header("可见列数")]
+        [SerializeField] private int cols;
+
+        /// <summary>
+        /// 水平方向上当前item移动多少距离到达下一个item（注意区别于几何距离）
+        /// </summary>
+        [Header("leftItemPos.x+x=rightItemPos.x")]
+        [SerializeField] private float x;
+
+        /// <summary>
+        /// 垂直方向上当前item移动多少距离到达下一个item（注意区别于几何距离）
+        /// </summary>
+        [Header("upItemPos.y+y=downItemPos.y")]
+        [SerializeField] private float y;
+
+        #endregion
+
+        private GridComp _gridComp;
 
         public override void OnLoad()
         {
@@ -25,6 +59,9 @@ namespace UniVue.View.Views
                 throw new Exception("viewObject身上未包含一个ScrollRect组件，该功能依赖该组件！");
             }
 
+            _gridComp = new(scrollRect, rows, cols, x, y, scrollDir);
+
+            InitState();
             //在进行查找UI组件时要排除content下面的物体（因为这下面的每个Item会作为一个单独的FlexibleView存在）
             BindEvent(scrollRect.content.gameObject);
         }
@@ -60,7 +97,7 @@ namespace UniVue.View.Views
         /// <summary>
         /// 排序，本质上是对数据进行排序
         /// </summary>
-        public void Sort(Comparison<IBindableModel> comparer)
+        public void Sort(Comparison<IBindableModel> comparer) 
         {
             _gridComp.Sort(comparer);
         }
@@ -99,4 +136,5 @@ namespace UniVue.View.Views
             _gridComp.Clear();
         }
     }
+
 }

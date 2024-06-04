@@ -12,13 +12,13 @@ namespace UniVue.View
         /// <summary>
         /// 视图打开后调用
         /// </summary>
-        /// <param name="openingViewName">正则被打开的视图名称</param>
+        /// <param name="openingViewName">正在被打开的视图名称</param>
         void AfterOpen(string openingViewName);
 
         /// <summary>
         /// 视图关闭后调用
         /// </summary>
-        /// <param name="closingViewName">正则被关闭的视图名称</param>
+        /// <param name="closingViewName">正在被关闭的视图名称</param>
         void AfterClose(string closingViewName);
     }
 }

@@ -3,27 +3,31 @@ using TMPro;
 using UnityEngine;
 using UniVue.Utils;
 
-namespace UniVue.View.Views.Flexible
+namespace UniVue.View.Views
 {
     public sealed class FTipView : FlexibleView
     {
-        private TMP_Text _content;
+        private TipComp _tipComp;
 
-        public FTipView(string contentName,GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
+        public FTipView(string contentName, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {
-            _content = GameObjectFindUtil.DepthFind(contentName, viewObject).GetComponent<TMP_Text>();
-            CheckNull();
+            var _content = GameObjectFindUtil.DepthFind(contentName, viewObject).GetComponent<TMP_Text>();
+            CheckNull(_content);
+            _tipComp = new() { content = _content, name = name };
         }
 
         public FTipView(TMP_Text content, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {
-            _content = content;
-            CheckNull();
+            var _content = content;
+            CheckNull(_content);
+            _tipComp = new() { content = _content, name = name };
         }
+
 
         public override void OnUnload()
         {
-            _content = null;
+            _tipComp.Destroy();
+            _tipComp = null;
             base.OnUnload();
         }
 
@@ -34,16 +38,16 @@ namespace UniVue.View.Views.Flexible
         /// <param name="top">是否显示与顶部</param>
         public void Open(string message, bool top = true)
         {
-            _content.text = message;
-            Vue.Router.Open(name, top);
+            _tipComp.Open(message, top);
         }
 
-        private void CheckNull()
+        private void CheckNull(TMP_Text content)
         {
-            if (_content == null)
+            if (content == null)
             {
                 throw new ArgumentException("FlexibleTipView必须指定用于显示消息内容的TMP_Text组件的名称!");
             }
         }
+
     }
 }

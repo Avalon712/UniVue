@@ -42,9 +42,9 @@ namespace UniVue.View
             Build(canvas, canvasConfig.views);
         }
 
-        public static void Build(GameObject canvas,BaseView[] views)
+        public static void Build(GameObject canvas,ScriptableView[] views)
         {
-            Queue<BaseView> roots = new Queue<BaseView>();
+            Queue<ScriptableView> roots = new Queue<ScriptableView>();
 
             //先加载所有没有根视图的视图
             for (int j = 0; j < views.Length; j++)
@@ -56,9 +56,9 @@ namespace UniVue.View
             //加载所有嵌套视图
             while (roots.Count > 0)
             {
-                BaseView root = roots.Dequeue();
+                ScriptableView root = roots.Dequeue();
 
-                BaseView[] nestedViews = root.nestedViews;
+                ScriptableView[] nestedViews = root.nestedViews;
                 string[] strs = new string[nestedViews.Length];
 
                 for (int k = 0; k < nestedViews.Length; k++)
@@ -72,7 +72,7 @@ namespace UniVue.View
                 {
                     while (it.MoveNext())
                     {
-                        BaseView view = Array.Find(nestedViews, (v) => v.name == it.Current.name);
+                        ScriptableView view = Array.Find(nestedViews, (v) => v.name == it.Current.name);
                         if (view != null) { view.viewObject = it.Current; } 
                     }
                 }
@@ -107,8 +107,8 @@ namespace UniVue.View
             //按层级深度依次调用所有嵌套视图的OnLoad()函数
             while (roots.Count > 0)
             {
-                BaseView root = roots.Dequeue();
-                BaseView[] nestedViews = root.nestedViews;
+                ScriptableView root = roots.Dequeue();
+                ScriptableView[] nestedViews = root.nestedViews;
                 for (int i = 0; i < nestedViews.Length; i++)
                 {
                     nestedViews[i].OnLoad();

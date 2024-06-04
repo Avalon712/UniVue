@@ -1,40 +1,43 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
-using UnityEngine.UI;
 using UniVue.Utils;
+using UniVue.View.Views;
 
-namespace UniVue.View.Views
+namespace UniVue.Runtime.View.Views
 {
-    public sealed class FListView : FlexibleView
+    /// <summary>
+    /// 不能滚动的列表视图，可以方便实现显示和隐藏子物体
+    /// </summary>
+    public sealed class SClampListView : ScriptableView
     {
-        private ListComp _listComp;
 
-        public bool Loop { get => _listComp.Loop; set => _listComp.Loop = value; }
+        #region 配置信息
+        /// <summary>
+        /// 显示所有子物体的父物体
+        /// </summary>
+        [Header("所有子物体的父物体的名称")]
+        [SerializeField] private string _content;
 
-        public FListView(ListComp listComp, GameObject viewObject, string viewName = null, 
-            ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
-        {
-            _listComp = listComp;
-        }
+        #endregion
+
+        private ClampListComp _comp;
 
         public override void OnLoad()
         {
-            ScrollRect scrollRect = ComponentFindUtil.BreadthFind<ScrollRect>(viewObject);
+            var content = GameObjectFindUtil.BreadthFind(_content, viewObject)?.transform;
 
-            if (scrollRect == null)
-            {
-                throw new Exception("viewObject身上未包含一个ScrollRect组件，该功能依赖该组件！");
-            }
+            _comp = new(content);
 
-            BindEvent(scrollRect.content.gameObject);
+            InitState();
+            BindEvent(content.gameObject);
         }
 
         public override void OnUnload()
         {
-            _listComp.Destroy();
-            _listComp = null;
+            _comp.Destroy();
+            _comp = null;
             base.OnUnload();
         }
 
@@ -45,7 +48,7 @@ namespace UniVue.View.Views
         /// <param name="newData">绑定的新数据，注意必须与旧数据的类型一致！</param>
         public void RebindData<T>(List<T> newData) where T : IBindableModel
         {
-            _listComp.RebindData(newData);
+            _comp.RebindData(newData);
         }
 
         /// <summary>
@@ -54,7 +57,7 @@ namespace UniVue.View.Views
         /// <param name="data">绑定的数据</param>
         public void BindData<T>(List<T> data) where T : IBindableModel
         {
-            _listComp.BindData(data);
+            _comp.BindData(data);
         }
 
         /// <summary>
@@ -63,7 +66,15 @@ namespace UniVue.View.Views
         /// <param name="comparer">排序规则</param>
         public void Sort(Comparison<IBindableModel> comparer)
         {
-            _listComp.Sort(comparer);
+            _comp.Sort(comparer);
+        }
+
+        /// <summary>
+        /// 清空数据
+        /// </summary>
+        public void Clear()
+        {
+            _comp.Clear();
         }
 
         /// <summary>
@@ -72,7 +83,7 @@ namespace UniVue.View.Views
         /// <param name="newData">新加入的数据</param>
         public void AddData<T>(T newData) where T : IBindableModel
         {
-            _listComp.AddData(newData);
+            _comp.AddData(newData);
         }
 
         /// <summary>
@@ -80,7 +91,7 @@ namespace UniVue.View.Views
         /// </summary>
         public void RemoveData<T>(T remove) where T : IBindableModel
         {
-            _listComp.RemoveData(remove);
+            _comp.RemoveData(remove);
         }
 
         /// <summary>
@@ -88,23 +99,8 @@ namespace UniVue.View.Views
         /// </summary>
         public void Refresh()
         {
-            _listComp.Refresh();
+            _comp.Refresh();
         }
 
-        /// <summary>
-        /// 清空数据
-        /// </summary>
-        public void Clear()
-        {
-            _listComp.Clear();
-        }
-
-        /// <summary>
-        /// 滚动到指定数据的哪儿
-        /// </summary>
-        public void ScrollTo<T>(T data) where T : IBindableModel
-        {
-            _listComp.ScrollTo(data);
-        }
     }
 }

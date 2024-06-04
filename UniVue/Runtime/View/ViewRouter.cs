@@ -355,19 +355,19 @@ namespace UniVue.View
                     Button btn = uis[i].Item1 as Button;
                     string btnName = btn.name;
                     string viewName;
-                    if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouterEvent.Close, out viewName))
+                    if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouteEvent.Close, out viewName))
                     {
                         btn.onClick.AddListener(() => Close(viewName));
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouterEvent.Open, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouteEvent.Open, out viewName))
                     {
                         btn.onClick.AddListener(() => Open(viewName));
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouterEvent.Return, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouteEvent.Return, out viewName))
                     {
                         btn.onClick.AddListener(Return);
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouterEvent.Skip, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouteEvent.Skip, out viewName))
                     {
                         btn.onClick.AddListener(() => Skip(currentViewName, viewName));
                     }
@@ -377,19 +377,19 @@ namespace UniVue.View
                     Toggle toggle = uis[i].Item1 as Toggle;
                     string toggleName = toggle.name;
                     string viewName;
-                    if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouterEvent.Close, out viewName))
+                    if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Close, out viewName))
                     {
                         toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Close(viewName); } });
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouterEvent.Open, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Open, out viewName))
                     {
                         toggle.onValueChanged.AddListener((isOn) => { if (isOn) {  Open(viewName); } });
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouterEvent.Return, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Return, out viewName))
                     {
                         toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Return(); } });
                     }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouterEvent.Skip, out viewName))
+                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Skip, out viewName))
                     {
                         toggle.onValueChanged.AddListener((isOn) => { if (isOn) {  Skip(currentViewName, viewName); } });
                     }

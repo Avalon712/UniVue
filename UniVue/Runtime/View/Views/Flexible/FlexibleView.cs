@@ -5,20 +5,20 @@ using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
 
-namespace UniVue.View.Views.Flexible
+namespace UniVue.View.Views
 {
     public class FlexibleView : IView
     {
         private bool _isClosing;
         private bool _isOpening;
 
-        public ViewLevel level { get;private set; }
+        public ViewLevel level { get; private set; }
 
-        public string name { get;private set; }
+        public string name { get; private set; }
 
-        public bool state { get;protected set; }
+        public bool state { get; protected set; }
 
-        public GameObject viewObject { get;private set; }
+        public GameObject viewObject { get; private set; }
 
         public bool isMaster { get; set; }
 
@@ -29,12 +29,6 @@ namespace UniVue.View.Views.Flexible
         public bool forbid { get; set; }
 
         public IView[] nestedViews { get; set; }
-
-        /// <summary>
-        /// 当前视图在Canvas下的排序,序号越小越先被渲染
-        /// 注：此值只有当前视图不是嵌套视图时才生效
-        /// </summary>
-        public int order { get; set; }
 
         /// <summary>
         /// ViewLevel.Transient视图显示时间
@@ -67,10 +61,10 @@ namespace UniVue.View.Views.Flexible
         public float closeDuration { get; set; } = -1;
 
 
-        public FlexibleView(GameObject viewObject,string viewName=null,ViewLevel level = ViewLevel.Common)
+        public FlexibleView(GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common)
         {
-            this.viewObject = viewObject; 
-            if(viewName == null) { viewName = viewObject.name; }
+            this.viewObject = viewObject;
+            if (viewName == null) { viewName = viewObject.name; }
             name = viewName;
             this.level = level;
             state = viewObject.activeSelf || level == ViewLevel.Permanent;
@@ -78,15 +72,29 @@ namespace UniVue.View.Views.Flexible
 
             //将当前视图对象交给ViewRouter管理
             Vue.Router.AddView(this);
-            //获取所有的ui组件
-            var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
-            //构建UIEvent
-            UIEventBuilder.Build(viewName, uis);
-            //处理路由事件
-            Vue.Router.BindRouteEvt(viewName, uis);
+
             //调用函数
             OnLoad();
         }
+
+        /// <summary>
+        /// 当视图被加载到场景中时调用
+        /// </summary>
+        public virtual void OnLoad()
+        {
+            BindEvent(null);
+        }
+
+        protected void BindEvent(params GameObject[] exclued)
+        {
+            //获取所有的ui组件
+            var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this, exclued);
+            //构建UIEvent
+            UIEventBuilder.Build(name, uis);
+            //处理路由事件
+            Vue.Router.BindRouteEvt(name, uis);
+        }
+
 
         public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel
         {
@@ -133,7 +141,6 @@ namespace UniVue.View.Views.Flexible
             }
         }
 
-        public virtual void OnLoad(){ }
 
         public virtual void OnUnload()
         {

@@ -6,6 +6,7 @@ using UniVue.Rule;
 using UniVue.Utils;
 using UniVue.View;
 using UniVue.View.Config;
+using UniVue.View.Views;
 using UniVue.ViewModel;
 
 namespace UniVue
@@ -149,7 +150,6 @@ namespace UniVue
             _event.UnregisterUIEvents(viewName);
         }
 
-       
         /// <summary>
         /// 将模型绑定到一个UIBundle中，这个GameObject不是一个ViewObject的，但是他是一些UI的集合
         /// 这些UI可用与模型数据进行绑定

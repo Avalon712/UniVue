@@ -2,6 +2,7 @@
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UniVue.Runtime.View.Views;
+using UniVue.View.Config;
 using UniVue.View.Views;
 
 namespace UniVue.Editor
@@ -17,7 +18,7 @@ namespace UniVue.Editor
         private string _saveDirectory = "Assets/";
 
         private bool _attachToRoot;
-        private BaseView _root;
+        private ScriptableView _root;
 
         [MenuItem("UniVue/ViewEditor")]
         public static void OpenEditorWindow()
@@ -74,27 +75,27 @@ namespace UniVue.Editor
                 return false;
             }
 
-            BaseView view = null;
+            ScriptableView view = null;
 
             switch (_viewConfigType)
             {
                 case ViewType.BaseView:
-                    view = ViewBuilderInEditor.CreateViewConfig<BaseView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<ScriptableView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ListView:
-                    view = ViewBuilderInEditor.CreateViewConfig<ListView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<SListView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.GridView:
-                    view = ViewBuilderInEditor.CreateViewConfig<GridView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<SGridView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.TipView:
-                    view = ViewBuilderInEditor.CreateViewConfig<TipView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<STipView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.EnsureTipView:
-                    view = ViewBuilderInEditor.CreateViewConfig<EnsureTipView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<SEnsureTipView>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ClampListView:
-                    view = ViewBuilderInEditor.CreateViewConfig<ClampListView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<SClampListView>(_configFileName, _saveDirectory);
                     break;
             }
 
@@ -191,7 +192,7 @@ namespace UniVue.Editor
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("选择此视图的根视图");
-                _root = (BaseView)EditorGUILayout.ObjectField(_root, typeof(BaseView), false);
+                _root = (ScriptableView)EditorGUILayout.ObjectField(_root, typeof(ScriptableView), false);
                 EditorGUILayout.EndHorizontal();
                 EditorGUILayout.Space();
             }
@@ -220,5 +221,65 @@ namespace UniVue.Editor
         EnsureTipView,
         ChatView,
         ClampListView,
+    }
+
+    internal sealed class ViewBuilderInEditor
+    {
+        private ViewBuilderInEditor() { }
+
+        public static void CreateSceneConfig(string fileName, string sceneName, string directory)
+        {
+            string path = $"{directory}{fileName}.asset";
+            SceneConfig config;
+            if (!Contains(path, out config))
+            {
+                config = ScriptableObject.CreateInstance<SceneConfig>();
+                AssetDatabase.CreateAsset(config, path);
+                config.sceneName = sceneName;
+            }
+            else
+            {
+                Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
+            }
+        }
+
+        public static void CreateCanvasConfig(string fileName, string directory)
+        {
+            string path = $"{directory}{fileName}.asset";
+            CanvasConfig config;
+            if (!Contains(path, out config))
+            {
+                config = ScriptableObject.CreateInstance<CanvasConfig>();
+                AssetDatabase.CreateAsset(config, path);
+                config.canvasName = fileName;
+            }
+            else
+            {
+                Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
+            }
+        }
+
+        public static V CreateViewConfig<V>(string fileName, string directory) where V : ScriptableObject
+        {
+            string path = $"{directory}{fileName}.asset";
+            V config;
+            if (!Contains(path, out config))
+            {
+                config = ScriptableObject.CreateInstance<V>();
+                return config;
+            }
+            else
+            {
+                Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
+            }
+            return null;
+        }
+
+        private static bool Contains<T>(string path, out T config) where T : ScriptableObject
+        {
+            config = AssetDatabase.LoadAssetAtPath<T>(path);
+            return config != null;
+        }
+
     }
 }
