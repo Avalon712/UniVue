@@ -14,50 +14,50 @@ namespace UniVue.Utils
         private ReflectionUtil() { }
 
         /// <summary>
-        /// 判断一个PropertyInfo是否为可绑定的类型
+        /// 判断一个Type是否为可绑定的类型
         /// </summary>
-        public static BindablePropertyType GetBindablePropertyType(Type type)
+        public static BindableType GetBindableType(Type type)
         {
             if (type.IsEnum)
             {
-                return BindablePropertyType.Enum;
+                return BindableType.Enum;
             }
             else if (type == typeof(string))
             {
-                return BindablePropertyType.String;
+                return BindableType.String;
             }
             else if (type == typeof(float))
             {
-                return BindablePropertyType.Float;
+                return BindableType.Float;
             }
             else if (type == typeof(int))
             {
-                return BindablePropertyType.Int;
+                return BindableType.Int;
             }
             else if (type == typeof(bool))
             {
-                return BindablePropertyType.Bool;
+                return BindableType.Bool;
             }else if(type == typeof(Sprite))
             {
-                return BindablePropertyType.Sprite;
+                return BindableType.Sprite;
             }else if(type == typeof(List<Sprite>))
             {
-                return BindablePropertyType.ListSprite;
+                return BindableType.ListSprite;
             }else if(type == typeof(List<int>))
             {
-                return BindablePropertyType.ListInt;
+                return BindableType.ListInt;
             }
             else if (type == typeof(List<float>))
             {
-                return BindablePropertyType.ListFloat;
+                return BindableType.ListFloat;
             }
             else if (type == typeof(List<string>))
             {
-                return BindablePropertyType.ListString;
+                return BindableType.ListString;
             }
             else if (type == typeof(List<bool>))
             {
-                return BindablePropertyType.ListBool;
+                return BindableType.ListBool;
             }
 
             if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
@@ -65,11 +65,11 @@ namespace UniVue.Utils
                 Type[] types = type.GenericTypeArguments;
                 if (types != null && types.Length == 1)
                 {
-                    if (types[0].IsEnum) { return BindablePropertyType.ListEnum; }
+                    if (types[0].IsEnum) { return BindableType.ListEnum; }
                 }
             }
 
-            return BindablePropertyType.None;
+            return BindableType.None;
         }
     
         /// <summary>
@@ -105,7 +105,7 @@ namespace UniVue.Utils
         /// 获取所有注解了[EventCallAttribute]的方法
         /// </summary>
         /// <returns>List<MethodInfo></returns>
-        public static IEnumerable<CustomTuple<MethodInfo,EventCallAttribute>> GetEventCallMethods<T>(T register, CustomTuple<MethodInfo, EventCallAttribute> tuple) where T : IEventRegister
+        public static IEnumerable<ValueTuple<MethodInfo,EventCallAttribute>> GetEventCallMethods<T>(T register) where T : IEventRegister
         {
             MethodInfo[] methods = register.GetType().GetMethods(BindingFlags.NonPublic|BindingFlags.Public|BindingFlags.Static|BindingFlags.Instance|BindingFlags.DeclaredOnly);
 
@@ -140,10 +140,7 @@ namespace UniVue.Utils
                         }
                         if (flag) continue;
                     }
-
-                    tuple.Item1 = methods[i];
-                    tuple.Item2 = attribute;
-                    yield return tuple;
+                    yield return (methods[i], attribute);
                 }
             }
 

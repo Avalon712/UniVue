@@ -1,12 +1,10 @@
 ﻿using TMPro;
-using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
 {
     public sealed class FloatPropertyText : FloatPropertyUI<TMP_Text>
     {
-        public FloatPropertyText(TMP_Text ui, IModelNotifier notifier, string propertyName)
-            : base(ui, notifier, propertyName, false)
+        public FloatPropertyText(TMP_Text ui,string propertyName): base(ui, propertyName, false)
         {
         }
 

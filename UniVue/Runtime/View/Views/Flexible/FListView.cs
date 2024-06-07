@@ -9,11 +9,11 @@ namespace UniVue.View.Views
 {
     public sealed class FListView : FlexibleView
     {
-        private ListComp _listComp;
+        private ListWidget _listComp;
 
         public bool Loop { get => _listComp.Loop; set => _listComp.Loop = value; }
 
-        public FListView(ListComp listComp, GameObject viewObject, string viewName = null, 
+        public FListView(ListWidget listComp, GameObject viewObject, string viewName = null, 
             ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {
             _listComp = listComp;

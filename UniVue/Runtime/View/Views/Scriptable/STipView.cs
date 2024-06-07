@@ -10,7 +10,7 @@ namespace UniVue.View.Views
         [Header("用于显示提示消息的TMP_Text组件的名称")]
         [SerializeField] private string content;
 
-        private TipComp _tipComp; 
+        private TipWidget _tipComp; 
    
 
         public override void OnLoad()
@@ -21,7 +21,7 @@ namespace UniVue.View.Views
             {
                 throw new ArgumentException("TipView必须指定用于显示消息内容的TMP_Text组件的名称!");
             }
-            _tipComp = new() { content = contentTxt, name = this.name };
+            _tipComp = new(name, contentTxt);
 
             base.OnLoad();
         }

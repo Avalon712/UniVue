@@ -22,7 +22,7 @@ namespace UniVue.Runtime.View.Views
 
         #endregion
 
-        private ClampListComp _comp;
+        private ClampListWidget _comp;
 
         public override void OnLoad()
         {

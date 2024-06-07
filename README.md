@@ -1,5 +1,23 @@
 # UniVue技术文档
 
+**关于UniVue框架开发说明**
+
+由于目前尚还要很多强大的功能未开完，更新改动都较为频繁，不妨关注我的CSDN博客，了解UniVue最新的更新日志（每次有重大功能更新我都将发布关于最新功能的说明）这篇技术文档都是简单的讲解了整体的设计，到了稳定版后会出更详细的说明文档。（我相信这些功能全部开发完发布稳定版那天一定会惊讶的，MVVM就是数据驱动模型最强的最nb的）。
+
+CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=1000.2115.3001.5343)
+
+这个仓库之后发布功能稳定的版本，因此很多最新的功能在这里是无法看见的，如果你想预览最新的功能，不妨fork一下这个仓库：https://github.com/Avalon712/UniVue-Develop 。这个仓库是我开发UniVue框架使用的项目，所有最新以及正在开发的功能都在这里可以看见，里面对每个功能都会有单元测试，也是学习UniVue框架的不二选择。
+
+
+
+**UniVue的扩展框架：UniVue源生成器**
+
+仓库地址：https://github.com/Avalon712/UniVue-SourceGenerator
+
+关于UniVue中源生成器更详细的说明，请看这篇博客：[UniVue更新日志：使用源生成器优化Model和ViewModel层的设计-CSDN博客](https://blog.csdn.net/m0_62135731/article/details/139525492?spm=1001.2014.3001.5501)
+
+
+
 ## 一、简介
 
 ### **基于MVVM模式的UI框架**
@@ -68,23 +86,13 @@
 
 该接口定义了当用户的交互行为使得UI数据发生改变时，通知绑定了此UI的模型的数据进行更新的行为
 
-### 5.IBindableModel : IModelUpdater, IUINotifier
+### 5.IImplementedModel:IModelUpdater, IUINotifier
 
-该接口定义了可绑定模型数据的行为。
+该接口对上述接口提供了基于默认接口的实现。
 
-### 6.BaseModel : IBindableModel
+### 6.IBindableModel : IImplementedModel
 
-Model层的实现基类是BaseModel，基类中提供了基于反射来显示模型数据更新的方法。但是如果你对程序性能要求很高，可以重写父类的UpdateModel()函数，这样可以减少基本数据类型的装箱操作带来的在堆上的小对象内存。
-
-BaseModel实现了IUIUpdater, IModelUpdater接口。所有能被进行数据绑定的数据对象都应该继承自改类。
-
-### 7.MonoModel : MonoBehaviour, IBindableModel
-
-作用同BaseModel，与BaseModel不同的是，MonoModel继承了MonoBehaviour
-
-### 8.ScriptableModel : ScriptableObject, IBindableMode
-
-作用同BaseModel，与BaseModel不同的是，ScriptableModel 继承了ScriptableObject
+所有可绑定的数据模型都需要继承此接口。
 
 
 
@@ -858,9 +866,6 @@ View中具有嵌套关系时，在创建被嵌套的视图时，无需指定view
 
 
 
-### ScriptEditorWindow
+## 十、源生成器
 
-位置: **UniVu > ScriptEditor**
-
-功能：自动生成继承自BaseModel或UnityModel的脚本，同时能自动重写IBindable的所有方法，重写这些方法减少反射调用，是由必要的，如果你极度关心程序性能。
-
+最近的大更新中使用了源生成器来提高效率，关于UniVue中的源生成器，请看这篇博客：[UniVue更新日志：使用源生成器优化Model和ViewModel层的设计-CSDN博客](https://blog.csdn.net/m0_62135731/article/details/139525492?spm=1001.2014.3001.5501)

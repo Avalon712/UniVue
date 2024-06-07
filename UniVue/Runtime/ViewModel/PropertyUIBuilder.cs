@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using TMPro;
 using UnityEngine.UI;
-using UniVue.Model;
 using UniVue.Utils;
 using UniVue.ViewModel.Models;
 
@@ -13,95 +11,96 @@ namespace UniVue.ViewModel
     {
         private PropertyUIBuilder() { }
 
-        public static PropertyUI DoBuildSlider(IModelNotifier notifier, string propertyName, BindablePropertyType valuePropertyType, Slider slider, bool allowUIUpdateModel)
+        internal static PropertyUI DoBuildSlider(string propertyName, BindableType valuePropertyType, Slider slider, bool allowUIUpdateModel)
         {
             switch (valuePropertyType)
             {
-                case BindablePropertyType.Float:
-                    return new FloatPropertySlider(slider, notifier, propertyName, allowUIUpdateModel);
-                case BindablePropertyType.Int:
-                    return new IntPropertySlider(slider, notifier, propertyName, allowUIUpdateModel);
+                case BindableType.Float:
+                    return new FloatPropertySlider(slider, propertyName, allowUIUpdateModel);
+                case BindableType.Int:
+                    return new IntPropertySlider(slider, propertyName, allowUIUpdateModel);
             }
 
             return null;
         }
 
-        public static PropertyUI DoBuildText(IModelNotifier notifier, PropertyInfo propertyInfo, BindablePropertyType valuePropertyType, TMP_Text text)
+        internal static PropertyUI DoBuildText(string propertyName, Type type, BindableType valuePropertyType, TMP_Text text)
         {
             switch (valuePropertyType)
             {
-                case BindablePropertyType.Enum:
-                    bool isFlags = ReflectionUtil.HasFlags(propertyInfo.PropertyType);
-                    Array array = Enum.GetValues(propertyInfo.PropertyType);
-                    return isFlags ? new FlagsEnumPropertyText(text, array, notifier, propertyInfo.Name) : new EnumPropertyText(text, array, notifier, propertyInfo.Name);
-                case BindablePropertyType.Float:
-                    return new FloatPropertyText(text, notifier, propertyInfo.Name);
-                case BindablePropertyType.Int:
-                    return new IntPropertyText(text, notifier, propertyInfo.Name);
-                case BindablePropertyType.String:
-                    return new StringPropertyText(text, notifier, propertyInfo.Name);
+                case BindableType.Enum:
+                    bool isFlags = ReflectionUtil.HasFlags(type);
+                    Array array = Enum.GetValues(type);
+                    return isFlags ? new FlagsEnumPropertyText(text, array, propertyName) :
+                        new EnumPropertyText(text, array, propertyName);
+                case BindableType.Float:
+                    return new FloatPropertyText(text, propertyName);
+                case BindableType.Int:
+                    return new IntPropertyText(text, propertyName);
+                case BindableType.String:
+                    return new StringPropertyText(text, propertyName);
             }
 
             return null;
         }
 
-        public static PropertyUI DoBuildInput(IModelNotifier notifier, PropertyInfo propertyInfo, BindablePropertyType valuePropertyType, TMP_InputField input, bool allowUIUpdateModel)
+        internal static PropertyUI DoBuildInput(string propertyName, Type type, BindableType valuePropertyType, TMP_InputField input, bool allowUIUpdateModel)
         {
             switch (valuePropertyType)
             {
-                case BindablePropertyType.Enum:
-                    Array array = Enum.GetValues(propertyInfo.PropertyType);
-                    return new EnumPropertyInput(input, array, notifier, propertyInfo.Name, allowUIUpdateModel);
-                case BindablePropertyType.Float:
-                    return new FloatPropertyInput(input, notifier, propertyInfo.Name, allowUIUpdateModel);
-                case BindablePropertyType.Int:
-                    return new IntPropertyInput(input, notifier, propertyInfo.Name, allowUIUpdateModel);
-                case BindablePropertyType.String:
-                    return new StringPropertyInput(input, notifier, propertyInfo.Name, allowUIUpdateModel);
+                case BindableType.Enum:
+                    Array array = Enum.GetValues(type);
+                    return new EnumPropertyInput(input, array, propertyName, allowUIUpdateModel);
+                case BindableType.Float:
+                    return new FloatPropertyInput(input, propertyName, allowUIUpdateModel);
+                case BindableType.Int:
+                    return new IntPropertyInput(input, propertyName, allowUIUpdateModel);
+                case BindableType.String:
+                    return new StringPropertyInput(input, propertyName, allowUIUpdateModel);
             }
             return null;
         }
 
-        public static PropertyUI DoBuildDropdown(IModelNotifier notifier, PropertyInfo propertyInfo, TMP_Dropdown dropdown, bool allowUIUpdateModel)
+        internal static PropertyUI DoBuildDropdown(string propertyName, Type type, TMP_Dropdown dropdown, bool allowUIUpdateModel)
         {
-            Array array = Enum.GetValues(propertyInfo.PropertyType);
-            return new EnumPropertyDropdown(dropdown, array, notifier, propertyInfo.Name, allowUIUpdateModel);
+            Array array = Enum.GetValues(type);
+            return new EnumPropertyDropdown(dropdown, array, propertyName, allowUIUpdateModel);
         }
 
-        public static PropertyUI DoBuildToggle(IModelNotifier notifier, string propertyName, Toggle toggle, bool allowUIUpdateModel)
+        internal static PropertyUI DoBuildToggle(string propertyName, Toggle toggle, bool allowUIUpdateModel)
         {
-            return new BoolPropertyToggle(toggle, notifier, propertyName, allowUIUpdateModel);
+            return new BoolPropertyToggle(toggle,propertyName, allowUIUpdateModel);
         }
 
-        public static PropertyUI DoBuildSingleChoiceToggles(IModelNotifier notifier, PropertyInfo propertyInfo, List<Toggle> toggles, bool allowUIUpdateModel)
+        internal static PropertyUI DoBuildSingleChoiceToggles(string propertyName, Type type, List<Toggle> toggles, bool allowUIUpdateModel)
         {
-            Array array = Enum.GetValues(propertyInfo.PropertyType);
-            CustomTuple<Toggle, string>[] tgls = new CustomTuple<Toggle, string>[toggles.Count];
+            Array array = Enum.GetValues(type);
+            ValueTuple<Toggle, string>[] tgls = new ValueTuple<Toggle, string>[toggles.Count];
             for (int i = 0; i < toggles.Count; i++)
             {
-                CustomTuple<Toggle, string> tuple = new CustomTuple<Toggle, string>();
+                ValueTuple<Toggle, string> tuple = new ValueTuple<Toggle, string>();
                 tuple.Item1 = toggles[i];
                 tuple.Item2 = toggles[i].GetComponentInChildren<Text>()?.text ??
                               toggles[i].GetComponentInChildren<TMP_Text>()?.text;
                 tgls[i] = tuple;
             }
-            PropertyUI propertyUI = new EnumPropertyToggleGroup(tgls, array, notifier, propertyInfo.Name, allowUIUpdateModel);
+            PropertyUI propertyUI = new EnumPropertyToggleGroup(tgls, array, propertyName, allowUIUpdateModel);
             return propertyUI;
         }
 
-        public static PropertyUI DoBuildMultiChoiceToggles(IModelNotifier notifier, PropertyInfo propertyInfo, List<Toggle> toggles, bool allowUIUpdateModel)
+        internal static PropertyUI DoBuildMultiChoiceToggles(string propertyName, Type type, List<Toggle> toggles, bool allowUIUpdateModel)
         {
-            Array array = Enum.GetValues(propertyInfo.PropertyType);
-            CustomTuple<Toggle, string>[] tgls = new CustomTuple<Toggle, string>[toggles.Count];
+            Array array = Enum.GetValues(type);
+            ValueTuple<Toggle, string>[] tgls = new ValueTuple<Toggle, string>[toggles.Count];
             for (int i = 0; i < toggles.Count; i++)
             {
-                CustomTuple<Toggle, string> tuple = new CustomTuple<Toggle, string>();
+                ValueTuple<Toggle, string> tuple = new ValueTuple<Toggle, string>();
                 tuple.Item1 = toggles[i];
                 tuple.Item2 = toggles[i].GetComponentInChildren<Text>()?.text ??
                               toggles[i].GetComponentInChildren<TMP_Text>()?.text;
                 tgls[i] = tuple;
             }
-            PropertyUI propertyUI = new FlagsEnumPropertyToggles(tgls, array, notifier, propertyInfo.Name, allowUIUpdateModel);
+            PropertyUI propertyUI = new FlagsEnumPropertyToggles(tgls, array, propertyName, allowUIUpdateModel);
             return propertyUI;
         }
     }

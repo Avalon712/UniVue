@@ -8,7 +8,7 @@ namespace UniVue.View.Views
 {
     public sealed class FClampListView : FlexibleView
     {
-        private ClampListComp _comp;
+        private ClampListWidget _comp;
 
         public FClampListView(Transform content, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {

@@ -25,12 +25,17 @@ namespace UniVue.ViewModel.Models
         /// </summary>
         protected bool _needUpdate = true;
 
-        public PropertyUI(IModelNotifier notifier,string propertyName,bool allowUIUpdateModel)
+        public PropertyUI(string propertyName,bool allowUIUpdateModel)
         {
             _propertyName = propertyName;
-            _notifier = notifier;
             _allowUIUpdateModel = allowUIUpdateModel;
         }
+
+        /// <summary>
+        /// 为当前属性UI设置模型通知器
+        /// </summary>
+        /// <param name="notifier">IModelNotifier接口实现</param>
+        public void SetModelNotifier(IModelNotifier notifier) => _notifier = notifier;
 
         /// <summary>
         /// 显示或隐藏UI的展示
@@ -41,12 +46,13 @@ namespace UniVue.ViewModel.Models
         /// <summary>
         /// 解除UI与模型的关系 
         /// </summary>
-        public abstract void Dispose();
+        public abstract void Unbind();
 
-        public string GetPropertyName()
-        {
-            return _propertyName;
-        }
+        /// <summary>
+        /// 获取当前属性UI绑定的属性的属性名称
+        /// </summary>
+        /// <returns></returns>
+        public string GetPropertyName() => _propertyName;
 
         public abstract void UpdateUI(int propertyValue);
         public abstract void UpdateUI(float propertyValue);

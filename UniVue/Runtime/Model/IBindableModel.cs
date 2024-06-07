@@ -1,24 +1,30 @@
 ﻿
+
 namespace UniVue.Model
 {
-    public interface IBindableModel : IUINotifier, IModelUpdater
+    /*
+     * 这个接口只对反射实现的默认方法进行重载
+     */
+    public interface IBindableModel : IImplementedModel
     {
-        /// <summary>
-        /// 通知所有UI进行更新
-        /// </summary>
-        void NotifyAll();
+        IBindableModel IImplementedModel.Binder => this;
 
         /// <summary>
-        /// 解除此模型与所有它绑定的视图的关系
+        /// 将所有对此模型的绑定的视图都进行解绑
         /// </summary>
-        void Unbind();
+        public sealed void Unbind()
+        {
+            Vue.Updater.Unbind(this);
+        }
 
         /// <summary>
-        /// 将此模型绑定到指定视图名称的视图上
+        /// 绑定到指定视图
         /// </summary>
-        /// <param name="viewName">视图名称</param>
-        /// <param name="allowUIUpdateModel">是否允许UI更新模型数据</param>
-        void Bind(string viewName,bool allowUIUpdateModel=true);
-
+        /// <param name="viewName">要绑定的视图的名称</param>
+        /// <param name="allowUIUpdateModel">是否允许通过UI改变模型数据</param>
+        public void Bind(string viewName, bool allowUIUpdateModel)
+        {
+            Vue.Router.GetView(viewName).BindModel(this, allowUIUpdateModel);
+        }
     }
 }

@@ -9,9 +9,9 @@ namespace UniVue.View.Views
 {
     public sealed class FGridView : FlexibleView
     {
-        private GridComp _gridComp;
+        private GridWidget _gridComp;
 
-        public FGridView(GridComp gridComp, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
+        public FGridView(GridWidget gridComp, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {
             _gridComp = gridComp;
         }

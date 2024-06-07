@@ -1,12 +1,10 @@
 ﻿using TMPro;
-using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
 {
     public sealed class StringPropertyInput : StringPropertyUI<TMP_InputField>
     {
-
-        public StringPropertyInput(TMP_InputField ui, IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) : base(ui, notifier, propertyName, allowUIUpdateModel)
+        public StringPropertyInput(TMP_InputField ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel) { ui.onEndEdit.AddListener(UpdateModel); }
         }
@@ -16,13 +14,13 @@ namespace UniVue.ViewModel.Models
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //指示不用更新当前的UI
 
-            _notifier.NotifyModelUpdate(_propertyName, value);
+            _notifier?.NotifyModelUpdate(_propertyName, value);
         }
 
-        public override void Dispose()
+        public override void Unbind()
         {
             if (_allowUIUpdateModel) { _ui.onEndEdit.RemoveListener(UpdateModel); }
-            base.Dispose();
+            base.Unbind();
         }
 
         public override void UpdateUI(string propertyValue)

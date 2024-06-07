@@ -42,7 +42,7 @@ namespace UniVue.View.Views
 
         #endregion
 
-        private ListComp _listComp;
+        private ListWidget _listComp;
 
         public bool Loop { get => _listComp.Loop; set => _listComp.Loop = value; }
 

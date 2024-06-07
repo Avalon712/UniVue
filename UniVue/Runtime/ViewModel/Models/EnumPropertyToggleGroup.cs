@@ -1,7 +1,5 @@
 ﻿using System;
 using UnityEngine.UI;
-using UniVue.Model;
-using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
 {
@@ -10,10 +8,10 @@ namespace UniVue.ViewModel.Models
     /// 获取Toggle孩子身上的Text或TMP_Text组件中的值
     /// 单选效果
     /// </summary>
-    public sealed class EnumPropertyToggleGroup : EnumPropertyUI<CustomTuple<Toggle, string>[]>
+    public sealed class EnumPropertyToggleGroup : EnumPropertyUI<ValueTuple<Toggle, string>[]>
     {
-        public EnumPropertyToggleGroup(CustomTuple<Toggle, string>[] ui, Array array, IModelNotifier notifier, string propertyName, bool allowUIUpdateModel)
-            : base(ui, array, notifier, propertyName, allowUIUpdateModel)
+        public EnumPropertyToggleGroup(ValueTuple<Toggle, string>[] ui, Array array, string propertyName, bool allowUIUpdateModel)
+            : base(ui, array, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel)
             {
@@ -34,8 +32,8 @@ namespace UniVue.ViewModel.Models
                 if (!_needUpdate) { _needUpdate = true; return; }
                 _needUpdate = false; //指示不用更新当前的UI
 
-                CustomTuple<Toggle, string> toggle = GetActiveToggle();
-                _notifier.NotifyModelUpdate(_propertyName, GetValue(toggle.Item2));
+                ValueTuple<Toggle, string> toggle = GetActiveToggle();
+                _notifier?.NotifyModelUpdate(_propertyName, GetValue(toggle.Item2));
             }
         }
 
@@ -60,16 +58,16 @@ namespace UniVue.ViewModel.Models
             }
         }
 
-        private CustomTuple<Toggle, string> GetActiveToggle()
+        private ValueTuple<Toggle, string> GetActiveToggle()
         {
             for (int i = 0; i < _ui.Length; i++)
             {
                 if (_ui[i].Item1.isOn) { return _ui[i]; }
             }
-            return null;
+            return default;
         }
 
-        public override void Dispose()
+        public override void Unbind()
         {
             if (_allowUIUpdateModel)
             {
@@ -79,13 +77,7 @@ namespace UniVue.ViewModel.Models
                 }
             }
 
-            for (int i = 0; i < _ui.Length; i++)
-            {
-                _ui[i].Dispose();
-                _ui[i] = null;
-            }
-
-            base.Dispose();
+            base.Unbind();
         }
 
     }

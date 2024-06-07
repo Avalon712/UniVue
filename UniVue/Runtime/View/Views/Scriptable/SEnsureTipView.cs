@@ -22,7 +22,7 @@ namespace UniVue.View.Views
         [SerializeField] private string _titleName;
         #endregion
 
-        private EnsureTipComp _comp;
+        private EnsureTipWidget _comp;
 
         public override void OnLoad()
         {

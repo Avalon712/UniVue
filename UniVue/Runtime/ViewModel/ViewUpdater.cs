@@ -17,7 +17,7 @@ namespace UniVue.ViewModel
         /// <summary>
         /// 双向绑定
         /// </summary>
-        public void BindViewAndModel<T>(string viewName, T model, List<CustomTuple<Component, UIType>> uis, string modelName,bool allowUIUpdateModel) where T : IBindableModel
+        public void BindViewAndModel<T>(string viewName, T model, List<ValueTuple<Component, UIType>> uis, string modelName,bool allowUIUpdateModel) where T : IBindableModel
         {
             UIBundle bundle = UIBundleBuilder.Build(viewName, uis, model, modelName, allowUIUpdateModel);
 
@@ -353,7 +353,7 @@ namespace UniVue.ViewModel
             {
                 if (ReferenceEquals(_bundles[i].Model,model))
                 {
-                    _bundles[i].Dispose();
+                    _bundles[i].Unbind();
                     ListUtil.TrailDelete(_bundles, i--);
                 }
             }
@@ -366,7 +366,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                _bundles[i].Dispose();
+                _bundles[i].Unbind();
             }
             _bundles.Clear();
         }

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
 {
@@ -15,7 +14,7 @@ namespace UniVue.ViewModel.Models
         /// </summary>
         private Toggle _toggle;
 
-        public BoolPropertyToggle(Toggle toggle,IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) : base(notifier, propertyName, allowUIUpdateModel)
+        public BoolPropertyToggle(Toggle toggle,string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _toggle = toggle;
             if (allowUIUpdateModel)
@@ -38,9 +37,9 @@ namespace UniVue.ViewModel.Models
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //指示不用更新当前的UI
 
-            _notifier.NotifyModelUpdate(_propertyName, value);
+            _notifier?.NotifyModelUpdate(_propertyName, value);
         }
-        public override void Dispose()
+        public override void Unbind()
         {
             if (_allowUIUpdateModel) { _toggle.onValueChanged.RemoveListener(UpdateModel); }
             _notifier = null;_propertyName = null; _toggle = null;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UniVue.Rule;
@@ -90,7 +91,7 @@ namespace UniVue.Editor
         {
             for (int i = 0; i < _viewObjects.Count; i++)
             {
-                List<CustomTuple<GameObject, bool>> result = new List<CustomTuple<GameObject, bool>>();
+                List<ValueTuple<GameObject, bool>> result = new List<ValueTuple<GameObject, bool>>();
 
                 DeapthSearch(_viewObjects[i], result, format);
 
@@ -102,11 +103,11 @@ namespace UniVue.Editor
 
                 for (int j = 0; j < result.Count; j++)
                 {
-                    CustomTuple<GameObject, bool> tuple = result[j];
+                    ValueTuple<GameObject, bool> tuple = result[j];
 
                     //当前GameObject能够标记~的条件是:当前GameObject匹配不成功同时其后代（如果有）都匹配不成功
                     int lastDescendantIdx = j; //从i+1到lastDescendantIdx都是tuple的后代元素
-                    bool allNoMatch = AllDescendantNoMatch(j, tuple, result, ref lastDescendantIdx);
+                    bool allNoMatch = AllDescendantNoMatch(j,ref tuple, result, ref lastDescendantIdx);
                     if (!tuple.Item2 && j > 0 && allNoMatch)
                     {
                         tuple.Item1.name = '~' + tuple.Item1.name;
@@ -125,7 +126,7 @@ namespace UniVue.Editor
         /// <summary>
         /// 子代是否都匹配不成功
         /// </summary>
-        private bool AllDescendantNoMatch(int ancestorIdx,CustomTuple<GameObject, bool> ancestor,List<CustomTuple<GameObject, bool>> result,ref int lastDescendantIdx)
+        private bool AllDescendantNoMatch(int ancestorIdx,ref ValueTuple<GameObject, bool> ancestor,List<ValueTuple<GameObject, bool>> result,ref int lastDescendantIdx)
         {
             Transform transform = ancestor.Item1.transform;
 
@@ -159,9 +160,9 @@ namespace UniVue.Editor
         }
 
         //bool指示当前GameObject名称是否匹配成功
-        private void DeapthSearch(GameObject root,List<CustomTuple<GameObject,bool>> result,NamingFormat format)
+        private void DeapthSearch(GameObject root,List<ValueTuple<GameObject,bool>> result,NamingFormat format)
         {
-            result.Add(new CustomTuple<GameObject, bool>(root, NamingRuleEngine.FullFuzzyMatch(format, root.name)));
+            result.Add(new ValueTuple<GameObject, bool>(root, NamingRuleEngine.FullFuzzyMatch(format, root.name)));
 
             Transform transform = root.transform;
             for (int i = 0; i < transform.childCount; i++)

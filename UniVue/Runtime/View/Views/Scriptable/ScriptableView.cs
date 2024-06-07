@@ -80,12 +80,6 @@ namespace UniVue.View.Views
         [SerializeField] private bool draggable;
 
         /// <summary>
-        /// 注意接受输入信号区域
-        /// </summary>
-        [Tooltip("可以接受拖拽信息的GameObject名称")]
-        [SerializeField] private string receiveDragInput;
-
-        /// <summary>
         /// 打开当前视图的默认缓动动画
         /// </summary>
         [Header("打开视图动画")]
@@ -177,7 +171,8 @@ namespace UniVue.View.Views
             }
             //初始化运行时数据
             _runtime.state = initState;
-            SetDraggable(draggable);
+            if(draggable)
+                viewObject.AddComponent<DragInput>();
             viewObject.SetActive(initState || viewLevel == ViewLevel.Permanent);
 
             //将当前视图对象交给ViewRouter管理
@@ -319,18 +314,6 @@ namespace UniVue.View.Views
         }
 
         #endregion
-
-        /// <summary>
-        /// 设置当前ViewPanel是否可以进行拖拽，默认false
-        /// </summary>
-        private void SetDraggable(bool draggable)
-        {
-            if (!draggable || string.IsNullOrEmpty(receiveDragInput)) { return; }
-
-            GameObject receiver = GameObjectFindUtil.BreadthFind(receiveDragInput, viewObject);
-            if (receiver == null) { receiver = viewObject; }
-            DragInput.ReceiveInput(receiver, viewObject);
-        }
     }
 }
 

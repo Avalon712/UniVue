@@ -1,34 +1,58 @@
-﻿
+﻿using System.Reflection;
+using System;
+
 namespace UniVue.Model
 {
+    /// <summary>
+    /// 由UI主动触发模型更新操作
+    /// </summary>
     public interface IModelUpdater
     {
-        /// <summary>
-        /// 更新模型数据 (UI -> Model)
-        /// </summary>
-        /// <param name="propertyName">属性名</param>
-        /// <param name="propertyValue">属性值</param>
-        public void UpdateModel(string propertyName, int propertyValue);
+        internal IUINotifier Notifier { get; }
 
-        /// <summary>
-        /// 更新模型数据 (UI -> Model)
-        /// </summary>
-        /// <param name="propertyName">属性名</param>
-        /// <param name="propertyValue">属性值</param>
-        public void UpdateModel(string propertyName, string propertyValue);
+        public void UpdateModel(string propertyName, int propertyValue)
+        {
+            UpdateModel<int>(propertyName, propertyValue);
+            Notifier.NotifyUIUpdate(propertyName, propertyValue);
+        }
 
-        /// <summary>
-        /// 更新模型数据 (UI -> Model)
-        /// </summary>
-        /// <param name="propertyName">属性名</param>
-        /// <param name="propertyValue">属性值</param>
-        public void UpdateModel(string propertyName, float propertyValue);
+        public void UpdateModel(string propertyName, string propertyValue)
+        {
+            UpdateModel<string>(propertyName, propertyValue);
+            Notifier.NotifyUIUpdate(propertyName, propertyValue);
+        }
 
-        /// <summary>
-        /// 更新模型数据 (UI -> Model)
-        /// </summary>
-        /// <param name="propertyName">属性名</param>
-        /// <param name="propertyValue">属性值</param>
-        public void UpdateModel(string propertyName, bool propertyValue);
+        public void UpdateModel(string propertyName, float propertyValue)
+        {
+            UpdateModel<float>(propertyName, propertyValue);
+            Notifier.NotifyUIUpdate(propertyName, propertyValue);
+        }
+
+
+        public void UpdateModel(string propertyName, bool propertyValue)
+        {
+            UpdateModel<bool>(propertyName, propertyValue);
+            Notifier.NotifyUIUpdate(propertyName, propertyValue);
+        }
+
+        private void UpdateModel<T>(string propertyName, T propertyValue)
+        {
+            PropertyInfo[] propertyInfos = this.GetType().GetProperties();
+            for (int i = 0; i < propertyInfos.Length; i++)
+            {
+                if (propertyInfos[i].Name == propertyName)
+                {
+                    if (propertyInfos[i].PropertyType.IsEnum)
+                    {
+                        propertyInfos[i].SetValue(this, Enum.ToObject(propertyInfos[i].PropertyType, propertyValue));
+                    }
+                    else
+                    {
+                        propertyInfos[i].SetValue(this, propertyValue);
+                    }
+                    return;
+                }
+            }
+        }
     }
 }

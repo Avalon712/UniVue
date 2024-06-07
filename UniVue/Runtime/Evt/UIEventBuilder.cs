@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,14 +13,14 @@ namespace UniVue.Evt
     {
         private UIEventBuilder() { }
 
-        public static void Build(string viewName,List<CustomTuple<Component,UIType>> uis)
+        public static void Build(string viewName,List<ValueTuple<Component,UIType>> uis)
         {
             Dictionary<string, List<EventArg>> args = new();
             List<UIEvent> events = new();
 
             for (int i = 0; i < uis.Count; i++)
             {
-                CustomTuple<Component, UIType> result = uis[i];
+                ValueTuple<Component, UIType> result = uis[i];
 
                 string evtName, argName; bool isOnlyEvt, isOnlyArg;
                 if (NamingRuleEngine.CheckCustomEventAndArgMatch(result.Item1.name, out evtName, out argName,out isOnlyEvt,out isOnlyArg))

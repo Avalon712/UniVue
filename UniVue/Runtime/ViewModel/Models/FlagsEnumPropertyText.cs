@@ -1,13 +1,11 @@
 ﻿using System;
 using TMPro;
-using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
 {
     public sealed class FlagsEnumPropertyText : EnumPropertyUI<TMP_Text>
     {
-        public FlagsEnumPropertyText(TMP_Text ui, Array array, IModelNotifier notifier, string propertyName) 
-            : base(ui, array, notifier, propertyName, false)
+        public FlagsEnumPropertyText(TMP_Text ui, Array array, string propertyName) : base(ui, array, propertyName, false)
         {
         }
 

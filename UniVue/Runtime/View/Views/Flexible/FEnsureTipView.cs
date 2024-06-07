@@ -8,7 +8,7 @@ namespace UniVue.View.Views
 {
     public sealed class FEnsureTipView : FlexibleView
     {
-        private EnsureTipComp _comp;
+        private EnsureTipWidget _comp;
 
         /// <summary>
         /// 自动查找组件

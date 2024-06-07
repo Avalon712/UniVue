@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UniVue.Rule;
@@ -346,7 +347,7 @@ namespace UniVue.View
         /// <summary>
         /// 绑定路由事件
         /// </summary>
-        internal void BindRouteEvt(string currentViewName,List<CustomTuple<Component, UIType>> uis)
+        internal void BindRouteEvt(string currentViewName,List<ValueTuple<Component, UIType>> uis)
         {
             for (int i = 0; i < uis.Count; i++)
             {

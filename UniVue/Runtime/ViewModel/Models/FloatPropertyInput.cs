@@ -1,12 +1,11 @@
 ﻿using TMPro;
-using UniVue.Model;
 using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
 {
     public sealed class FloatPropertyInput : FloatPropertyUI<TMP_InputField>
     {
-        public FloatPropertyInput(TMP_InputField ui, IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) : base(ui, notifier, propertyName, allowUIUpdateModel)
+        public FloatPropertyInput(TMP_InputField ui, string propertyName, bool allowUIUpdateModel) : base(ui,propertyName, allowUIUpdateModel)
         {
 #if UNITY_EDITOR
             if (ui.contentType != TMP_InputField.ContentType.DecimalNumber)
@@ -27,18 +26,17 @@ namespace UniVue.ViewModel.Models
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //指示不用更新当前的UI
 
-            float f;
-            if(float.TryParse(value,out f)) 
+            if(float.TryParse(value,out float f)) 
             {
-                _notifier.NotifyModelUpdate(_propertyName, f);
+                _notifier?.NotifyModelUpdate(_propertyName, f);
             }
         }
 
 
-        public override void Dispose()
+        public override void Unbind()
         {
             if (_allowUIUpdateModel) { _ui.onEndEdit.RemoveListener(UpdateModel); }
-            base.Dispose();
+            base.Unbind();
         }
 
         public override void UpdateUI(float propertyValue)

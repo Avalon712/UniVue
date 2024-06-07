@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UniVue.Model;
 using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
@@ -18,19 +17,19 @@ namespace UniVue.ViewModel.Models
         /// <summary>
         /// item1=枚举值的字符串、item2=枚举值的别名(如果没有别名则等同于item1)、item3=枚举值
         /// </summary>
-        protected List<CustomTuple<string, string, int>> _enums;
+        protected List<ValueTuple<string, string, int>> _enums;
 
-        protected EnumPropertyUI(UI ui, Array array,IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) : base(notifier, propertyName, allowUIUpdateModel)
+        protected EnumPropertyUI(UI ui, Array array, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _ui = ui; InitEnumInfos(array);
         }
 
         private void InitEnumInfos(Array array)
         {
-            _enums = new List<CustomTuple<string, string,int>>(array.Length);
+            _enums = new List<ValueTuple<string, string,int>>(array.Length);
             for (int i = 0; i < array.Length; i++)
             {
-                CustomTuple<string, string, int> tuple = new();
+                ValueTuple<string, string, int> tuple = new();
                 object value = array.GetValue(i);
                 tuple.Item3 = Convert.ToInt32(value);
                 tuple.Item1 = value.ToString();
@@ -39,12 +38,8 @@ namespace UniVue.ViewModel.Models
             }
         }
 
-        public override void Dispose()
+        public override void Unbind()
         {
-            for (int i = 0; i < _enums.Count; i++)
-            {
-                _enums[i].Dispose();
-            }
             _enums.Clear();
             _enums = null;
             _notifier = null;

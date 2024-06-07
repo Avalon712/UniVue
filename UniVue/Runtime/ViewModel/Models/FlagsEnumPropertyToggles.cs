@@ -1,7 +1,5 @@
 ﻿using System;
 using UnityEngine.UI;
-using UniVue.Model;
-using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
 {
@@ -9,9 +7,10 @@ namespace UniVue.ViewModel.Models
     /// 多选
     /// 获取Toggle孩子身上的Text或TMP_Text组件中的值
     /// </summary>
-    public sealed class FlagsEnumPropertyToggles : EnumPropertyUI<CustomTuple<Toggle, string>[]>
+    public sealed class FlagsEnumPropertyToggles : EnumPropertyUI<ValueTuple<Toggle, string>[]>
     {
-        public FlagsEnumPropertyToggles(CustomTuple<Toggle, string>[] ui, Array array, IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) : base(ui, array, notifier, propertyName, allowUIUpdateModel)
+        public FlagsEnumPropertyToggles(ValueTuple<Toggle, string>[] ui, Array array,string propertyName, bool allowUIUpdateModel)
+            : base(ui, array,propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel)
             {
@@ -38,7 +37,7 @@ namespace UniVue.ViewModel.Models
                     v |= GetValue(_ui[i].Item2);
                 }
             }
-            _notifier.NotifyModelUpdate(_propertyName, v);
+            _notifier?.NotifyModelUpdate(_propertyName, v);
         }
 
         private void SetIsOn(string value, bool isOn)
@@ -53,7 +52,7 @@ namespace UniVue.ViewModel.Models
             }
         }
          
-        public override void Dispose()
+        public override void Unbind()
         {
             if (_allowUIUpdateModel)
             {
@@ -63,13 +62,7 @@ namespace UniVue.ViewModel.Models
                 }
             }
 
-            for (int i = 0; i < _ui.Length; i++)
-            {
-                _ui[i].Dispose();
-                _ui[i] = null;
-            }
-
-            base.Dispose();
+            base.Unbind();
         }
 
         public override void UpdateUI(int propertyValue)

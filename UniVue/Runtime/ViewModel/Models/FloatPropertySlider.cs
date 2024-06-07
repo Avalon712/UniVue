@@ -1,12 +1,10 @@
-﻿using System;
-using UnityEngine.UI;
-using UniVue.Model;
+﻿using UnityEngine.UI;
 
 namespace UniVue.ViewModel.Models
 {
     public sealed class FloatPropertySlider : FloatPropertyUI<Slider>
     {
-        public FloatPropertySlider(Slider ui, IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) : base(ui, notifier, propertyName, allowUIUpdateModel)
+        public FloatPropertySlider(Slider ui,string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel) { ui.onValueChanged.AddListener(UpdateModel); }
         }
@@ -16,13 +14,13 @@ namespace UniVue.ViewModel.Models
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //指示不用更新当前的UI
 
-            _notifier.NotifyModelUpdate(_propertyName, value);
+            _notifier?.NotifyModelUpdate(_propertyName, value);
         }
 
-        public override void Dispose()
+        public override void Unbind()
         {
             if (_allowUIUpdateModel) { _ui.onValueChanged.RemoveListener(UpdateModel); }
-            base.Dispose();
+            base.Unbind();
         }
 
         public override void UpdateUI(float propertyValue)

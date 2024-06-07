@@ -7,20 +7,20 @@ namespace UniVue.View.Views
 {
     public sealed class FTipView : FlexibleView
     {
-        private TipComp _tipComp;
+        private TipWidget _tipComp;
 
         public FTipView(string contentName, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {
             var _content = GameObjectFindUtil.DepthFind(contentName, viewObject).GetComponent<TMP_Text>();
             CheckNull(_content);
-            _tipComp = new() { content = _content, name = name };
+            _tipComp = new(name, _content); 
         }
 
         public FTipView(TMP_Text content, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {
             var _content = content;
             CheckNull(_content);
-            _tipComp = new() { content = _content, name = name };
+            _tipComp = new(name, _content); 
         }
 
 

@@ -48,7 +48,7 @@ namespace UniVue.View.Views
 
         #endregion
 
-        private GridComp _gridComp;
+        private GridWidget _gridComp;
 
         public override void OnLoad()
         {

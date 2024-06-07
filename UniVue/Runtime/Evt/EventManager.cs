@@ -27,16 +27,14 @@ namespace UniVue.Evt
         /// <param name="register">实现IEventRegister接口对象</param>
         public void Signup<T>(T register) where T : IEventRegister
         {
-            CustomTuple<MethodInfo, EventCallAttribute> tuple = new();
-            using (var r = ReflectionUtil.GetEventCallMethods(register, tuple).GetEnumerator())
+            using (var r = ReflectionUtil.GetEventCallMethods(register).GetEnumerator())
             {
                 while (r.MoveNext())
                 {
-                    MethodInfo method = tuple.Item1;
-                    EventCallAttribute attribute = tuple.Item2;
+                    MethodInfo method = r.Current.Item1;
+                    EventCallAttribute attribute = r.Current.Item2;
                     EventCall call = new(attribute, method, register);
                     _calls.Add(call);
-                    tuple.Dispose();
                 }
             }
         }

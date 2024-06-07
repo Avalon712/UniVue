@@ -19,17 +19,16 @@ namespace UniVue.ViewModel
         public IBindableModel Model { get; private set; }
 
 
-        private PropertyUI[] _properties;
+        private List<PropertyUI> _properties;
 
-        public UIBundle(string name,IBindableModel model) 
+        public UIBundle(string name, IBindableModel model, List<PropertyUI> properties) 
         {
             Name = name;
             Model = model;
-        }
-
-        public void SetProperties(PropertyUI[] properties)
-        {
             _properties = properties;
+            //为每个属性UI设置模型通知器
+            for (int i = 0; i < properties.Count; i++)
+                properties[i].SetModelNotifier(this);
         }
 
         /// <summary>
@@ -37,7 +36,7 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI(string propertyName,int propertyValue)
         {
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -51,7 +50,7 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI(string propertyName, float propertyValue)
         {
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -65,7 +64,7 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI(string propertyName, string propertyValue)
         {
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -79,7 +78,7 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI(string propertyName, bool propertyValue)
         {
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -93,7 +92,7 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI(string propertyName, Sprite propertyValue)
         {
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -110,7 +109,7 @@ namespace UniVue.ViewModel
             int k = 0; 
             bool congfig = Vue.Config.WhenListLessThanUIThenHide;
             
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -135,7 +134,7 @@ namespace UniVue.ViewModel
             int k = 0;
             bool congfig = Vue.Config.WhenListLessThanUIThenHide;
 
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -157,7 +156,7 @@ namespace UniVue.ViewModel
             int k = 0;
             bool congfig = Vue.Config.WhenListLessThanUIThenHide;
 
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -182,7 +181,7 @@ namespace UniVue.ViewModel
             int k = 0;
             bool congfig = Vue.Config.WhenListLessThanUIThenHide;
 
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -207,7 +206,7 @@ namespace UniVue.ViewModel
             int k = 0;
             bool congfig = Vue.Config.WhenListLessThanUIThenHide;
 
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -232,7 +231,7 @@ namespace UniVue.ViewModel
             int k = 0;
             bool congfig = Vue.Config.WhenListLessThanUIThenHide;
 
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].GetPropertyName()))
                 {
@@ -260,11 +259,11 @@ namespace UniVue.ViewModel
 
      
 
-        public void Dispose() 
+        public void Unbind() 
         {
-            for (int i = 0; i < _properties.Length; i++)
+            for (int i = 0; i < _properties.Count; i++)
             {
-                _properties[i].Dispose();
+                _properties[i].Unbind();
                 _properties[i] = null;
             }
             _properties = null;

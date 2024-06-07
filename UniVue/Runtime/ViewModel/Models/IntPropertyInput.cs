@@ -1,14 +1,11 @@
-﻿
-using TMPro;
-using UniVue.Model;
+﻿using TMPro;
 using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
 {
     public sealed class IntPropertyInput : IntPropertyUI<TMP_InputField>
     {
-        public IntPropertyInput(TMP_InputField input, IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) 
-            : base(input, notifier, propertyName, allowUIUpdateModel)
+        public IntPropertyInput(TMP_InputField input, string propertyName, bool allowUIUpdateModel) : base(input, propertyName, allowUIUpdateModel)
         {
 #if UNITY_EDITOR
             if (input.contentType != TMP_InputField.ContentType.IntegerNumber)
@@ -30,17 +27,16 @@ namespace UniVue.ViewModel.Models
             if (!_needUpdate) { _needUpdate = true; return; }
             _needUpdate = false; //指示不用更新当前的UI
 
-            int f;
-            if (int.TryParse(value, out f)) 
+            if (int.TryParse(value, out int f)) 
             {
-                _notifier.NotifyModelUpdate(_propertyName, f);
+                _notifier?.NotifyModelUpdate(_propertyName, f);
             }
         }
          
-        public override void Dispose()
+        public override void Unbind()
         {
             if (_allowUIUpdateModel) { _ui.onEndEdit.RemoveListener(UpdateModel); }
-            base.Dispose();
+            base.Unbind();
         }
 
         public override void UpdateUI(int propertyValue)

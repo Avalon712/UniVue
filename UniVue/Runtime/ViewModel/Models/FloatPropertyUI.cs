@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
 {
@@ -13,7 +12,7 @@ namespace UniVue.ViewModel.Models
         /// </summary>
         protected UI _ui;
 
-        protected FloatPropertyUI(UI ui,IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) : base(notifier, propertyName, allowUIUpdateModel)
+        protected FloatPropertyUI(UI ui, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _ui = ui;
         }
@@ -34,7 +33,7 @@ namespace UniVue.ViewModel.Models
 
         public sealed override void UpdateUI(Sprite propertyValue) { }
 
-        public override void Dispose() { _notifier = null;_propertyName=null ; _ui = default; }
+        public override void Unbind() { _notifier = null;_propertyName=null ; _ui = default; }
 
     }
 }

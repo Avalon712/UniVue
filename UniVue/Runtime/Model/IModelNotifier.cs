@@ -32,4 +32,5 @@ namespace UniVue.Model
         public void NotifyModelUpdate(string propertyName, float propertyValue);
 
     }
+
 }

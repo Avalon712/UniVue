@@ -1,12 +1,10 @@
 ﻿using TMPro;
-using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
 {
     public sealed class StringPropertyText : StringPropertyUI<TMP_Text>
     {
-        public StringPropertyText(TMP_Text ui, IModelNotifier notifier, string propertyName) 
-            : base(ui, notifier, propertyName, false)
+        public StringPropertyText(TMP_Text ui, string propertyName) : base(ui,propertyName, false)
         {
         }
 

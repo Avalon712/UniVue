@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,13 +17,13 @@ namespace UniVue.Utils
         /// <param name="gameObject">要找到组件的根对象</param>
         /// <param name="view">指定当前的GameObject是否是ViewObject，如果是则需要传递此参数</param>
         /// <param name="exclude">要排除的后代（这些GameObject的后代都不会进行查找）</param>
-        /// <returns>List<CustomTuple<Component, UIType>></returns>
-        public static List<CustomTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject,IView view = null, params GameObject[] exclude)
+        /// <returns>List<ValueTuple<Component, UIType>></returns>
+        public static List<ValueTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject,IView view = null, params GameObject[] exclude)
         {
             //广度式搜索
             Queue<Transform> queue = new Queue<Transform>();
             Transform root = gameObject.transform;
-            List<CustomTuple<Component, UIType>> results = new();
+            List<ValueTuple<Component, UIType>> results = new();
             queue.Enqueue(root);
 
             //获取视图的所有嵌套视图
@@ -85,7 +86,7 @@ namespace UniVue.Utils
 
                     var result = GetResult(child.gameObject);
 
-                    if (result != null)
+                    if (result.Item1 != null)
                     {
                         results.Add(result);
                     }
@@ -96,7 +97,7 @@ namespace UniVue.Utils
         }
 
         #region 设置查询结果
-        private static CustomTuple<Component, UIType> GetResult(GameObject gameObject)
+        private static ValueTuple<Component, UIType> GetResult(GameObject gameObject)
         {
             //减少GetComponent()函数的调用
             switch (UITypeUtil.GetUIType(gameObject.name))
@@ -106,7 +107,7 @@ namespace UniVue.Utils
                         Image image = gameObject.GetComponent<Image>();
                         if (image != null)
                         {
-                            CustomTuple<Component, UIType> result = new();
+                            ValueTuple<Component, UIType> result = new();
                             result.Item1 = image; 
                             result.Item2 = UIType.Image;
                             return result;
@@ -118,7 +119,7 @@ namespace UniVue.Utils
                         TMP_Dropdown dropdown = gameObject.GetComponent<TMP_Dropdown>();
                         if (dropdown != null) 
                         {
-                            CustomTuple<Component, UIType> result = new();
+                            ValueTuple<Component, UIType> result = new();
                             result.Item1 = dropdown; 
                             result.Item2 = UIType.TMP_Dropdown;
                             return result;
@@ -130,7 +131,7 @@ namespace UniVue.Utils
                         TMP_Text text = gameObject.GetComponent<TMP_Text>();
                         if (text != null)
                         {
-                            CustomTuple<Component, UIType> result = new();
+                            ValueTuple<Component, UIType> result = new();
                             result.Item1 = text;
                             result.Item2 = UIType.TMP_Text;
                             return result;
@@ -142,7 +143,7 @@ namespace UniVue.Utils
                         TMP_InputField input = gameObject.GetComponent<TMP_InputField>();
                         if (input != null)
                         {
-                            CustomTuple<Component, UIType> result = new();
+                            ValueTuple<Component, UIType> result = new();
                             result.Item1 = input;
                             result.Item2 = UIType.TMP_InputField;
                             return result;
@@ -154,7 +155,7 @@ namespace UniVue.Utils
                         Button button = gameObject.GetComponent<Button>();
                         if (button != null) 
                         {
-                            CustomTuple<Component, UIType> result = new();
+                            ValueTuple<Component, UIType> result = new();
                             result.Item1 = button; 
                             result.Item2 = UIType.Button;
                             return result;
@@ -166,7 +167,7 @@ namespace UniVue.Utils
                         Toggle toggle = gameObject.GetComponent<Toggle>();
                         if (toggle != null)
                         {
-                            CustomTuple<Component, UIType> result = new();
+                            ValueTuple<Component, UIType> result = new();
                             result.Item1 = toggle;
                             result.Item2 = toggle.group == null ? UIType.Toggle : UIType.ToggleGroup;
                             return result;
@@ -178,7 +179,7 @@ namespace UniVue.Utils
                         Slider slider = gameObject.GetComponent<Slider>();
                         if (slider != null)
                         {
-                            CustomTuple<Component, UIType> result = new();
+                            ValueTuple<Component, UIType> result = new();
                             result.Item1 = slider;
                             result.Item2 = UIType.Slider;
                             return result;
@@ -186,10 +187,10 @@ namespace UniVue.Utils
                         break;
                     }
 
-                default: return null;
+                default: return default;
             }
 
-            return null;
+            return default;
         }
         #endregion
 
@@ -198,12 +199,15 @@ namespace UniVue.Utils
         /// </summary>
         /// <typeparam name="T">查找组件</typeparam>
         /// <param name="current"></param>
-        /// <returns>首次挂载此组件的GameObject</returns>
+        /// <returns>首次挂载此组件的GameObject身上的组件</returns>
         public static T LookUpFindComponent<T>(GameObject current) where T : Component
         {
-            if (current == null) { return null; }
-            else if (current.GetComponentInParent<T>(true) == null) { return LookUpFindComponent<T>(current.transform.parent.gameObject); }
-            else { return current.transform.parent.GetComponent<T>(); }
+            if (current == null) 
+                return null; 
+            else if (current.TryGetComponent(out T t)) 
+                return t;
+            else 
+                return LookUpFindComponent<T>(current.transform.parent?.gameObject); 
         }
     
         /// <summary>

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
 {
@@ -8,8 +7,7 @@ namespace UniVue.ViewModel.Models
     {
         private Image _img;
 
-        public PropertyImage(Image img,IModelNotifier notifier, string propertyName)
-            : base(notifier, propertyName, false)
+        public PropertyImage(Image img, string propertyName) : base(propertyName, false)
         {
             _img = img;
         }
@@ -22,7 +20,7 @@ namespace UniVue.ViewModel.Models
             }
         }
 
-        public override void Dispose()
+        public override void Unbind()
         {
             _img = null; _propertyName = null; _notifier = null;
         }

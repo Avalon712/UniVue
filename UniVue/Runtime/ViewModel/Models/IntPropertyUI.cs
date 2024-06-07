@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using UniVue.Model;
-
 
 namespace UniVue.ViewModel.Models
 {
@@ -11,8 +9,7 @@ namespace UniVue.ViewModel.Models
         /// </summary>
         protected UI _ui;
 
-        protected IntPropertyUI(UI ui,IModelNotifier notifier, string propertyName, bool allowUIUpdateModel) 
-            : base(notifier, propertyName, allowUIUpdateModel)
+        protected IntPropertyUI(UI ui,string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _ui = ui;
         }
@@ -24,7 +21,7 @@ namespace UniVue.ViewModel.Models
             }
         }
 
-        public override void Dispose()
+        public override void Unbind()
         {
             _notifier = null; _propertyName = null; _ui = default;
         }
