@@ -20,10 +20,7 @@ namespace UniVue.ViewModel.Models
         /// 属性名
         /// </summary>
         protected string _propertyName;
-        /// <summary>
-        /// 指示当前是否需要进行UI更新
-        /// </summary>
-        protected bool _needUpdate = true;
+
 
         public PropertyUI(string propertyName,bool allowUIUpdateModel)
         {
@@ -53,6 +50,12 @@ namespace UniVue.ViewModel.Models
         /// </summary>
         /// <returns></returns>
         public string GetPropertyName() => _propertyName;
+
+        /// <summary>
+        /// 当前UI是否是发布UI更新消息的发布者
+        /// </summary>
+        /// <returns>true:是</returns>
+        protected bool IsPublisher() => Vue.Updater.Publisher == this;
 
         public abstract void UpdateUI(int propertyValue);
         public abstract void UpdateUI(float propertyValue);

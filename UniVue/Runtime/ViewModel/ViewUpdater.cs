@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
 using UniVue.Utils;
+using UniVue.ViewModel.Models;
 
 namespace UniVue.ViewModel
 {
@@ -13,6 +14,12 @@ namespace UniVue.ViewModel
     {
         private List<UIBundle> _bundles;
         internal ViewUpdater(){ _bundles = new List<UIBundle>(); }
+
+        /// <summary>
+        /// 当前发布更新UI通知消息的属性UI，在进行UI更新时将会排除此UI
+        /// 此属性由PropertyUI进行填充，由ViewUpdater负责取消（即赋值为null）
+        /// </summary>
+        internal PropertyUI Publisher { get; set; }
 
         /// <summary>
         /// 双向绑定
@@ -61,6 +68,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -75,6 +83,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -89,6 +98,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -103,6 +113,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -117,6 +128,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -131,6 +143,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -145,6 +158,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -159,6 +173,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -173,6 +188,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -187,6 +203,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -201,6 +218,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -216,6 +234,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -231,6 +250,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -246,6 +266,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -261,6 +282,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>
@@ -276,6 +298,7 @@ namespace UniVue.ViewModel
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
             }
+            Publisher = null;
         }
 
         /// <summary>

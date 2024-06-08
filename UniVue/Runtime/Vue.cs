@@ -276,5 +276,10 @@ namespace UniVue
         /// </summary>
         /// <remarks>如果你发现你的视图打开逻辑不正确,建议将此值设置大一点</remarks>
         public int MaxHistoryRecord { get; set; } = 10;
+
+        /// <summary>
+        /// 当[Flags]标记的枚举绑定到TMP_Text上时,指定两两之间使用的分隔符号
+        /// </summary>
+        public string FlagsEnumSeparator { get; set; } = " | ";
     }
 }

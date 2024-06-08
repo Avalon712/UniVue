@@ -29,9 +29,7 @@ namespace UniVue.ViewModel.Models
         {
             if (isOn)
             {
-                if (!_needUpdate) { _needUpdate = true; return; }
-                _needUpdate = false; //指示不用更新当前的UI
-
+                Vue.Updater.Publisher = this;
                 ValueTuple<Toggle, string> toggle = GetActiveToggle();
                 _notifier?.NotifyModelUpdate(_propertyName, GetValue(toggle.Item2));
             }
@@ -39,11 +37,11 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //不要触发OnValueChanged事件
-
-            string v = GetAlias(propertyValue);
-            SetIsOn(v, GetName(propertyValue), true);
+            if (!IsPublisher())
+            {
+                string v = GetAlias(propertyValue);
+                SetIsOn(v, GetName(propertyValue), true);
+            }
         }
 
         private void SetIsOn(string value, string name, bool isOn)

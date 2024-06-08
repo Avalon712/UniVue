@@ -34,9 +34,7 @@ namespace UniVue.ViewModel.Models
 
         private void UpdateModel(bool value)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //指示不用更新当前的UI
-
+            Vue.Updater.Publisher = this;
             _notifier?.NotifyModelUpdate(_propertyName, value);
         }
         public override void Unbind()
@@ -55,10 +53,8 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(bool propertyValue)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //不要触发OnValueChanged事件
-
-            _toggle.isOn = propertyValue;
+            if(!IsPublisher())
+                _toggle.isOn = propertyValue;
         }
     }
 }

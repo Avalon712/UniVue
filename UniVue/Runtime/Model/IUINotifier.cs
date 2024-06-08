@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace UniVue.Model
@@ -88,63 +87,6 @@ namespace UniVue.Model
         /// 通知所有UI对此模型的所有绑定属性进行更新
         /// 注意：基于反射的反射无法通知List&lt;T&gt; where T : Enum类型进行更新
         /// </summary>
-        public void NotifyAll()
-        {
-            bool flag = false;
-            PropertyInfo[] propertyInfos = this.GetType().GetProperties();
-            for (int i = 0; i < propertyInfos.Length; i++)
-            {
-                PropertyInfo propertyInfo = propertyInfos[i];
-                object value = propertyInfo.GetValue(this);
-
-                switch (propertyInfo.PropertyType.FullName)
-                {
-                    case "System.Single":
-                        NotifyUIUpdate(propertyInfo.Name, Convert.ToSingle(value));
-                        flag = true;
-                        break;
-                    case "System.Int32":
-                        NotifyUIUpdate(propertyInfo.Name, Convert.ToInt32(value));
-                        flag = true;
-                        break;
-                    case "System.String":
-                        NotifyUIUpdate(propertyInfo.Name, value as string);
-                        flag = true;
-                        break;
-                    case "System.Boolean":
-                        NotifyUIUpdate(propertyInfo.Name, Convert.ToBoolean(value));
-                        flag = true;
-                        break;
-                    case "UnityEngine.Sprite":
-                        NotifyUIUpdate(propertyInfo.Name, value as Sprite);
-                        flag = true;
-                        break;
-                }
-
-                if (flag) { flag = false; continue; }
-
-                if (propertyInfo.PropertyType.IsEnum)
-                {
-                    NotifyUIUpdate(propertyInfo.Name, Convert.ToInt32(value));
-                }
-                else if (propertyInfo.PropertyType == typeof(List<int>))
-                {
-                    NotifyUIUpdate(propertyInfo.Name, value as List<int>);
-                }
-                else if (propertyInfo.PropertyType == typeof(List<float>))
-                {
-                    NotifyUIUpdate(propertyInfo.Name, value as List<float>);
-                }
-                else if (propertyInfo.PropertyType == typeof(List<bool>))
-                {
-                    NotifyUIUpdate(propertyInfo.Name, value as List<bool>);
-                }
-                else if (propertyInfo.PropertyType == typeof(List<string>))
-                {
-                    NotifyUIUpdate(propertyInfo.Name, value as List<string>);
-                }
-
-            }
-        }
+        public void NotifyAll();
     }
 }

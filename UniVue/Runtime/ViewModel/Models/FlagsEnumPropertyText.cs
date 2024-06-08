@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using TMPro;
 
 namespace UniVue.ViewModel.Models
@@ -19,16 +20,23 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
-            string str = string.Empty;
+            string separator = Vue.Config.FlagsEnumSeparator;
+            StringBuilder builder = new StringBuilder();
+            int idx = 0;
             for (int i = 0; i < _enums.Count; i++)
             {
                 if ((_enums[i].Item3 & propertyValue) == _enums[i].Item3)
                 {
-                    str = string.Concat(str, _enums[i].Item2, '\\');
+                    if (i != idx && idx != 0)
+                    {
+                        builder.Append(separator);
+                    }
+                    idx = i;
+                    builder.Append(_enums[i].Item2);
                 }
             }
+            string str = builder.ToString();
             SetActive(!string.IsNullOrEmpty(str) || !Vue.Config.WhenValueIsNullThenHide);
-
             _ui.text = str;
         }
 

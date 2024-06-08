@@ -11,10 +11,8 @@ namespace UniVue.ViewModel.Models
 
         private void UpdateModel(float value)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //指示不用更新当前的UI
-
-            _notifier?.NotifyModelUpdate(_propertyName, value);
+            Vue.Updater.Publisher = this;
+            _notifier?.NotifyModelUpdate(_propertyName, (int)value);
         }
 
 
@@ -26,10 +24,8 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //不要触发OnValueChanged事件
-
-            _ui.value = propertyValue;
+            if (!IsPublisher())
+                _ui.value = propertyValue;
         }
     }
 }

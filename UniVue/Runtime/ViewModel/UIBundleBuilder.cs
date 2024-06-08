@@ -50,7 +50,9 @@ namespace UniVue.ViewModel
             //AtomModel<>类型
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(AtomModel<>))
                 propertyUIs = AtomModelBuild(model, type, comps, allowUIUpdateModel);
-            //通用类型
+            else if (type == typeof(GroupModel))
+                propertyUIs = GroupModelBuild(model, type, comps, allowUIUpdateModel);
+            //用户自定义类型
             else
                 propertyUIs = CommonModelBuild(type, modelName, comps, allowUIUpdateModel);
 
@@ -65,10 +67,28 @@ namespace UniVue.ViewModel
             List<PropertyUI> propertyUIs = new();
             BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
             string modelName = type.GetField("_modelName", flags).GetValue(model) as string;
-            string propertyName = type.GetField("_propertyName", flags).GetValue(model) as string;
+            string propertyName = type.GetProperty("PropertyName", flags).GetValue(model) as string;
             Type propertyType = type.GetProperty("Value", flags).PropertyType;
             BindableType bindableType = ReflectionUtil.GetBindableType(propertyType);
             BuildPropertyUIs(modelName, propertyName, propertyType, ref bindableType, propertyUIs, comps, allowUIUpdateModel);
+            return propertyUIs;
+        }
+
+        private static List<PropertyUI> GroupModelBuild<T>(T model, Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
+        {
+            List<PropertyUI> propertyUIs = new();
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            string modelName = type.GetField("_modelName", flags).GetValue(model) as string;
+            List<INotifiableProperty> properties = type.GetField("_properties", flags).GetValue(model) as List<INotifiableProperty>;
+            //通过反射获取所有的属性类型以及属性名
+            for (int i = 0; i < properties.Count; i++)
+            {
+                Type pType = properties[i].GetType();
+                string propertyName = pType.GetProperty("PropertyName", flags).GetValue(properties[i]) as string;
+                Type propertyType = pType.GetProperty("Value", flags).PropertyType;
+                BindableType bindableType = ReflectionUtil.GetBindableType(propertyType);
+                BuildPropertyUIs(modelName, propertyName, propertyType, ref bindableType, propertyUIs, comps, allowUIUpdateModel);
+            }
             return propertyUIs;
         }
 

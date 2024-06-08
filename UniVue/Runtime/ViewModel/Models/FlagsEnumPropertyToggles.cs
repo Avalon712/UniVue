@@ -26,9 +26,7 @@ namespace UniVue.ViewModel.Models
 
         private void UpdateModel(bool isOn)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //指示不用更新当前的UI
-
+            Vue.Updater.Publisher = this;
             int v = 0;
             for (int i = 0; i < _ui.Length; i++)
             {
@@ -67,8 +65,7 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //不要触发OnValueChanged事件
+            if (IsPublisher()) { return; }
 
             for (int i = 0; i < _enums.Count; i++)
             {

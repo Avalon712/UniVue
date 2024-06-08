@@ -22,9 +22,7 @@ namespace UniVue.ViewModel.Models
 
         private void UpdateModel(int optionIdx)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //指示不用更新当前的UI
-
+            Vue.Updater.Publisher = this;
             string enumStr = _ui.options[optionIdx].text;
             _notifier?.NotifyModelUpdate(_propertyName, GetValue(enumStr));
         }
@@ -37,8 +35,7 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //指示不要触发OnValueChanged事件
+            if (IsPublisher()) { return; }
 
             List<TMP_Dropdown.OptionData> optionDatas = _ui.options;
             string str = GetAlias(propertyValue);

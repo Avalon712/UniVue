@@ -20,9 +20,7 @@ namespace UniVue.ViewModel.Models
 
         private void UpdateModel(string str) 
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //指示不用更新当前的UI
-
+            Vue.Updater.Publisher = this;
             _notifier?.NotifyModelUpdate(_propertyName, GetValue(str));
         }
 
@@ -35,13 +33,12 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //不要触发OnVauleChanged
-
-            string v = GetAlias(propertyValue);
-            SetActive(!string.IsNullOrEmpty(v) || !Vue.Config.WhenValueIsNullThenHide);
-
-            _ui.text = v;
+            if (!IsPublisher())
+            {
+                string v = GetAlias(propertyValue);
+                SetActive(!string.IsNullOrEmpty(v) || !Vue.Config.WhenValueIsNullThenHide);
+                _ui.text = v;
+            }
         }
 
     }

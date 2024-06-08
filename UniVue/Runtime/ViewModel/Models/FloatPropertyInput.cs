@@ -23,9 +23,7 @@ namespace UniVue.ViewModel.Models
 
         private void UpdateModel(string value)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //指示不用更新当前的UI
-
+            Vue.Updater.Publisher = this;
             if(float.TryParse(value,out float f)) 
             {
                 _notifier?.NotifyModelUpdate(_propertyName, f);
@@ -41,10 +39,8 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(float propertyValue)
         {
-            if (!_needUpdate) { _needUpdate = true; return; }
-            _needUpdate = false; //指示不用更新当前的UI
-
-            _ui.text = propertyValue.ToString();
+            if(!IsPublisher())
+                _ui.text = propertyValue.ToString();
         }
 
     }
