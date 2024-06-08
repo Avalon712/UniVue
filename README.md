@@ -101,6 +101,14 @@ CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=
 
 所有可绑定的数据模型都需要继承此接口。
 
+### 7.AtomModel : IBindableModel
+
+这个个可以现实任意单个属性的数据绑定，目前UniVue框架内部提供了对BindableType中定义的12种类型都提供支持。这些属性都需要实现一个IAtomProperty&lt;T&gt;接口。同时AtomModel类的创建请使用AtomModelBuilder类进行。
+
+### 8.GroupModel : IBindableModel
+
+与AtomModel不同的是，GroupModel支持动态组合任意实现IAtomProperty&lt;T&gt;类型的属性。
+
 
 
 ## 三、ViewModel
