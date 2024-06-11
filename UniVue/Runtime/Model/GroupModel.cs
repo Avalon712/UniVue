@@ -14,7 +14,7 @@ namespace UniVue.Model
 
         public GroupModel(string modelName,int propertyCount)
         {
-            _modelName = modelName;
+            _modelName = modelName == null ? "GroupModel" : modelName;
             _properties = new List<INotifiableProperty>(propertyCount);
         }
 
@@ -69,6 +69,11 @@ namespace UniVue.Model
         {
             if (property == null)
                 throw new Exception($"不存在属性名称为{propertyName}，类型为{typeof(T).Name}的属性");
+        }
+
+        public void Bind(string viewName, bool allowUIUpdateModel, string modelName = null, bool forceRebind = false)
+        {
+            Vue.Router.GetView(viewName).BindModel(this, allowUIUpdateModel, _modelName, forceRebind);
         }
 
         void IUINotifier.NotifyAll()

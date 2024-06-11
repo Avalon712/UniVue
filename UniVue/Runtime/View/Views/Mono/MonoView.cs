@@ -36,11 +36,9 @@ namespace UniVue.View.Views
         {
             //初始化运行时数据
             _state = gameObject.activeSelf;
-            viewObject.SetActive(_state ||_level == ViewLevel.Permanent);
-
+            ViewObjectUtil.SetActive(viewObject, _state || _level == ViewLevel.Permanent);
             //将当前视图对象交给ViewRouter管理
             Vue.Router.AddView(this);
-
             AutoBindEvent();
         }
 
@@ -64,24 +62,7 @@ namespace UniVue.View.Views
 
         public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel
         {
-            if (!Vue.Updater.HadBinded(name, model))
-            {
-                //获取所有的ui组件
-                var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
-                //模型到视图的绑定
-                Vue.Updater.BindViewAndModel(name, model, uis, modelName, allowUIUpdateModel);
-                model.NotifyAll();
-            }
-            else if (forceRebind)
-            {
-                Vue.Updater.Rebind(name, model);
-            }
-#if UNITY_EDITOR
-            else
-            {
-                LogUtil.Warning($"名称为{name}的视图已经绑定了模型{model.GetType().Name}[hashCode={model.GetHashCode()}]!");
-            }
-#endif
+            ViewObjectUtil.BindModel(this, model, allowUIUpdateModel, modelName, forceRebind);
             return this;
         }
 

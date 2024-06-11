@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UniVue.Rule;
-using UniVue.Utils;
 
 namespace UniVue.Editor
 {
     internal sealed class RenameEditorWindow : EditorWindow
     {
+        private const char SKIP_ALL_DESCENDANT_SEPARATOR = '~';
+        private const char SKIP_CURRENT_SEPARATOR = '@';
+
         public  List<GameObject> _viewObjects;
         private SerializedProperty _serializedObjs;
         private SerializedObject _window;
@@ -20,7 +22,7 @@ namespace UniVue.Editor
         public static void OpenEditorWindow()
         {
             var window = GetWindow<RenameEditorWindow>("重命名编辑器");
-            window.position = new Rect(320, 240, 370, 310);
+            window.position = new Rect(320, 240, 390, 360);
             window.Show();
 
             window._window = new SerializedObject(window);
@@ -41,7 +43,8 @@ namespace UniVue.Editor
                 "名称前添加特殊字符以此来大幅减少对UI组件的查找次数。命名有\n" +
                 "一定的规则，请勿随意命名导致无法正确处理UI组件行为。名称前\n" +
                 "有字符'~'的GameObject及其后代都不会被进行组件查找；名称前\n" +
-                "有字符'@'的GameObject不会被进行组件查找，但其后代会。", GUILayout.Height(80));
+                "有字符'@'的GameObject不会被进行组件查找，但其后代会。如果\n"+
+                "你想修改这里的设置请打开RenameEditorWindow.cs脚本进行修改。", GUILayout.Height(110));
             EditorGUI.EndDisabledGroup();
             EditorGUILayout.Space();
 
@@ -77,8 +80,8 @@ namespace UniVue.Editor
 
         private void Clear(GameObject root)
         {
-            if (root.name.StartsWith('~')) { root.name = root.name.Substring(1); }
-            if (root.name.StartsWith('@')) { root.name = root.name.Substring(1); }
+            if (root.name.StartsWith(SKIP_ALL_DESCENDANT_SEPARATOR)) { root.name = root.name.Substring(1); }
+            if (root.name.StartsWith(SKIP_CURRENT_SEPARATOR)) { root.name = root.name.Substring(1); }
 
             Transform transform = root.transform;
             for (int i = 0; i < transform.childCount; i++)

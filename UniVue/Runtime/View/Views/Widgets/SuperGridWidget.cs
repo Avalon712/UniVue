@@ -13,7 +13,7 @@ namespace UniVue.View.Views
     /// 以及两个或多个SuperGridWidget之间的元素互换、添加等操作（前提是绑定的数据类型是一致的）
     /// </summary>
     [Serializable]
-    public sealed class SuperGridWidget : IWidget
+    public sealed class SuperGridWidget 
     {
         [SerializeField] 
         private GridWidget _grid;
@@ -174,7 +174,7 @@ namespace UniVue.View.Views
         /// <param name="newData">绑定的新数据，注意必须与旧数据的类型一致！</param>
         public void RebindData<T>(List<T> newData) where T : IBindableModel
         {
-            _grid.RebindData(newData);
+            _grid.RebindList(newData);
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace UniVue.View.Views
         /// <param name="data">绑定数据</param>
         public void BindData<T>(List<T> data) where T : IBindableModel
         {
-            _grid.BindData(data);
+            _grid.BindList(data);
             //为每个Item挂载上DragInput组件
             Transform content = _grid.ScrollRect.content;
             _items = new DraggableItem[content.childCount];

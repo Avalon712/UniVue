@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using TMPro;
 
 namespace UniVue.ViewModel.Models
@@ -41,6 +42,10 @@ namespace UniVue.ViewModel.Models
             }
         }
 
+        public override IEnumerable<T> GetUI<T>()
+        {
+            yield return _ui as T;
+        }
     }
 
 }

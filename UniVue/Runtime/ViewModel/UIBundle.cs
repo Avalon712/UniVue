@@ -6,12 +6,26 @@ using UniVue.ViewModel.Models;
 
 namespace UniVue.ViewModel
 {
+    /// <summary>
+    /// 一个UIBundel负责管理一个视图下某个模型的所有PropertyUI
+    /// </summary>
+    /// <remarks>
+    /// 一个视图可能有多个UIBundle，其UIBundle的数量取决于视图绑定的模型数量（不同的）。
+    /// 如果你想实现那些自定义的UI更新逻辑，你可以通过继承PropertyUI，然后实现你的UI更新逻辑，再手动
+    /// 创建一个UIBundle对象去管理你的PropertyUI，之后将创建的UIBundle交给ViewUpdater进行管理，这样就能
+    /// 实现数据模型的双向绑定，同时实现了你想要的UI更新效果。
+    /// </remarks>
     public sealed class UIBundle : IModelNotifier 
     {
         /// <summary>
-        /// 如果UIBundle绑定的是视图则是视图的名称，不是则是绑定的GameObject的name
+        /// UIBundle绑定的视图的名称
         /// </summary>
-        public string Name { get; private set; }
+        public string ViewName { get; private set; }
+
+        /// <summary>
+        /// 绑定的模型名称
+        /// </summary>
+        public string ModelName { get; private set; }
 
         /// <summary>
         /// 模型更新通知器
@@ -21,14 +35,18 @@ namespace UniVue.ViewModel
 
         private List<PropertyUI> _properties;
 
-        public UIBundle(string name, IBindableModel model, List<PropertyUI> properties) 
+        internal List<PropertyUI> ProertyUIs => _properties; 
+
+        public UIBundle(string modelName,string viewName, IBindableModel model, List<PropertyUI> properties) 
         {
-            Name = name;
+            ViewName = viewName;
             Model = model;
+            ModelName = modelName;
             _properties = properties;
             //为每个属性UI设置模型通知器
             for (int i = 0; i < properties.Count; i++)
                 properties[i].SetModelNotifier(this);
+            _properties.TrimExcess();//清理内存
         }
 
         /// <summary>
@@ -38,7 +56,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     _properties[i].UpdateUI(propertyValue);
                 }
@@ -52,7 +70,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     _properties[i].UpdateUI(propertyValue);
                 }
@@ -66,7 +84,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     _properties[i].UpdateUI(propertyValue);
                 }
@@ -80,7 +98,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     _properties[i].UpdateUI(propertyValue);
                 }
@@ -94,7 +112,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     _properties[i].UpdateUI(propertyValue);
                 }
@@ -111,7 +129,7 @@ namespace UniVue.ViewModel
             
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     if (k < propertyValue.Count)
                     {
@@ -136,7 +154,7 @@ namespace UniVue.ViewModel
 
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     if (k < propertyValue.Count)
                     {
@@ -158,7 +176,7 @@ namespace UniVue.ViewModel
 
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     if (k < propertyValue.Count)
                     {
@@ -183,7 +201,7 @@ namespace UniVue.ViewModel
 
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     if (k < propertyValue.Count)
                     {
@@ -208,7 +226,7 @@ namespace UniVue.ViewModel
 
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     if (k < propertyValue.Count)
                     {
@@ -233,7 +251,7 @@ namespace UniVue.ViewModel
 
             for (int i = 0; i < _properties.Count; i++)
             {
-                if (propertyName.Equals(_properties[i].GetPropertyName()))
+                if (propertyName.Equals(_properties[i].PropertyName))
                 {
                     if (k < propertyValue.Count)
                     {
@@ -254,7 +272,6 @@ namespace UniVue.ViewModel
         public void Rebind<T>(T model) where T : IBindableModel
         {
             Model = model;
-            model.NotifyAll();
         }
 
      

@@ -47,9 +47,9 @@ namespace UniVue.Model
             _property = property;
         }
 
-        public void Bind(string viewName, bool allowUIUpdateModel)
+        public void Bind(string viewName, bool allowUIUpdateModel, string modelName = null, bool forceRebind = false)
         {
-            Vue.Router.GetView(viewName).BindModel(this, allowUIUpdateModel, _modelName);
+            Vue.Router.GetView(viewName).BindModel(this, allowUIUpdateModel, _modelName, forceRebind);
         }
 
         void IUINotifier.NotifyAll()

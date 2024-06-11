@@ -9,27 +9,39 @@ using UniVue.Utils;
 
 namespace UniVue.View.Views
 {
+    /// <summary>
+    /// Grid高性能滚动组件，轻松实现任何背包等网格组件
+    /// </summary>
+    /// <remarks>第一个Item的锚点位置必须为左上角，位置为(0,0,0)，否则位置计算可能会出错</remarks>
     [Serializable]
-    public sealed class GridWidget : IWidget
+    public sealed class GridWidget 
     {
         [SerializeField]
-        private Direction _scrollDir;           //只能选Vertical（垂直）、Horizontal（水平）
+        private Direction _scrollDir;               //只能选Vertical（垂直）、Horizontal（水平）
         [SerializeField]
-        private ScrollRect _scrollRect;         //必须的ScrollRect组件
+        private ScrollRect _scrollRect;             //必须的ScrollRect组件
         [SerializeField]
-        private int _rows;                      //网格可见的视图行数(实际的行数=可见的行数+1)
+        private int _rows;                          //网格可见的视图行数(实际的行数=可见的行数+1)
         [SerializeField]
-        private int _cols;                      //网格可见的视图列数(实际的列数=可见的列数+1)
+        private int _cols;                          //网格可见的视图列数(实际的列数=可见的列数+1)
         [SerializeField]
-        private float _x;                       //leftItemPos.x+x=rightItemPos.x
+        private float _x;                           //leftItemPos.x+x=rightItemPos.x
         [SerializeField]
-        private float _y;                       //upItemPos.y+y=downItemPos.y
-        private List<IBindableModel> _models;   //获取绑定的模型数据
-        private int _tail;                      //数据尾指针
-        private int _head;                      //数据头指针
-        private bool _dirty;                    //当前数据是否已经发送修改
-        private bool _flag;                     //是否已经生成UIBundle对象
+        private float _y;                           //upItemPos.y+y=downItemPos.y
+        [SerializeField]
+        private bool _playScrollEffectOnRefresh;    //当刷新视图时是否播放滚动效果
+        [SerializeField]
+        private bool _renderModelOnScroll;          //在进行滚动动画时是否重新绑定模型数据（减少数据重新渲染的开销）
+        private List<IBindableModel> _models;       //获取绑定的模型数据
+        private IObservableList _observer;          //IObservableList模式
+        private int _tail;                          //数据尾指针
+        private int _head;                          //数据头指针
+        private bool _OnScroll;                     //指示当前是否在进行滚动动画
 
+        /// <summary>
+        /// 仅为Unity序列化提供的无参构造函数
+        /// </summary>
+        /// <remarks>请不要使用此构造函数</remarks>
         public GridWidget() { }
 
         /// <summary>
@@ -54,10 +66,48 @@ namespace UniVue.View.Views
             scrollRect.vertical = scrollDir == Direction.Vertical;
         }
 
+        private IBindableModel this[int index]
+        {
+            get
+            {
+                if (_observer == null) 
+                    return _models[index];
+                else 
+                    return _observer.Get<IBindableModel>(index);
+            }
+            set
+            {
+                if (_observer == null)
+                    _models[index] = value;
+                else
+                    _observer.Set(value,index);
+            }
+        }
+
+        public int Count => _observer == null ? _models.Count : _observer.Count;
+
         /// <summary>
         /// 获取滚动组件
         /// </summary>
         public ScrollRect ScrollRect => _scrollRect;
+
+        /// <summary>
+        /// 当刷新数据时是否播放滚动动画
+        /// </summary>
+        public bool PlayScrollEffectOnRefresh
+        {
+            get => _playScrollEffectOnRefresh;
+            set => _playScrollEffectOnRefresh = value;
+        }
+
+        /// <summary>
+        /// 在进行滚动动画时是否重新绑定模型数据（减少数据重新渲染的开销）
+        /// </summary>
+        public bool RenderModelOnScroll
+        {
+            get => _renderModelOnScroll;
+            set => _renderModelOnScroll = value;
+        }
 
         /// <summary>
         /// 获取当前头指针
@@ -67,33 +117,65 @@ namespace UniVue.View.Views
         /// <summary>
         /// 获取指定索引的模型
         /// </summary>
-        internal IBindableModel GetData(int index) => _models[index];
+        internal IBindableModel GetData(int index) => this[index];
 
         /// <summary>
         /// 交换两个数据的顺序
         /// </summary>
         internal void SwapData(int index1, int index2)
         {
-            IBindableModel data1 = _models[index1];
-            _models[index1] = _models[index2];
-            _models[index2] = data1;
+            IBindableModel data1 = this[index1];
+            this[index1] = this[index2];
+            this[index2] = data1;
         }
 
         /// <summary>
         /// 将指定的索引的数据替换为目标数据
         /// </summary>
-        internal void Replace(int replacedIndex, IBindableModel newModel) => _models[replacedIndex] = newModel;
+        internal void Replace(int replacedIndex, IBindableModel newModel) => this[replacedIndex] = newModel;
+        
+        /// <summary>
+        /// 绑定集合
+        /// </summary>
+        /// <remarks>使用这个函数可以防止数据的冗余。同时能够在数据发生变化时自动更新响应变化</remarks>
+        public void BindList(IObservableList observer)
+        {
+            if (_models != null || _observer != null) { return; }
+            _observer = observer;
+            BindListeners();
+            Init();
+        }
+
+
+        /// <summary>
+        /// 绑定集合
+        /// </summary>
+        /// <remarks>
+        /// 使用这个函数可以防止数据的冗余。同时能够在数据发生变化时自动更新响应变化</remarks>
+        public void RebindList(IObservableList observer)
+        {
+            if (_models != null) { return; }
+            if (_observer == null)
+                BindList(observer);
+            else if (!ReferenceEquals(_observer, observer))
+            {
+                _observer.RemoveListeners(GetHashCode()); //移除上次绑定的数据
+                _observer = observer;
+                Refresh(true); //刷新数据
+            }
+        }
+
 
         /// <summary>
         /// 重新绑定数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="newData">绑定的新数据，注意必须与旧数据的类型一致！</param>
-        public void RebindData<T>(List<T> newData) where T : IBindableModel
+        public void RebindList<T>(List<T> newData) where T : IBindableModel
         {
             if (_models == null)
             {
-                BindData(newData);
+                BindList(newData);
             }
             else if (!ReferenceEquals(newData,_models))
             {
@@ -107,7 +189,7 @@ namespace UniVue.View.Views
         /// <para>若为引用绑定，则无需使用AddData/RemoveData函数进行对数据的增删</para>
         /// </summary>
         /// <param name="data">绑定数据</param>
-        public void BindData<T>(List<T> data) where T : IBindableModel
+        public void BindList<T>(List<T> data) where T : IBindableModel
         {
             if (_models != null)
             {
@@ -120,169 +202,227 @@ namespace UniVue.View.Views
             _models = new List<IBindableModel>(data.Count);
             for (int i = 0; i < data.Count; i++) { _models.Add(data[i]); }
 
-            CreateItems();
-
-            //设置显示区域的大小
-            Resize();
-
-            int len = _scrollRect.content.childCount;
-            for (int i = 0; i < len; i++)
-            {
-                int k = i;
-                RectTransform itemRect = _scrollRect.content.GetChild(k).GetComponent<RectTransform>();
-
-                FlexibleView dynamicView = new FlexibleView(itemRect.gameObject, null, ViewLevel.Permanent);
-
-                if (_tail < data.Count)
-                {
-                    dynamicView.BindModel(_models[_tail++]);
-                }
-                else
-                {
-                    //这一步是为了生成UIBundle，以此使用RebindModel()函数
-                    if (data.Count > 0) { dynamicView.BindModel(_models[0]); _flag = true; }
-                    itemRect.gameObject.SetActive(false);
-                }
-            }
-
-            BindScrollEvt();
-
-            _tail--; //恢复到正确位置
+            Init();
         }
 
+
         /// <summary>
-        /// 排序，本质上是对数据进行排序
+        /// 对列表进行排序，排序规则
         /// </summary>
-        public void Sort(Comparison<IBindableModel> comparer)
+        /// <remarks>仅在非IObservableList模式下有效</remarks>
+        /// <param name="comparer">排序规则</param>
+        public void Sort<T>(Comparison<T> comparer) where T : IBindableModel
         {
-            _models.Sort(comparer);
-            _dirty = true;
-            Refresh(); //刷新
+            if (_observer == null && _models != null)
+            {
+                _models.Sort((b1, b2) => comparer((T)b1, (T)b2));
+                Refresh(); //刷新
+            }
         }
 
         /// <summary>
-        /// 添加数据(需要先绑定数据)
+        /// 添加数据
         /// </summary>
+        /// <remarks>仅在非IObservableList模式下有效</remarks>
         /// <param name="newData">新加入的数据</param>
         public void AddData<T>(T newData) where T : IBindableModel
         {
-            //如果当前所有的Item都还没有生成UIBundle则先生成UIBundle
-            if (!_flag)
-            {
-                _flag = true;
-                Transform content = _scrollRect.content;
-                for (int i = 0; i < content.childCount; i++)
-                {
-                    Vue.Router.GetView(content.GetChild(i).name).BindModel(newData);
-                }
-            }
-
-            _dirty = !_models.Contains(newData);
-            if (_dirty)
+            if (_observer == null && _models != null && !_models.Contains(newData))
             {
                 _models.Add(newData);
-                Resize();
-                Refresh();
+                Refresh(Count <= _cols * _rows);
             }
         }
 
         /// <summary>
         /// 移除数据
         /// </summary>
-        /// <param name="remove">要移除的数据[如果知道索引则不用传递改参数]</param>
-        public void RemoveData<T>(T remove) where T : IBindableModel
+        /// <remarks>仅在非IObservableList模式下有效</remarks>
+        public void RemoveData<T>(T remove, int index = -1) where T : IBindableModel
         {
-            _dirty = _models.Contains(remove);
-            if (_dirty)
+            if (_observer == null && remove != null && _models.Contains(remove))
             {
-                ListUtil.TrailDelete(_models, _models.IndexOf(remove));
-                //重新计算content的大小
-                Resize();
-                Refresh();
+                index = index < 0 ? _models.IndexOf(remove) : index;
+                _models.RemoveAt(index);
+                Refresh(Count <= _rows * _cols); //刷新
             }
         }
 
         /// <summary>
         /// 视图刷新
         /// </summary>
-        public void Refresh()
+        public void Refresh(bool force=false)
         {
-            Transform content = _scrollRect.content;
-
-            //水平滚动：0为最左边，1为最右边；    垂直滚动：1为顶部，0为顶部
-            Vector2 endPos = _scrollDir == Direction.Vertical ? Vector2.up : Vector2.zero;
-
-            //均匀滚动
-            float duration = _scrollDir == Direction.Vertical ?
-                Mathf.Abs(content.localPosition.y / _y) * 0.1f :
-                Mathf.Abs(content.localPosition.x / _x) * 0.1f;
-
-            TweenBehavior.DoScroll(_scrollRect, duration, endPos).Call(DoRefresh);
+            //重新计算Content的大小
+            Resize();
+            if (force)
+            {   
+                if (PlayScrollEffectOnRefresh)
+                {
+                    Transform content = _scrollRect.content;
+                    //均匀滚动
+                    float perTime = Vue.Config.PerItemScrollTime;
+                    //均匀滚动
+                    float duration = _scrollDir == Direction.Vertical ?
+                    Mathf.Abs(content.localPosition.y / _y) * Vue.Config.PerItemScrollTime :
+                        Mathf.Abs(content.localPosition.x / _x) * Vue.Config.PerItemScrollTime;
+                    _OnScroll = true;
+                    TweenBehavior.DoScroll(_scrollRect, duration, GetNormalizedPos()).Call(ForceRefresh);
+                }
+                else
+                    ForceRefresh();
+            }
+            else
+                RefreshViewAreaData();
         }
 
         /// <summary>
         /// 清空数据
         /// </summary>
+        /// <remarks>仅在非IObservableList模式下有效</remarks>
         public void Clear()
         {
-            _models.Clear();
-            Refresh();
+            if (_models != null && _observer == null)
+            {
+                _models.Clear();
+                Refresh(true);
+            }
         }
 
-        private void DoRefresh()
+        public void Destroy()
+        {
+            _scrollRect.onValueChanged.RemoveAllListeners();
+            _observer?.RemoveListeners(GetHashCode());
+            _models?.Clear();
+            _scrollRect = null;
+            _observer = null;
+            _models = null;
+        }
+
+        //刷新时总是显示显示第一个数据
+        private void ForceRefresh()
         {
             _head = 0;
-            _tail = 0;
-            Transform content = _scrollRect.content;
-            for (int i = 0; i < content.childCount; i++)
-            {
-                GameObject itemObj = content.GetChild(i).gameObject;
-                if (_tail < _models.Count)
-                {
-                    if (!itemObj.activeSelf)
-                    {
-                        itemObj.SetActive(true);
-                    }
-                    Vue.Router.GetView(itemObj.name).RebindModel(_models[_tail]);
-                    _models[_tail++].NotifyAll();
-                }
-                else
-                {
-                    itemObj.SetActive(false);
-                }
-            }
-            --_tail;
-            _dirty = false;
+            _scrollRect.normalizedPosition = GetNormalizedPos();
+            ResetItemPos();
+            RefreshViewAreaData();
         }
 
+        private void RefreshViewAreaData()
+        {
+            Transform content = _scrollRect.content;
+            int len = content.childCount;
+            int count = Count;
+            _tail = _head;
+            for (int i = 0; i < len; i++)
+            {
+                GameObject itemObj = content.GetChild(i).gameObject;
+                ViewObjectUtil.SetActive(itemObj, _tail < count);
+                if (_tail < count)
+                    Rebind(itemObj.name, this[_tail++]);
+            }
+            --_tail;
+            _OnScroll = false;
+        }
+
+        private Vector2 GetNormalizedPos()
+        {
+            return _scrollDir == Direction.Vertical ? Vector2.up : Vector2.zero;
+        }
+
+        private void Rebind(string itemName, IBindableModel model)
+        {
+            Vue.Router.GetView(itemName).BindModel(model, true, itemName, true);
+            model.NotifyAll();
+        }
 
         /// <summary>
         /// 重新计算content的大小
         /// </summary>
         private void Resize()
         {
-            Vector3 deltaPos = _scrollDir == Direction.Vertical ? 
-                new Vector2(0, Mathf.Abs(_y)) : 
-                new Vector2(Mathf.Abs(_x), 0);
-
-            float temp = _scrollDir == Direction.Vertical ? 
-                _models.Count / (float)_cols :
-                _models.Count / (float)_rows;
-
-            _scrollRect.content.sizeDelta = (Mathf.FloorToInt(temp)+1) * deltaPos;
+            Vector3 deltaPos = _scrollDir == Direction.Vertical ? new Vector2(0, Mathf.Abs(_y)) : new Vector2(Mathf.Abs(_x), 0);
+            float temp = _scrollDir == Direction.Vertical ? Count / (float)_cols : Count / (float)_rows;
+            _scrollRect.content.sizeDelta = (Mathf.FloorToInt(temp) + 1) * deltaPos;
 
             //当前是否可以移动
-            _scrollRect.movementType = _models.Count < _cols * _rows ? MovementType.Clamped : MovementType.Elastic;
+            _scrollRect.movementType = Count <= _cols * _rows ? MovementType.Clamped : MovementType.Elastic;
+        }
+
+        private void BindListeners()
+        {
+            int observerId = GetHashCode();
+            int modifyIndex = -1;
+            //注册事件
+            _observer.AddListener_OnAdded<IBindableModel>(observerId, v => modifyIndex = _observer.IndexOf(v));
+            _observer.AddListener_OnRemoved<IBindableModel>(observerId, (v, index) => modifyIndex = index);
+            _observer.AddListener_OnReplaced<IBindableModel>(observerId, (index, r1, r2) => modifyIndex = index);
+            _observer.AddListener_OnChanged(observerId, mode =>
+            {
+                bool force = (mode != NotificationMode.Sort && Count <= _rows * _cols) ||
+                             (modifyIndex >= 0 && modifyIndex < _tail);
+                Refresh(force);
+                modifyIndex = -1;
+            });
+        }
+
+        private void Init()
+        {
+            if (_scrollRect.content.childCount > 1) { return; }
+
+            CreateItems();
+
+            int len = _scrollRect.content.childCount;
+            int count = Count;
+            for (int i = 0; i < len; i++)
+            {
+                RectTransform itemRect = _scrollRect.content.GetChild(i).GetComponent<RectTransform>();
+                FlexibleView dynamicView = new FlexibleView(itemRect.gameObject, null, ViewLevel.Permanent);
+
+                if (_tail < count)
+                {
+                    dynamicView.BindModel(this[_tail++]);
+                }
+                else
+                {
+                    //这一步是为了生成UIBundle，以此使用RebindModel()函数
+                    if (count > 0) { dynamicView.BindModel(this[0]); }
+                    itemRect.gameObject.SetActive(false);
+                }
+            }
+
+            _tail--; //恢复到正确位置
+            BindScrollEvt();
         }
 
         private void CreateItems()
         {
+            Resize();
             //创建Item
             Transform content = _scrollRect.content;
-            Vector3 deltaPos = content.GetChild(0).localPosition;
             GameObject firstItem = content.GetChild(0).gameObject;
             string name = firstItem.name;
 
+            int iMax = _scrollDir == Direction.Vertical ? _rows : _cols;
+            int jMax = _scrollDir == Direction.Vertical ? _cols : _rows;
+
+            for (int i = 0; i <= iMax; i++)//垂直滚动多一行
+            {
+                for (int j = 0; j < jMax; j++)
+                {
+                    GameObject itemViewObject = i + j == 0 ? firstItem :
+                        PrefabCloneUtil.RectTransformClone(firstItem, content);
+                    itemViewObject.name = name + (jMax * i + j);
+                }
+            }
+
+            ResetItemPos();
+        }
+
+        private void ResetItemPos()
+        {
+            Vector3 deltaPos = Vector3.zero; //第一个位置一定是(0,0,0)
+            Transform content = _scrollRect.content;
             //按下面的方法确保contant的前面rows个为第一列或前cols个为第一行
             if (_scrollDir == Direction.Vertical) //垂直滚动时位置按行一行一行的设置
             {
@@ -290,10 +430,7 @@ namespace UniVue.View.Views
                 {
                     for (int j = 0; j < _cols; j++)
                     {
-                        GameObject itemViewObject = i + j == 0 ? firstItem :
-                            PrefabCloneUtil.RectTransformClone(firstItem, content);
-                        itemViewObject.transform.localPosition = deltaPos;
-                        itemViewObject.name = name + (_cols * i + j);
+                        (content.GetChild(i * _rows + j).transform as RectTransform).anchoredPosition = deltaPos;
                         deltaPos.x += _x;
                     }
                     deltaPos.y += _y; //下一行
@@ -306,11 +443,7 @@ namespace UniVue.View.Views
                 {
                     for (int j = 0; j < _rows; ++j)
                     {
-                        GameObject itemViewObject = i + j == 0 ? firstItem :
-                            PrefabCloneUtil.RectTransformClone(firstItem, content);
-                        itemViewObject.transform.localPosition = deltaPos;
-                        itemViewObject.name = name + (_rows * i + j);
-
+                        (content.GetChild(i * _cols + j).transform as RectTransform).anchoredPosition = deltaPos;
                         deltaPos.y += _y;
                     }
                     deltaPos.x += _x; //下一列
@@ -318,6 +451,10 @@ namespace UniVue.View.Views
                 }
             }
         }
+
+      
+
+        #region 算法实现
 
         private void BindScrollEvt()
         {
@@ -375,20 +512,9 @@ namespace UniVue.View.Views
             }
         }
 
-        public void Destroy()
-        {
-            _scrollRect.onValueChanged.RemoveAllListeners();
-            _scrollRect = null;
-            _models?.Clear();
-            _models = null;
-        }
-
-        #region 算法实现
-
         private void VercitalListenerCorners0(Transform content, int lastRowFirstIdx)
         {
-            List<IBindableModel> data = _models; //指令优化
-            int dataCount = data.Count;
+            int dataCount = Count;
             //将第一行的所有Item移动到最后一行
             for (int i = 0; i < _cols; i++)
             {
@@ -401,12 +527,9 @@ namespace UniVue.View.Views
                 //渲染数据 先计算指针再渲染数据
                 _tail = (_tail + 1) % dataCount;
                 _head = (_head + 1) % dataCount;
-                //当前数据不是脏数据才进行重新渲染
-                if (!_dirty)
-                {
-                    Vue.Router.GetView(itemTrans.name).RebindModel(data[_tail]);
-                }
-                //如果没有设置无限滚动则数据渲染到底时隐藏显示，但是任然进行数据渲染
+
+                if ((_OnScroll && RenderModelOnScroll) || !_OnScroll)
+                    Rebind(itemTrans.name, this[_tail]);
                 if (_tail < _head) { itemTrans.gameObject.SetActive(false); }
             }
 
@@ -418,8 +541,7 @@ namespace UniVue.View.Views
 
         private void VercitalListenerCorners1(Transform content, int lastRowFirstIdx)
         {
-            List<IBindableModel> data = _models; //指令优化
-            int dataCount = data.Count;
+            int dataCount = Count;
             //将最后一行移动到第一行
             for (int i = _cols - 1; i >= 0; i--) //保证数据显示的顺序正确性
             {
@@ -431,11 +553,9 @@ namespace UniVue.View.Views
                 //渲染数据 先计算指针再渲染数据
                 _tail = (_tail + dataCount - 1) % dataCount;
                 _head = (_head + dataCount - 1) % dataCount;
-                //当前数据不是脏数据才进行重新渲染
-                if (!_dirty)
-                {
-                    Vue.Router.GetView(itemTrans.name).RebindModel(data[_head]);
-                }
+
+                if ((_OnScroll && RenderModelOnScroll) || !_OnScroll)
+                    Rebind(itemTrans.name, this[_head]);
                 //向下滑动全部显示
                 if (!itemTrans.gameObject.activeSelf) { itemTrans.gameObject.SetActive(true); }
             }
@@ -449,9 +569,8 @@ namespace UniVue.View.Views
 
         private void HorizontalListenerCorners0(Transform content, int lastColFirstIdx)
         {
-            List<IBindableModel> data = _models; //指令优化
             //向左滑动了一个Item的距离
-            int dataCount = data.Count;
+            int dataCount = Count;
             //将第一列全部移动到最后一列
             for (int i = 0; i < _rows; i++)
             {
@@ -463,11 +582,9 @@ namespace UniVue.View.Views
                 //渲染数据 先计算指针再渲染数据
                 _tail = (_tail + 1) % dataCount;
                 _head = (_head + 1) % dataCount;
-                //当前数据不是脏数据才进行重新渲染
-                if (!_dirty)
-                {
-                    Vue.Router.GetView(itemTrans.name).RebindModel(data[_tail]);
-                }
+
+                if ((_OnScroll && RenderModelOnScroll) || !_OnScroll)
+                    Rebind(itemTrans.name, this[_tail]);
                 //如果没有设置无限滚动则数据渲染到底时隐藏显示，但是任然进行数据渲染
                 if (_tail < _head) { itemTrans.gameObject.SetActive(false); }
             }
@@ -480,9 +597,8 @@ namespace UniVue.View.Views
 
         private void HorizontalListenerCorners1(Transform content, int lastColFirstIdx)
         {
-            List<IBindableModel> data = _models; //指令优化
             //当前正在向右滑动
-            int dataCount = _models.Count;
+            int dataCount = Count;
             //将最后一列全部移动到第一列 →
             for (int i = _rows - 1; i >= 0; i--)
             {
@@ -494,11 +610,9 @@ namespace UniVue.View.Views
                 //渲染数据 先计算指针再渲染数据
                 _tail = (_tail + dataCount - 1) % dataCount;
                 _head = (_head + dataCount - 1) % dataCount;
-                //当前数据不是脏数据才进行重新渲染
-                if (!_dirty)
-                {
-                    Vue.Router.GetView(itemTrans.name).RebindModel(data[_head]);
-                }
+                
+                if((_OnScroll && RenderModelOnScroll) || !_OnScroll)
+                    Rebind(itemTrans.name, this[_head]);
                 //向右滑动全部显示
                 if (!itemTrans.gameObject.activeSelf) { itemTrans.gameObject.SetActive(true); }
             }

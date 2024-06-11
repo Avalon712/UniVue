@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Evt;
+using UniVue.Input;
 using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
@@ -36,11 +37,6 @@ namespace UniVue.View.Views
         public float transientTime { get; set; } = -1;
 
         /// <summary>
-        /// 当前视图是否可以拖动
-        /// </summary>
-        public bool draggable { get; set; }
-
-        /// <summary>
         /// 打开当前视图的默认缓动动画
         /// </summary>
         public DefaultTween openTween { get; set; } = DefaultTween.None;
@@ -68,7 +64,7 @@ namespace UniVue.View.Views
             name = viewName;
             this.level = level;
             state = viewObject.activeSelf || level == ViewLevel.Permanent;
-            viewObject.SetActive(state);
+            ViewObjectUtil.SetActive(viewObject, state);
 
             //将当前视图对象交给ViewRouter管理
             Vue.Router.AddView(this);
@@ -95,27 +91,9 @@ namespace UniVue.View.Views
             Vue.Router.BindRouteEvt(name, uis);
         }
 
-
         public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel
         {
-            if (!Vue.Updater.HadBinded(name, model))
-            {
-                //获取所有的ui组件
-                var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
-                //模型到视图的绑定
-                Vue.Updater.BindViewAndModel(name, model, uis, modelName, allowUIUpdateModel);
-                model.NotifyAll();
-            }
-            else if (forceRebind)
-            {
-                Vue.Updater.Rebind(name, model);
-            }
-#if UNITY_EDITOR
-            else
-            {
-                LogUtil.Warning($"名称为{name}的视图已经绑定了模型{model.GetType().Name}[hashCode={model.GetHashCode()}]!");
-            }
-#endif
+            ViewObjectUtil.BindModel(this, model, allowUIUpdateModel, modelName, forceRebind);
             return this;
         }
 
@@ -141,6 +119,14 @@ namespace UniVue.View.Views
             }
         }
 
+        /// <summary>
+        /// 设置当前视图的拖拽配置信息
+        /// </summary>
+        /// <param name="configs">拖拽配置信息</param>
+        public void SetDraggable(params DragInputConfig[] configs)
+        {
+            ViewObjectUtil.SetDraggable(viewObject, configs);
+        }
 
         public virtual void OnUnload()
         {

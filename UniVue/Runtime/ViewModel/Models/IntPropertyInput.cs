@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
@@ -41,6 +42,11 @@ namespace UniVue.ViewModel.Models
         {
             if(!IsPublisher())
                 _ui.text = propertyValue.ToString();
+        }
+
+        public override IEnumerable<T> GetUI<T>()
+        {
+            yield return _ui as T;
         }
     }
 }

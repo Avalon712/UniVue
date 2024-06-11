@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.UI;
 using UniVue.Evt;
 using UniVue.Model;
 using UniVue.Rule;
@@ -7,6 +8,9 @@ using UniVue.Utils;
 using UniVue.View;
 using UniVue.View.Config;
 using UniVue.ViewModel;
+using System.Collections.Generic;
+using System.Linq;
+using UniVue.Tween;
 
 namespace UniVue
 {
@@ -216,6 +220,28 @@ namespace UniVue
         }
 
         /// <summary>
+        /// 实时显示内部状态信息
+        /// </summary>
+        /// <param name="text">显示调试信息的UI组件</param>
+        public static void Debug(Text text)
+        {
+            TweenBehavior.Timer(() =>
+            {
+                int viewCount = Router.ViewCount;
+                List<UIBundle> bundles = Updater.Bundles;
+                int bundleCount = bundles.Count;
+                int propertyUICount = 0;
+                for (int i = 0; i < bundles.Count; i++)
+                {
+                    propertyUICount += bundles[i].ProertyUIs.Count;
+                }
+                int modelCount = bundles.Select(b => b.Model).Distinct().Count();
+                text.text = $"View数量：{viewCount}\r\nModel数量：{modelCount}\r\nUIBundle数量：{bundleCount}\r\nPropertyUI数量：{propertyUICount}\r\n";
+            }).Interval(5).ExecuteNum(int.MaxValue);
+
+        }
+
+        /// <summary>
         /// 仅在Editor模式下执行
         /// </summary>
         private static void Dispose()
@@ -241,7 +267,7 @@ namespace UniVue
     public sealed class VueConfig
     {
         private NamingFormat _format = NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper;
-
+       
         /// <summary>
         /// 命名风格
         /// </summary>
@@ -281,5 +307,31 @@ namespace UniVue
         /// 当[Flags]标记的枚举绑定到TMP_Text上时,指定两两之间使用的分隔符号
         /// </summary>
         public string FlagsEnumSeparator { get; set; } = " | ";
+
+        /// <summary>
+        /// 在优化组件查找中，以此字符开头的GameObject以及它所有的后代都不会被进行组件查找
+        /// </summary>
+        public char SkipDescendantNodeSeparator { get; set; } = '~';
+
+        /// <summary>
+        /// 在优化组件查找中，以此字符开头的GameObject不会被进行组件查找，但其后代节点会进行组件查找
+        /// </summary>
+        public char SkipCurrentNodeSeparator { get; set; } = '@';
+
+        /// <summary>
+        /// 显示浮点数时指定浮点数保留的位数
+        /// </summary>
+        public int FloatKeepBit { get; set; } = 2;
+
+        /// <summary>
+        /// 当ListWidget和GridWidget使用刷新时滚动属性时指定滚动一个Item的距离使用的时间
+        /// </summary>
+        public float PerItemScrollTime { get; set; } = 0.1f;
+
+        /// <summary>
+        /// 当ListWidget和GridWidget在使用滚动动画时是否刷新数据
+        /// </summary>
+        /// <remarks>这儿是全局配置，也可以单独为每个ListWidget和GridWidget组件进行设置，局部设置优先级高于全局设置</remarks>
+        public bool RenderModelOnScroll { get; set; } = false;
     }
 }

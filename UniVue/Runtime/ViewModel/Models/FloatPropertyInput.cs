@@ -23,9 +23,9 @@ namespace UniVue.ViewModel.Models
 
         private void UpdateModel(string value)
         {
-            Vue.Updater.Publisher = this;
             if(float.TryParse(value,out float f)) 
             {
+                Vue.Updater.Publisher = this;
                 _notifier?.NotifyModelUpdate(_propertyName, f);
             }
         }
@@ -39,8 +39,8 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(float propertyValue)
         {
-            if(!IsPublisher())
-                _ui.text = propertyValue.ToString();
+            if (!IsPublisher())
+                _ui.text = propertyValue.ToString("F" + Vue.Config.FloatKeepBit);
         }
 
     }

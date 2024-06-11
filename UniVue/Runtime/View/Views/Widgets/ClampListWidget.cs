@@ -8,7 +8,7 @@ using UniVue.Utils;
 namespace UniVue.View.Views
 {
     [Serializable]
-    public sealed class ClampListWidget : IWidget
+    public sealed class ClampListWidget 
     {
         private List<IBindableModel> _models;
         [SerializeField]

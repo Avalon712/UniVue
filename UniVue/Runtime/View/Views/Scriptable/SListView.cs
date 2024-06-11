@@ -15,31 +15,26 @@ namespace UniVue.View.Views
     public sealed class SListView : ScriptableView
     {
         #region 配置信息
-        /// <summary>
-        /// 设置滚动方向
-        /// </summary>
         [Header("滚动方向 Horizontal|Vercital")]
         [SerializeField] internal Direction _scrollDir = Direction.Vertical;
 
-        /// <summary>
-        /// 是否循环滚动
-        /// </summary>
         [Header("循环滚动")]
         [SerializeField] private bool _loop;
 
-        /// <summary>
-        /// 可见数量
-        /// </summary>
         [Header("可见数量")]
         [SerializeField] private int _viewNum;
 
-        /// <summary>
-        /// 相连两个item在滚动方向上的距离
-        /// </summary>
         [Header("相连两个item在滚动方向上的位置差")]
         [Tooltip("垂直方向滚动: upItem.localPos.y-downItem.localPos.y 水平方向滚动:rightItem.localPos.x-leftItem.localPos.x")]
         [SerializeField] private float _distance;
 
+        [Header("当刷新视图时是否播放滚动效果")]
+        [SerializeField]
+        private bool _playScrollEffectOnRefresh;
+
+        [Header("是否总是显示最新的数据")]
+        [SerializeField]
+        private bool _alwaysShowNewestData;
         #endregion
 
         private ListWidget _listComp;
@@ -55,7 +50,11 @@ namespace UniVue.View.Views
             {
                 throw new Exception("viewObject身上未包含一个ScrollRect组件，该功能依赖该组件！");
             }
-            _listComp = new(scrollRect,_distance, _viewNum, _scrollDir, _loop);
+            _listComp = new(scrollRect, _distance, _viewNum, _scrollDir, _loop)
+            {
+                AlwaysShowNewestData = _alwaysShowNewestData,
+                PlayScrollEffectOnRefresh = _playScrollEffectOnRefresh
+            };
 
             InitState();
             //在进行查找UI组件时要排除content下面的物体（因为这下面的每个Item会作为一个单独的FlexibleView存在）
@@ -70,29 +69,48 @@ namespace UniVue.View.Views
         }
 
         /// <summary>
+        /// 绑定集合
+        /// </summary>
+        /// <remarks>使用这个函数可以防止数据的冗余。同时能够在数据发生变化时自动更新响应变化</remarks>
+        public void BindList(IObservableList observer)
+        {
+            _listComp.BindList(observer);
+        }
+
+        /// <summary>
+        /// 绑定集合
+        /// </summary>
+        /// <remarks>
+        /// 使用这个函数可以防止数据的冗余。同时能够在数据发生变化时自动更新响应变化</remarks>
+        public void RebindList(IObservableList observer)
+        {
+            _listComp.RebindList(observer);
+        }
+
+        /// <summary>
         /// 重新绑定数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="newData">绑定的新数据，注意必须与旧数据的类型一致！</param>
-        public void RebindData<T>(List<T> newData) where T : IBindableModel
+        public void RebindList<T>(List<T> newData) where T : IBindableModel
         {
-            _listComp.RebindData(newData);
+            _listComp.RebindList(newData);
         }
 
         /// <summary>
         /// 为Item绑定显示数据
         /// </summary>
         /// <param name="data">绑定的数据</param>
-        public void BindData<T>(List<T> data) where T : IBindableModel
+        public void BindList<T>(List<T> data) where T : IBindableModel
         {
-            _listComp.BindData(data);
+            _listComp.BindList(data);
         }
 
         /// <summary>
         /// 对列表进行排序，排序规则
         /// </summary>
         /// <param name="comparer">排序规则</param>
-        public void Sort(Comparison<IBindableModel> comparer)
+        public void Sort<T>(Comparison<T> comparer) where T : IBindableModel
         {
             _listComp.Sort(comparer);
         }
@@ -109,17 +127,9 @@ namespace UniVue.View.Views
         /// <summary>
         /// 移除数据
         /// </summary>
-        public void RemoveData<T>(T remove) where T : IBindableModel
+        public void RemoveData<T>(T remove, int index = -1) where T : IBindableModel
         {
-            _listComp.RemoveData(remove);
-        }
-
-        /// <summary>
-        /// 刷新视图
-        /// </summary>
-        public void Refresh()
-        {
-            _listComp.Refresh();
+            _listComp.RemoveData(remove, index);
         }
 
         /// <summary>
@@ -136,6 +146,15 @@ namespace UniVue.View.Views
         public void ScrollTo<T>(T data) where T : IBindableModel
         {
             _listComp.ScrollTo(data);
+        }
+
+        /// <summary>
+        /// 刷新视图
+        /// </summary>
+        /// <param name="force">是否强制刷新</param>
+        public void Refresh(bool force=false)
+        {
+            _listComp.Refresh(force);
         }
     }
 }

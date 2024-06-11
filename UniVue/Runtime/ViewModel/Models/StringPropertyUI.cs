@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace UniVue.ViewModel.Models
 {
@@ -20,6 +21,11 @@ namespace UniVue.ViewModel.Models
             {
                 _ui.gameObject.SetActive(active);
             }
+        }
+
+        public override IEnumerable<T> GetUI<T>()
+        {
+            yield return _ui as T;
         }
 
         public override void Unbind() { _notifier = null;_propertyName = null;  _ui = default; }

@@ -21,6 +21,8 @@ namespace UniVue.ViewModel
         /// </summary>
         internal PropertyUI Publisher { get; set; }
 
+        internal List<UIBundle> Bundles => _bundles;
+
         /// <summary>
         /// 双向绑定
         /// </summary>
@@ -229,7 +231,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (_bundles[i].Name == bundleName)
+                if (_bundles[i].ViewName == bundleName)
                 {
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
@@ -245,7 +247,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (_bundles[i].Name == bundleName)
+                if (_bundles[i].ViewName == bundleName)
                 {
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
@@ -261,7 +263,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (_bundles[i].Name == bundleName)
+                if (_bundles[i].ViewName == bundleName)
                 {
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
@@ -277,7 +279,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (_bundles[i].Name == bundleName)
+                if (_bundles[i].ViewName == bundleName)
                 {
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
@@ -293,7 +295,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (_bundles[i].Name == bundleName)
+                if (_bundles[i].ViewName == bundleName)
                 {
                     _bundles[i].UpdateUI(propertyName, propertyValue);
                 }
@@ -309,7 +311,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (_bundles[i].Name == viewName)
+                if (_bundles[i].ViewName == viewName)
                 {
                     ListUtil.TrailDelete(_bundles, i--);
                 }
@@ -326,7 +328,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (ReferenceEquals(_bundles[i].Model, oldModel) && _bundles[i].Name == viewName)
+                if (ReferenceEquals(_bundles[i].Model, oldModel) && _bundles[i].ViewName == viewName)
                 {
                     _bundles[i].Rebind(newModel);
                 }
@@ -342,7 +344,7 @@ namespace UniVue.ViewModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (_bundles[i].Name == viewName && newModel.GetType() == _bundles[i].Model.GetType())
+                if (_bundles[i].ViewName == viewName && newModel.GetType() == _bundles[i].Model.GetType())
                 {
                     _bundles[i].Rebind(newModel);
                 }
@@ -350,13 +352,13 @@ namespace UniVue.ViewModel
         }
 
         /// <summary>
-        /// 判断一个视图是否已经绑定过某个模型
+        /// 判断一个视图是否已经绑定过同一类型的模型
         /// </summary>
-        public bool HadBinded<T>(string viewName,T model)
+        public bool HadBindedTheSameModelType<T>(string viewName,T model) where T : IBindableModel
         {
             for (int i = 0; i < _bundles.Count; i++)
             {
-                if (_bundles[i].Name == viewName && ReferenceEquals(_bundles[i].Model,model))
+                if (_bundles[i].ViewName == viewName && _bundles[i].Model.GetType() == model.GetType())
                 {
                     return true;
                 }

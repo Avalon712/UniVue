@@ -26,6 +26,11 @@ namespace UniVue.View
         }
 
         /// <summary>
+        /// 当前视图的总数量
+        /// </summary>
+        public int ViewCount => _views.Count;
+
+        /// <summary>
         /// 指示当前视图的打开关闭行为是否是路由器控制
         /// </summary>
         public bool IsRouterCtrl { get; private set; }

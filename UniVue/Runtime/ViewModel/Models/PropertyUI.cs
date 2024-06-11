@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UniVue.Model;
 
 namespace UniVue.ViewModel.Models
@@ -46,10 +47,17 @@ namespace UniVue.ViewModel.Models
         public abstract void Unbind();
 
         /// <summary>
+        /// 所有属性绑定的所有UI
+        /// </summary>
+        /// <typeparam name="T">T : Component</typeparam>
+        /// <returns>IEnumerable<T></returns>
+        public abstract IEnumerable<T> GetUI<T>() where T : Component;
+
+        /// <summary>
         /// 获取当前属性UI绑定的属性的属性名称
         /// </summary>
         /// <returns></returns>
-        public string GetPropertyName() => _propertyName;
+        public string PropertyName => _propertyName;
 
         /// <summary>
         /// 当前UI是否是发布UI更新消息的发布者

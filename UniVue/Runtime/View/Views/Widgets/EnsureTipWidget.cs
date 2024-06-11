@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace UniVue.View.Views
 {
     [Serializable]
-    public sealed class EnsureTipWidget : IWidget
+    public sealed class EnsureTipWidget 
     {
         [SerializeField] private string _viewName;
         [SerializeField] private Button _cancelBtn;

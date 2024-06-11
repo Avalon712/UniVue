@@ -31,9 +31,9 @@ namespace UniVue.Tween.Tweens
             pos.x = TweenComputer.Linear(_time, _duration, _start.x, _end.x - _start.x);
             pos.y = TweenComputer.Linear( _time, _duration, _start.y, _end.y - _start.y);
             _scrollRect.normalizedPosition = pos;
-            _scrollRect.onValueChanged.Invoke(pos);
+            _scrollRect.onValueChanged?.Invoke(pos);
 
-            if(_OnComplete!=null && executed) { _OnComplete(); }
+            if(_OnComplete != null && executed) { _OnComplete(); }
 
             //将下一个序列动画进行播放
             if (next != null && executed) { next.Play(); }

@@ -24,6 +24,10 @@ namespace UniVue.Utils
             Queue<Transform> queue = new Queue<Transform>();
             Transform root = gameObject.transform;
             List<ValueTuple<Component, UIType>> results = new();
+            
+            char SKIP_ALL_DESCENDANT_SEPARATOR = Vue.Config.SkipDescendantNodeSeparator;
+            char SKIP_CURRENT_SEPARATOR = Vue.Config.SkipCurrentNodeSeparator;
+
             queue.Enqueue(root);
 
             //获取视图的所有嵌套视图
@@ -59,9 +63,7 @@ namespace UniVue.Utils
                         if(skip) { continue; }
                     }
 
-                    //排除开以字符~开头的GameObject
-                    //被'~'标记的GameObject及其后代都不会被进行组件查找
-                    if (child.name.StartsWith('~')) { continue; }
+                    if (child.name.StartsWith(SKIP_ALL_DESCENDANT_SEPARATOR)) { continue; }
 
                     //检查当前chid是否嵌套视图的viewObject
                     //如果当前chid是viewObject则跳过
@@ -82,7 +84,7 @@ namespace UniVue.Utils
 
                     //排除以字符'@'开头的GameObject
                     //被'@'标记的GameObject不会被进行查找，但是其后代会被进行查找
-                    if (child.name.StartsWith('@')) { continue; }
+                    if (child.name.StartsWith(SKIP_CURRENT_SEPARATOR)) { continue; }
 
                     var result = GetResult(child.gameObject);
 

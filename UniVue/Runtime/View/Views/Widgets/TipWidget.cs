@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UniVue.View.Views
 {
     [Serializable]
-    public sealed class TipWidget : IWidget
+    public sealed class TipWidget
     {
         /// <summary>
         /// 获取用于显示提示文本的内容的TMP_Text的UI组件

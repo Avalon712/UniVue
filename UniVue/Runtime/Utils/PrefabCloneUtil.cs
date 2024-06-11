@@ -15,15 +15,13 @@ namespace UniVue.Utils
 
             cloneRect.pivot = prefabRect.pivot;
             cloneRect.anchorMax = prefabRect.anchorMax;
-            cloneRect.anchorMin = cloneRect.anchorMin;
+            cloneRect.anchorMin = prefabRect.anchorMin;
             cloneRect.anchoredPosition = prefabRect.anchoredPosition;
             cloneRect.anchoredPosition3D = prefabRect.anchoredPosition3D;
             cloneRect.offsetMax = prefabRect.offsetMax;
             cloneRect.offsetMin = prefabRect.offsetMin;
             cloneRect.sizeDelta = prefabRect.sizeDelta;
-            
             cloneRect.localScale = prefabRect.localScale;
-
             clone.name = prefab.name;
 
             return clone;

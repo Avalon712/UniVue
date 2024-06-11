@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace UniVue.ViewModel.Models
@@ -55,6 +56,11 @@ namespace UniVue.ViewModel.Models
         {
             if(!IsPublisher())
                 _toggle.isOn = propertyValue;
+        }
+
+        public override IEnumerable<T> GetUI<T>()
+        {
+            yield return _toggle as T;
         }
     }
 }

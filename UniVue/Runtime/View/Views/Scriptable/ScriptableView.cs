@@ -31,105 +31,53 @@ namespace UniVue.View.Views
         private RuntimeData _runtime;
 
         #region 配置信息
-        /// <summary>
-        /// 当前视图在Canvas下的排序,序号越小越先被渲染
-        /// 注：此值只有当前视图不是嵌套视图时才生效
-        /// </summary>
         [Tooltip("当前视图在Canvas下的排序,序号越小越先被渲染")]
         [Range(0,20)]
         [SerializeField] internal int order = 0;
 
-        /// <summary>
-        /// 视图名称
-        /// </summary>
         [SerializeField] private string viewName;
 
-        /// <summary>
-        /// 视图等级
-        /// </summary>
         [SerializeField] private ViewLevel viewLevel = ViewLevel.Common;
 
-        /// <summary>
-        /// 视图游戏对象
-        /// </summary>
         [Tooltip("视图对象预制体")]
         [SerializeField] internal GameObject viewObjectPrefab;
 
-        /// <summary>
-        /// ViewLevel.Transient视图显示时间
-        /// </summary>
         [Tooltip("ViewLevel.Transient视图显示时间")]
         [SerializeField] private float transientTime = -1;
 
-        /// <summary>
-        /// 视图的初始状态 true=打开
-        /// </summary>
         [Tooltip("设置当前视图的初始状态,true:打开状态")]
         [SerializeField] private bool initState;
 
-        /// <summary>
-        /// 设置当前ViewPanel被打开时是否禁止再打开其它ViewPanel
-        /// </summary>
         [Tooltip("设置当前ViewPanel被打开时是否禁止再打开其它视图")]
         [SerializeField] private bool forbidOpenOther;
 
-        /// <summary>
-        /// 当前视图是否可以拖动
-        /// </summary>
-        [Tooltip("视图是否可以拖动")]
-        [SerializeField] private bool draggable;
+        [Tooltip("视图的拖拽配置信息")]
+        [SerializeField] private DragInputConfig[] _dragInputConfigs;
 
-        /// <summary>
-        /// 打开当前视图的默认缓动动画
-        /// </summary>
         [Header("打开视图动画")]
         [SerializeField] private DefaultTween openTween = DefaultTween.None;
 
-        /// <summary>
-        /// 打开动画的持续时间，小于0表示使用默认的缓动时间
-        /// </summary>
         [Range(-1, 10)]
         [Tooltip("仅在非DefaultTween.None时生效。打开动画的持续时间，小于0表示使用默认的缓动时间")]
         [SerializeField] private float openDuration = -1;
 
-        /// <summary>
-        /// 关闭当前视图的默认缓动动画
-        /// </summary>
         [Header("关闭视图动画")]
         [SerializeField] private DefaultTween closeTween = DefaultTween.None;
 
-        /// <summary>
-        /// 关闭动画的持续时间，小于0表示使用默认的缓动时间
-        /// </summary>
         [Range(-1, 10)]
         [Tooltip("仅在非DefaultTween.None时生效。关闭动画的持续时间，小于0表示使用默认的缓动时间")]
         [SerializeField] private float closeDuration = -1;
 
-        /// <summary>
-        /// 当前视图是否是属主视图
-        /// </summary>
         [Header("当前视图是否是属主视图")]
         [SerializeField] private bool isMasterView;
 
-        /// <summary>
-        /// 为当前视图设置控制对象
-        /// 只有当master视图处于打开状态则允许当前视图的打开、关闭
-        /// 如果master视图被关闭则当前视图也会被关闭
-        /// </summary>
         [Tooltip("为当前视图设置控制对象，只有当master视图处于打开状态则允许当前视图的打开、关闭；如果master视图被关闭则当前视图也会被关闭")]
         [Header("该视图的属主视图")]
         [SerializeField] private string masterViewName;
 
-        /// <summary>
-        /// 当前视图的根视图的viewName
-        /// </summary>
         [Header("当前视图的根视图名称")]
         [SerializeField] private string rootViewName;
 
-        /// <summary>
-        /// 当前视图的嵌套的所有视图
-        /// 注：无需为嵌套视图指定视图预制体viewObjectPrefab
-        /// </summary>
         [Header("当前视图的嵌套的所有视图")]
         [SerializeField] internal ScriptableView[] nestedViews;
 
@@ -166,15 +114,12 @@ namespace UniVue.View.Views
         protected void InitState()
         {
             if (viewLevel == ViewLevel.Transient)
-            {
                 transientTime = transientTime <= 0 ? 2 : transientTime;
-            }
             //初始化运行时数据
             _runtime.state = initState;
-            if(draggable)
-                viewObject.AddComponent<DragInput>();
-            viewObject.SetActive(initState || viewLevel == ViewLevel.Permanent);
-
+            //拖拽设置
+            ViewObjectUtil.SetDraggable(viewObject, _dragInputConfigs);
+            ViewObjectUtil.SetActive(viewObject, initState || viewLevel == ViewLevel.Permanent);
             //将当前视图对象交给ViewRouter管理
             Vue.Router.AddView(this);
         }
@@ -197,29 +142,9 @@ namespace UniVue.View.Views
             _runtime = default;
         }
 
-        #region 数据绑定
-
-        
         public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind=false) where T : IBindableModel
         {
-            if (!Vue.Updater.HadBinded(viewName, model))
-            {
-                //获取所有的ui组件
-                var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
-                //模型到视图的绑定
-                Vue.Updater.BindViewAndModel(viewName, model, uis, modelName, allowUIUpdateModel);
-                model.NotifyAll();
-            }
-            else if (forceRebind)
-            {
-                Vue.Updater.Rebind(name, model);
-            }
-#if UNITY_EDITOR
-            else
-            {
-                LogUtil.Warning($"名称为{viewName}的视图已经绑定了模型{model.GetType().Name}[hashCode={model.GetHashCode()}]!");
-            }
-#endif
+            ViewObjectUtil.BindModel(this, model, allowUIUpdateModel, modelName, forceRebind);
             return this;
         }
 
@@ -245,8 +170,6 @@ namespace UniVue.View.Views
             }
         }
 
-
-        #endregion
 
         #region 打开\关闭视图
 

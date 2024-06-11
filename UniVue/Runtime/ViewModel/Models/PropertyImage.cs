@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace UniVue.ViewModel.Models
@@ -23,6 +24,11 @@ namespace UniVue.ViewModel.Models
         public override void Unbind()
         {
             _img = null; _propertyName = null; _notifier = null;
+        }
+
+        public override IEnumerable<T> GetUI<T>()
+        {
+            yield return _img as T;
         }
 
         public override void UpdateUI(int propertyValue){ }

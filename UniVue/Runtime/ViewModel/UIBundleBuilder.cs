@@ -59,7 +59,7 @@ namespace UniVue.ViewModel
             if (propertyUIs == null || propertyUIs.Count == 0)
                 return null;
             else
-                return new UIBundle(viewName, model, propertyUIs);
+                return new UIBundle(modelName, viewName, model, propertyUIs);
         }
 
         private static List<PropertyUI> AtomModelBuild<T>(T model,Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel) where T : IBindableModel

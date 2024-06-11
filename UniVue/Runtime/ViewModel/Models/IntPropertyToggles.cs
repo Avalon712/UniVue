@@ -1,4 +1,5 @@
-﻿using UnityEngine.UI;
+﻿using System.Collections.Generic;
+using UnityEngine.UI;
 
 namespace UniVue.ViewModel.Models
 {
@@ -15,6 +16,17 @@ namespace UniVue.ViewModel.Models
             for (int i = 0; i < _ui.Length; i++)
             {
                 _ui[i].isOn = propertyValue > i;
+            }
+        }
+
+        public override IEnumerable<T> GetUI<T>()
+        {
+            if (_ui[0] is T)
+            {
+                for (int i = 0; i < _ui.Length; i++)
+                {
+                    yield return _ui[i] as T;
+                }
             }
         }
     }

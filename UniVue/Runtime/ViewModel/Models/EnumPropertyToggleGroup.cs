@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 namespace UniVue.ViewModel.Models
@@ -78,5 +79,15 @@ namespace UniVue.ViewModel.Models
             base.Unbind();
         }
 
+        public override IEnumerable<T> GetUI<T>()
+        {
+            if (_ui[0].Item1 is T)
+            {
+                for (int i = 0; i < _ui.Length; i++)
+                {
+                    yield return _ui[i].Item1 as T;
+                }
+            }
+        }
     }
 }

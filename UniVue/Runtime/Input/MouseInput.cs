@@ -20,24 +20,6 @@ namespace UniVue.Input
                                               onPointerUp;
 
 
-        public static MouseInput ReceiveInput(GameObject receiver)
-        {
-            if (receiver != null)
-            {
-                MouseInput mouseInput = receiver.GetComponent<MouseInput>();
-                if (mouseInput != null) { return mouseInput; }
-
-                RectTransform rectTransform = receiver.GetComponent<RectTransform>();
-                if (rectTransform == null) { return null; }
-
-                mouseInput = receiver.AddComponent<MouseInput>();
-
-                return mouseInput;
-            }
-            return null;
-        }
-
-
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (onPointerEnter != null) { onPointerEnter(eventData); }

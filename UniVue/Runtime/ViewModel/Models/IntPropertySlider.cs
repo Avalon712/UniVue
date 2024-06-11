@@ -1,4 +1,5 @@
-﻿using UnityEngine.UI;
+﻿using System.Collections.Generic;
+using UnityEngine.UI;
 
 namespace UniVue.ViewModel.Models
 {
@@ -26,6 +27,11 @@ namespace UniVue.ViewModel.Models
         {
             if (!IsPublisher())
                 _ui.value = propertyValue;
+        }
+
+        public override IEnumerable<T> GetUI<T>()
+        {
+            yield return _ui as T;
         }
     }
 }

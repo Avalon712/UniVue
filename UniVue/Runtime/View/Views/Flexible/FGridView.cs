@@ -38,35 +38,54 @@ namespace UniVue.View.Views
         }
 
         /// <summary>
+        /// 绑定集合
+        /// </summary>
+        /// <remarks>使用这个函数可以防止数据的冗余。同时能够在数据发生变化时自动更新响应变化</remarks>
+        public void BindList(IObservableList observer)
+        {
+            _gridComp.BindList(observer);
+        }
+
+        /// <summary>
+        /// 绑定集合
+        /// </summary>
+        /// <remarks>
+        /// 使用这个函数可以防止数据的冗余。同时能够在数据发生变化时自动更新响应变化</remarks>
+        public void RebindList(IObservableList observer)
+        {
+            _gridComp.RebindList(observer);
+        }
+
+        /// <summary>
         /// 重新绑定数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="newData">绑定的新数据，注意必须与旧数据的类型一致！</param>
-        public void RebindData<T>(List<T> newData) where T : IBindableModel
+        public void RebindList<T>(List<T> newData) where T : IBindableModel
         {
-            _gridComp.RebindData(newData);
+            _gridComp.RebindList(newData);
         }
 
         /// <summary>
-        /// 绑定item数据
-        /// <para>若为引用绑定，则无需使用AddData/RemoveData函数进行对数据的增删</para>
+        /// 为Item绑定显示数据
         /// </summary>
-        /// <param name="data">绑定数据</param>
-        public void BindData<T>(List<T> data) where T : IBindableModel
+        /// <param name="data">绑定的数据</param>
+        public void BindList<T>(List<T> data) where T : IBindableModel
         {
-            _gridComp.BindData(data);
+            _gridComp.BindList(data);
         }
 
         /// <summary>
-        /// 排序，本质上是对数据进行排序
+        /// 对列表进行排序，排序规则
         /// </summary>
-        public void Sort(Comparison<IBindableModel> comparer)
+        /// <param name="comparer">排序规则</param>
+        public void Sort<T>(Comparison<T> comparer) where T : IBindableModel
         {
             _gridComp.Sort(comparer);
         }
 
         /// <summary>
-        /// 添加数据(需要先绑定数据)
+        /// 添加数据
         /// </summary>
         /// <param name="newData">新加入的数据</param>
         public void AddData<T>(T newData) where T : IBindableModel
@@ -77,18 +96,9 @@ namespace UniVue.View.Views
         /// <summary>
         /// 移除数据
         /// </summary>
-        /// <param name="remove">要移除的数据[如果知道索引则不用传递改参数]</param>
-        public void RemoveData<T>(T remove) where T : IBindableModel
+        public void RemoveData<T>(T remove, int index = -1) where T : IBindableModel
         {
-            _gridComp.RemoveData(remove);
-        }
-
-        /// <summary>
-        /// 视图刷新
-        /// </summary>
-        public void Refresh()
-        {
-            _gridComp.Refresh();
+            _gridComp.RemoveData(remove, index);
         }
 
         /// <summary>
@@ -97,6 +107,16 @@ namespace UniVue.View.Views
         public void Clear()
         {
             _gridComp.Clear();
+        }
+
+
+        /// <summary>
+        /// 刷新视图
+        /// </summary>
+        /// <param name="force">是否强制刷新</param>
+        public void Refresh(bool force = false)
+        {
+            _gridComp.Refresh(force);
         }
     }
 }
