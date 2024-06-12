@@ -26,12 +26,12 @@ namespace UniVue.ViewModel.Models
         private void UpdateModel(string value)
         {
             Vue.Updater.Publisher = this;
-            if (int.TryParse(value, out int f)) 
+            if (int.TryParse(value, out int f))
             {
                 _notifier?.NotifyModelUpdate(_propertyName, f);
             }
         }
-         
+
         public override void Unbind()
         {
             if (_allowUIUpdateModel) { _ui.onEndEdit.RemoveListener(UpdateModel); }
@@ -40,7 +40,7 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
-            if(!IsPublisher())
+            if (!IsPublisher())
                 _ui.text = propertyValue.ToString();
         }
 

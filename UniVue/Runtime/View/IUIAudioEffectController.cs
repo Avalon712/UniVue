@@ -7,7 +7,7 @@ namespace UniVue.View
         /// 播放指定视图的声音效果
         /// </summary>
         /// <param name="viewName">视图名称</param>
-        void PlayAudioEffect(string viewName); 
+        void PlayAudioEffect(string viewName);
 
         /// <summary>
         /// 视图打开后调用

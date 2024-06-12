@@ -25,11 +25,11 @@ namespace UniVue.Evt
         /// </summary>
         private object[] _parameters;
 
-        public EventCall(EventCallAttribute callInfo, MethodInfo call,IEventRegister register)
+        public EventCall(EventCallAttribute callInfo, MethodInfo call, IEventRegister register)
         {
-            CallInfo = callInfo; _call = call;_triggerEvt = null; Register = register;
+            CallInfo = callInfo; _call = call; _triggerEvt = null; Register = register;
             ParameterInfo[] parameters = _call.GetParameters();
-            if(parameters != null && parameters.Length > 0)
+            if (parameters != null && parameters.Length > 0)
             {
                 _parameters = new object[parameters.Length];
             }
@@ -79,7 +79,7 @@ namespace UniVue.Evt
             ParameterInfo[] parameters = _call.GetParameters();
             EventArg[] args = _triggerEvt.EventArgs;
 
-            if (parameters != null && parameters.Length > 0 && args!=null)
+            if (parameters != null && parameters.Length > 0 && args != null)
             {
                 for (int i = 0; i < parameters.Length; i++)
                 {
@@ -88,11 +88,11 @@ namespace UniVue.Evt
 
                     SupportableArgType argType = EventUtil.GetSupportableArgType(parameter.ParameterType);
 
-                    if(argType == SupportableArgType.None) { continue; }
+                    if (argType == SupportableArgType.None) { continue; }
 
-                    if((int)argType < 7)
+                    if ((int)argType < 7)
                     {
-                        SetArgMatchValue(argName, parameter.ParameterType,ref i ,ref argType, ref args);
+                        SetArgMatchValue(argName, parameter.ParameterType, ref i, ref argType, ref args);
                     }
                     else
                     {
@@ -128,7 +128,7 @@ namespace UniVue.Evt
             }
         }
 
-        private void SetArgMatchValue(string argName,Type parameterType,ref int i,ref SupportableArgType argType,ref EventArg[] args)
+        private void SetArgMatchValue(string argName, Type parameterType, ref int i, ref SupportableArgType argType, ref EventArg[] args)
         {
             //除开以上类型，以下这些类型将进行参数名与类型都匹配成功才能设置
             for (int j = 0; j < args.Length; j++)
@@ -140,9 +140,9 @@ namespace UniVue.Evt
                     Type valueType = value.GetType();
 
                     //如果是枚举类型
-                    if (argType == SupportableArgType.Enum && (valueType==typeof(string) || valueType==typeof(int)))
+                    if (argType == SupportableArgType.Enum && (valueType == typeof(string) || valueType == typeof(int)))
                     {
-                        if(Enum.TryParse(parameterType, value.ToString(), out _parameters[i]))
+                        if (Enum.TryParse(parameterType, value.ToString(), out _parameters[i]))
                         {
                             return;
                         }
@@ -165,8 +165,8 @@ namespace UniVue.Evt
             }
         }
 
-       
+
     }
 
-   
+
 }

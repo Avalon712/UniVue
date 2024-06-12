@@ -159,113 +159,41 @@ CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=
 
 定义了视图的所有行为。
 
-### 3. Flexible系列视图
-
-#### 1).FlexibleView : IView
+### 3.BaseView : IView
 
 这个视图可以通过new的方式动态地创建视图。它和ScriptableView的唯一区别就是FlexibleView不继承自ScriptableObject。如果你想拓展自己的视图可以继承这个类或者实现IView接口，实现更多你自己想要实现的效果。
 
-#### 2).FTipView : FlexibleView
+### 4.TipView : BaseView
 
 作用同STipView，但是可以通过new的方式.
 
-#### 3).FEnsureTipView : FlexibleView
+### 5.EnsureTipView : BaseView
 
 作用同SEnsureTipView，但是可以通过new的方式创建.
 
-#### 4).FListView : FlexibleView
+### 6.ListView : BaseView
 
 作用同SListView，但是可以通过new的方式创建.
 
-#### 5).FGridView : FlexibleView
+### 7.GridView : BaseView
 
 作用同SGridView，但是可以通过new的方式创建
 
-#### 6).FClampListView : FlexibleView
+### 8.ClampListView : BaseView
 
 作用同SClampListView，但是可以通过new的方式创建
 
-### 4.ScriptableView系列
-
-#### 1).ScriptableView : ScriptableObject, IView
-
-这是一个基类，但它不是抽象，他是一个UI界面的通用性。
-
-这个类继承了ScipatbleObject，使得UI视图逻辑可以像资源那样被方便进行资源热更新。
-
-#### 2).SGridView : ScriptableView
-
-如果你想实现一个背包或网格视图。创建此类型视图是好的选择。没有复杂的API、没有复杂的代码就能实现一个高性能的滚动视图，即使是展现大量数据。同时利用绑定模型功能，可以轻松实现数据显示以及更新。注意：Item的的锚点应该设置为左上角，同时Content的锚点根据滚动方向而进行设置，否则会出现物体布局不正确的等问题。
-
-#### 3).SListView : ScriptableView
-
-同GridView。与GridView不同的是提供了无限滚动的功能，GridView提供这个功能感觉没有什么应用场景就没有提供，之前有的，后来删掉了这个功能。注意：Item的的锚点应该设置为左上角，同时Content的锚点根据滚动方向而进行设置，否则会出现物体布局不正确的等问题。
-
-#### 4).STipView : ScriptableView
-
-用于显示打开提示消息的视图，只显示一段提示消息。打开此视图建议通过TipView提高的Open()方法来指定要显示的提示消息的内容，如下所示：
-
-```C#
-        /// <summary>
-        /// 打开当前的消息提示视图
-        /// </summary>
-        /// <param name="message">提示消息</param>
-        /// <param name="top">是否显示与顶部</param>
-        public void Open(string message,bool top=true)
-        {
-            _runtime.text.text = message;
-            Vue.Router.Open(name, top);
-        }
-```
-
-#### 5).SEnsuerTipView : ScriptableView
-
-可以进行交互，玩家选择"确认"、"取消"选项。打开此视图建议通过EnsureTipView提供的Open()方法进行打开，可以绑定点击确认按钮时的回调，点击取消按钮时的回调。注意，这些回调函数是一次性的，当视图关闭后会自动注销这些事件。
-
-```C#
-/// <summary>
-/// 打开此视图
-/// </summary>
-/// <remarks>注：事件绑定是暂时的，当视图关闭后会自动注销回调事件</remarks>
-/// <param name="title">消息的标题,可以为null</param>
-/// <param name="message">要显示的消息</param>
-/// <param name="sure">点击"确定"按钮时回调函数</param>
-/// <param name="cancel">点击"取消"按钮时回调函数</param>
-public void Open(string title,string message,UnityAction sure,UnityAction cancel)
-{
-    if (_runtime.title != null) { _runtime.title.text = title; }
-    _runtime.message.text = message;
-    if(sure != null) { _runtime.sureBtn.onClick.AddListener(sure); }
-    if(cancel != null) { _runtime.cancelBtn.onClick.AddListener(cancel); }
-    Vue.Router.Open(name);
-}
-```
-
-#### 6).SClampListView : ScriptableView
-
-此视图作用与SListView类似，但是不依赖ScrollRect组件，相反，此视图往往是为了那些具有List列表功能但是不具有滚动属性的视图。此视图的Item布局依赖Unity的布局组件，而不是像SListView那样自己维护Item的位置。
-
-### 5.MonoView
+### 9.MonoView : MonoBehaviour, IView
 
 MonoView继承自MonoBehaviour，以及实现了IView接口。这个视图的功能较少，但是这个视图目的是为了一些更加灵活的功能实现。你可以继承自此类，然后通过视图组件的组装实现上面出现的任意的视图。
 
-### 6.ViewRouter
+### 10.ViewRouter
 
 这个类管理这所有的视图以及控制视图的打开、关闭行为。
 
-### 7.IUIAudioEffectController
+### 11.IUIAudioEffectController
 
 该接口定义了打开视图时播放的音效以及当视图被打开后执行回调函数、视图关闭后执行的回调函数。该接口可以方便地与你的音效系统进行绑定使用。
-
-### 8.ScriptableView系列的使用讲解
-
-在一个场景下你需要先创建一个**SceneConfig**配置文件（通过**ViewEditor**[ViewEditorWindow](#九.编辑器扩展功能)创建此文件），此文件包含了当前场景下所有的视图；此外还需要创建一个或多个**CanvasConfig**配置文件（通过**ViewEditor**[ViewEditorWindow](#九.编辑器扩展功能)创建此文件），此文件记录了哪些视图应该位于那个Canvas下（注意这个Canvas是指场景中存在的，而不是视图身上自带的Canvas）。之后将这些CanvasConfig配置文件引用给SceneConfig配置文件。最后当你需要加载当前场景下的视图时，只需加载当前场景的SceneConfig配置文件，然后使用下面的代码完成视图加载：
-
-```C#
-Vue.Instance.LoadViews(sceneConfig);
-```
-
-关于嵌套的视图（即一个视图下包含另外一个或多个视图）的配置，见[补充讲解](#八.补充讲解)。
 
 
 

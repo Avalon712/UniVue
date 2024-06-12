@@ -21,7 +21,7 @@ namespace UniVue.Model
         /// <param name="allowUIUpdateModel">是否允许通过UI改变模型数据</param>
         /// <param name="modelName">当前模型的名称</param>
         /// <param name="forceRebind">是否强制重新绑定</param>
-        public void Bind(string viewName, bool allowUIUpdateModel, string modelName=null, bool forceRebind=false)
+        public void Bind(string viewName, bool allowUIUpdateModel, string modelName = null, bool forceRebind = false)
         {
             Vue.Router.GetView(viewName).BindModel(this, allowUIUpdateModel, modelName, forceRebind);
         }

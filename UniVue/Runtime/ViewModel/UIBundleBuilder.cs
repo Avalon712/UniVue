@@ -20,9 +20,9 @@ namespace UniVue.ViewModel
         /// </summary>
         /// <param name="modelName">模型名称，如果为null将默认为TypeName</param>
         /// <returns>UIModel</returns>
-        public static UIBundle Build<T>(string viewName, List<ValueTuple<Component, UIType>> uis, T model,string modelName, bool allowUIUpdateModel) where T :IBindableModel
+        public static UIBundle Build<T>(string viewName, List<ValueTuple<Component, UIType>> uis, T model, string modelName, bool allowUIUpdateModel) where T : IBindableModel
         {
-            return CreateUIBundle(viewName,model, GetAllUIComponents(uis), modelName,allowUIUpdateModel);
+            return CreateUIBundle(viewName, model, GetAllUIComponents(uis), modelName, allowUIUpdateModel);
         }
 
         private static Dictionary<UIType, List<Component>> GetAllUIComponents(List<ValueTuple<Component, UIType>> uis)
@@ -35,12 +35,12 @@ namespace UniVue.ViewModel
                 if (uiComponents.ContainsKey(result.Item2))
                     uiComponents[result.Item2].Add(result.Item1);
                 else
-                    uiComponents.Add(result.Item2, new List<Component>() { result.Item1 }) ;
+                    uiComponents.Add(result.Item2, new List<Component>() { result.Item1 });
             }
             return uiComponents;
         }
-   
-        private static UIBundle CreateUIBundle<T>(string viewName,T model,Dictionary<UIType, List<Component>> comps,string modelName,bool allowUIUpdateModel) where T : IBindableModel
+
+        private static UIBundle CreateUIBundle<T>(string viewName, T model, Dictionary<UIType, List<Component>> comps, string modelName, bool allowUIUpdateModel) where T : IBindableModel
         {
             Type type = model.GetType();
             if (modelName == null) { modelName = type.Name; }
@@ -49,9 +49,9 @@ namespace UniVue.ViewModel
 
             //AtomModel<>类型
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(AtomModel<>))
-                propertyUIs = AtomModelBuild(model, type, comps, allowUIUpdateModel);
+                propertyUIs = AtomModelBuild(ref modelName, model, type, comps, allowUIUpdateModel);
             else if (type == typeof(GroupModel))
-                propertyUIs = GroupModelBuild(model, type, comps, allowUIUpdateModel);
+                propertyUIs = GroupModelBuild(ref modelName, model, type, comps, allowUIUpdateModel);
             //用户自定义类型
             else
                 propertyUIs = CommonModelBuild(type, modelName, comps, allowUIUpdateModel);
@@ -62,11 +62,11 @@ namespace UniVue.ViewModel
                 return new UIBundle(modelName, viewName, model, propertyUIs);
         }
 
-        private static List<PropertyUI> AtomModelBuild<T>(T model,Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel) where T : IBindableModel
+        private static List<PropertyUI> AtomModelBuild<T>(ref string modelName, T model, Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel) where T : IBindableModel
         {
             List<PropertyUI> propertyUIs = new();
             BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-            string modelName = type.GetField("_modelName", flags).GetValue(model) as string;
+            modelName = type.GetField("_modelName", flags).GetValue(model) as string;
             string propertyName = type.GetProperty("PropertyName", flags).GetValue(model) as string;
             Type propertyType = type.GetProperty("Value", flags).PropertyType;
             BindableType bindableType = ReflectionUtil.GetBindableType(propertyType);
@@ -74,11 +74,11 @@ namespace UniVue.ViewModel
             return propertyUIs;
         }
 
-        private static List<PropertyUI> GroupModelBuild<T>(T model, Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
+        private static List<PropertyUI> GroupModelBuild<T>(ref string modelName, T model, Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
         {
             List<PropertyUI> propertyUIs = new();
             BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-            string modelName = type.GetField("_modelName", flags).GetValue(model) as string;
+            modelName = type.GetField("_modelName", flags).GetValue(model) as string;
             List<INotifiableProperty> properties = type.GetField("_properties", flags).GetValue(model) as List<INotifiableProperty>;
             //通过反射获取所有的属性类型以及属性名
             for (int i = 0; i < properties.Count; i++)
@@ -92,7 +92,7 @@ namespace UniVue.ViewModel
             return propertyUIs;
         }
 
-        private static List<PropertyUI> CommonModelBuild(Type type,string modelName, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
+        private static List<PropertyUI> CommonModelBuild(Type type, string modelName, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
         {
             List<PropertyUI> propertyUIs = new();
             PropertyInfo[] properties = type.GetProperties();
@@ -108,7 +108,7 @@ namespace UniVue.ViewModel
             return propertyUIs;
         }
 
-        private static void BuildPropertyUIs(List<PropertyUI> propertyUIs, string modelName,PropertyInfo propertyInfo,Dictionary<UIType, List<Component>> comps,bool allowUIUpdateModel)
+        private static void BuildPropertyUIs(List<PropertyUI> propertyUIs, string modelName, PropertyInfo propertyInfo, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
         {
             var bindableType = ReflectionUtil.GetBindableType(propertyInfo.PropertyType);
 
@@ -161,7 +161,7 @@ namespace UniVue.ViewModel
         }
 
 
-        private static void TMP_Dropdowns(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs,bool allow)
+        private static void TMP_Dropdowns(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs, bool allow)
         {
             for (int j = 0; j < components.Count; j++)
             {
@@ -173,7 +173,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        private static void TMP_Texts(string modelName, string propertyName, Type type, List<Component> components,ref BindableType bindableType, List<PropertyUI> propertyUIs)
+        private static void TMP_Texts(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs)
         {
             for (int j = 0; j < components.Count; j++)
             {
@@ -185,7 +185,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        private static void TMP_InputFields(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType,List<PropertyUI> propertyUIs, bool allow)
+        private static void TMP_InputFields(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs, bool allow)
         {
             for (int j = 0; j < components.Count; j++)
             {
@@ -253,7 +253,7 @@ namespace UniVue.ViewModel
                 intToToggles.Clear();
             }
         }
-   
+
         private static void Sliders(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs, bool allow)
         {
             for (int j = 0; j < components.Count; j++)
@@ -278,12 +278,12 @@ namespace UniVue.ViewModel
                         Toggle toggle = (Toggle)components[j];
 
                         if (singleChoice == null)
-                            singleChoice = new List<Toggle>(); 
+                            singleChoice = new List<Toggle>();
 
                         if (singleChoice.Count > 0 && singleChoice[0].group == toggle.group)
                             singleChoice.Add(toggle);
-                        else if (singleChoice.Count == 0) 
-                            singleChoice.Add(toggle); 
+                        else if (singleChoice.Count == 0)
+                            singleChoice.Add(toggle);
                     }
                 }
 

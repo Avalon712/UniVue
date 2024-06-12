@@ -17,7 +17,7 @@ namespace UniVue.Evt
         /// <param name="type">对象类型</param>
         /// <param name="args">参数</param>
         /// <returns>映射对象</returns>
-        public static object Map(Type type,EventArg[] args)
+        public static object Map(Type type, EventArg[] args)
         {
             object instance = Activator.CreateInstance(type);
             SetValues(instance, args);

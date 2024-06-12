@@ -6,7 +6,7 @@ namespace UniVue.ViewModel.Models
 {
     public sealed class EnumPropertyText : EnumPropertyUI<TMP_Text>
     {
-        public EnumPropertyText(TMP_Text ui, Array array, string propertyName) : base(ui, array,propertyName, false)
+        public EnumPropertyText(TMP_Text ui, Array array, string propertyName) : base(ui, array, propertyName, false)
         {
         }
 

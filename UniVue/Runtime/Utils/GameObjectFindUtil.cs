@@ -10,7 +10,7 @@ namespace UniVue.Utils
         /// <summary>
         /// 从自身开始查找一个指定名称的GameObject(深度优先)
         /// </summary>
-        public static GameObject DepthFind(string name,GameObject self)
+        public static GameObject DepthFind(string name, GameObject self)
         {
             if (string.IsNullOrEmpty(name)) { return null; }
 
@@ -26,7 +26,7 @@ namespace UniVue.Utils
                 }
                 else
                 {
-                    GameObject obj = DepthFind(name,curr);
+                    GameObject obj = DepthFind(name, curr);
                     if (obj != null) { return obj; }
                 }
             }
@@ -37,7 +37,7 @@ namespace UniVue.Utils
         /// <summary>
         /// 从自身开始查找一个指定名称的GameObject(广度优先)
         /// </summary>
-        public static GameObject BreadthFind(string name,GameObject self)
+        public static GameObject BreadthFind(string name, GameObject self)
         {
             if (string.IsNullOrEmpty(name)) { return null; }
 
@@ -46,7 +46,7 @@ namespace UniVue.Utils
             Queue<Transform> parents = new Queue<Transform>();
             parents.Enqueue(self.transform);
 
-            while(parents.Count > 0)
+            while (parents.Count > 0)
             {
                 Transform transform = parents.Dequeue();
 
@@ -58,7 +58,7 @@ namespace UniVue.Utils
                         parents.Clear();
                         return child.gameObject;
                     }
-                    else if(child.childCount != 0) //非叶子节点再入队
+                    else if (child.childCount != 0) //非叶子节点再入队
                     {
                         parents.Enqueue(child);
                     }
@@ -72,9 +72,9 @@ namespace UniVue.Utils
         /// 从自身开始查找多个指定名称的GameObject(广度优先)，不会进行全部遍历，一旦找到某个名字的GameObject，那么该GameObject下的所有GameObject都不会被进行查找
         /// </summary>
         /// <remarks>请不要查询名字重复的</remarks>
-        public static IEnumerable<GameObject> BreadthFind(GameObject self,params string[] names)
+        public static IEnumerable<GameObject> BreadthFind(GameObject self, params string[] names)
         {
-            if(names == null || self==null) { yield return null; }
+            if (names == null || self == null) { yield return null; }
             else
             {
                 Queue<Transform> queue = new Queue<Transform>();
@@ -87,11 +87,11 @@ namespace UniVue.Utils
 #if UNITY_EDITOR
                     else
                     {
-                        LogUtil.Warning($"你当前要进行查找的所有GameObject中存在同名现象,[{string.Join(", ",names)}],这将导致无法正确找到所有的GameObject!");
+                        LogUtil.Warning($"你当前要进行查找的所有GameObject中存在同名现象,[{string.Join(", ", names)}],这将导致无法正确找到所有的GameObject!");
                     }
 #endif
                 }
-                
+
                 while (queue.Count > 0)
                 {
                     Transform transform = queue.Dequeue();

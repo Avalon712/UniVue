@@ -5,7 +5,7 @@ namespace UniVue.ViewModel.Models
 {
     public sealed class FloatPropertyInput : FloatPropertyUI<TMP_InputField>
     {
-        public FloatPropertyInput(TMP_InputField ui, string propertyName, bool allowUIUpdateModel) : base(ui,propertyName, allowUIUpdateModel)
+        public FloatPropertyInput(TMP_InputField ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
         {
 #if UNITY_EDITOR
             if (ui.contentType != TMP_InputField.ContentType.DecimalNumber)
@@ -23,7 +23,7 @@ namespace UniVue.ViewModel.Models
 
         private void UpdateModel(string value)
         {
-            if(float.TryParse(value,out float f)) 
+            if (float.TryParse(value, out float f))
             {
                 Vue.Updater.Publisher = this;
                 _notifier?.NotifyModelUpdate(_propertyName, f);

@@ -1,7 +1,4 @@
-﻿
-using System;
-
-namespace UniVue.Model
+﻿namespace UniVue.Model
 {
     /// <summary>
     /// UniVue可支持的最小模型单元（这个类不会进行反射操作，没有装箱消耗）
@@ -39,7 +36,7 @@ namespace UniVue.Model
         /// <param name="wrapper">属性包装器</param>
         internal AtomModel(string modelName)
         {
-            _modelName = modelName == null ? "AtomModel" : modelName;
+            _modelName = string.IsNullOrEmpty(modelName) ? "AtomModel" : modelName;
         }
 
         internal void SetAtomProperty(IAtomProperty<T> property)
@@ -60,8 +57,8 @@ namespace UniVue.Model
         void IModelUpdater.UpdateModel(string propertyName, bool propertyValue)
         {
             var p = _property as BoolProperty;
-            if(p != null)
-                 p.Value = propertyValue;
+            if (p != null)
+                p.Value = propertyValue;
         }
 
         void IModelUpdater.UpdateModel(string propertyName, string propertyValue)

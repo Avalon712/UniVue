@@ -12,7 +12,7 @@ namespace UniVue.Tween.Tweens
         {
         }
 
-        public void Scroll(ScrollRect scrollRect,Vector2 end)
+        public void Scroll(ScrollRect scrollRect, Vector2 end)
         {
             _scrollRect = scrollRect;
             _start = scrollRect.normalizedPosition;
@@ -29,11 +29,11 @@ namespace UniVue.Tween.Tweens
 
             Vector2 pos = _scrollRect.normalizedPosition;
             pos.x = TweenComputer.Linear(_time, _duration, _start.x, _end.x - _start.x);
-            pos.y = TweenComputer.Linear( _time, _duration, _start.y, _end.y - _start.y);
+            pos.y = TweenComputer.Linear(_time, _duration, _start.y, _end.y - _start.y);
             _scrollRect.normalizedPosition = pos;
             _scrollRect.onValueChanged?.Invoke(pos);
 
-            if(_OnComplete != null && executed) { _OnComplete(); }
+            if (_OnComplete != null && executed) { _OnComplete(); }
 
             //将下一个序列动画进行播放
             if (next != null && executed) { next.Play(); }

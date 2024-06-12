@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using UniVue.View.Views;
+﻿using UnityEngine;
 
 namespace UniVue.View.Config
 {
@@ -15,6 +13,6 @@ namespace UniVue.View.Config
 
 
         [Header("Canvas渲染的视图")]
-        public ScriptableView[] views;
+        public ViewConfig[] views;
     }
 }

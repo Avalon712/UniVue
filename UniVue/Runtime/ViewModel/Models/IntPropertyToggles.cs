@@ -5,7 +5,7 @@ namespace UniVue.ViewModel.Models
 {
     public sealed class IntPropertyToggles : IntPropertyUI<Toggle[]>
     {
-        public IntPropertyToggles(Toggle[] ui, string propertyName, bool allowUIUpdateModel) : base(ui,propertyName, allowUIUpdateModel)
+        public IntPropertyToggles(Toggle[] ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
         {
         }
 

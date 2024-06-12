@@ -2,14 +2,14 @@
 
 namespace UniVue.ViewModel.Models
 {
-    public abstract class IntPropertyUI<UI> : PropertyUI  where UI : class
+    public abstract class IntPropertyUI<UI> : PropertyUI where UI : class
     {
         /// <summary>
         /// 绑定的UI组件
         /// </summary>
         protected UI _ui;
 
-        protected IntPropertyUI(UI ui,string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
+        protected IntPropertyUI(UI ui, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _ui = ui;
         }

@@ -57,7 +57,7 @@ namespace UniVue.Tween.Tweens
             }
 
             //执行回调
-            if(_OnComplete!=null && executed) { _OnComplete(); }
+            if (_OnComplete != null && executed) { _OnComplete(); }
 
             //将下一个序列动画进行播放
             if (next != null && executed) { next.Play(); }

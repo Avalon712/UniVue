@@ -85,11 +85,11 @@ namespace UniVue.Tween
             }
         }
 
-        public static float Vibrate(float time, float duration, float start,float force)
+        public static float Vibrate(float time, float duration, float start, float force)
         {
             float x = time / duration;
             if (x == 1) return start;
-            return start*Mathf.Exp(-5*x)*Mathf.Sin(force*x)+start;
+            return start * Mathf.Exp(-5 * x) * Mathf.Sin(force * x) + start;
         }
 
         public static float Linear(float time, float duration, float start, float distance)

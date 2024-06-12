@@ -37,7 +37,7 @@ namespace UniVue.Tween.Tweens
 
         protected TweenTask() { TweenTaskExecutor.GetExecutor().AddTween(this); }
 
-        public TweenTask(float duration,TweenEase ease) : this()
+        public TweenTask(float duration, TweenEase ease) : this()
         {
             _duration = duration; _ease = ease;
         }

@@ -4,7 +4,7 @@ namespace UniVue.ViewModel.Models
 {
     public sealed class FloatPropertySlider : FloatPropertyUI<Slider>
     {
-        public FloatPropertySlider(Slider ui,string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
+        public FloatPropertySlider(Slider ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel) { ui.onValueChanged.AddListener(UpdateModel); }
         }
@@ -23,7 +23,7 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(float propertyValue)
         {
-            if(!IsPublisher())
+            if (!IsPublisher())
                 _ui.value = propertyValue;
         }
     }

@@ -4,7 +4,7 @@ namespace UniVue.ViewModel.Models
 {
     public sealed class FloatPropertyText : FloatPropertyUI<TMP_Text>
     {
-        public FloatPropertyText(TMP_Text ui,string propertyName): base(ui, propertyName, false)
+        public FloatPropertyText(TMP_Text ui, string propertyName) : base(ui, propertyName, false)
         {
         }
 

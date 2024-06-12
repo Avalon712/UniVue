@@ -12,7 +12,7 @@ namespace UniVue.Model
         private string _modelName;
         private List<INotifiableProperty> _properties;
 
-        public GroupModel(string modelName,int propertyCount)
+        public GroupModel(string modelName, int propertyCount)
         {
             _modelName = modelName == null ? "GroupModel" : modelName;
             _properties = new List<INotifiableProperty>(propertyCount);

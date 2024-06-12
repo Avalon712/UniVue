@@ -28,7 +28,7 @@ namespace UniVue.ViewModel.Models
             yield return _ui as T;
         }
 
-        public override void Unbind() { _notifier = null;_propertyName = null;  _ui = default; }
+        public override void Unbind() { _notifier = null; _propertyName = null; _ui = default; }
 
         public sealed override void UpdateUI(int propertyValue) { }
 

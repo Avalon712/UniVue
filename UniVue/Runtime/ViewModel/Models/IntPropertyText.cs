@@ -5,7 +5,7 @@ namespace UniVue.ViewModel.Models
 {
     public sealed class IntPropertyText : IntPropertyUI<TMP_Text>
     {
-        public IntPropertyText(TMP_Text ui,string propertyName)  : base(ui,propertyName, false)
+        public IntPropertyText(TMP_Text ui, string propertyName) : base(ui, propertyName, false)
         {
         }
 

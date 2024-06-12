@@ -41,9 +41,9 @@ namespace UniVue.Rule
         /// <param name="propertyName">绑定的属性名称</param>
         /// <param name="modelName">模型名称</param>
         /// <returns>是否匹配</returns>
-        public static bool CheckDataBindMatch(string uiName,string modelName,string propertyName)
+        public static bool CheckDataBindMatch(string uiName, string modelName, string propertyName)
         {
-            if(!uiName.Contains(" & "))
+            if (!uiName.Contains(" & "))
             {
                 NamingFormat format = Vue.Config.Format;
                 return Regex.IsMatch(uiName, GetDataBindRegex(ref format, modelName, propertyName));
@@ -62,14 +62,14 @@ namespace UniVue.Rule
         /// <param name="eventName">事件名称</param>
         /// <param name="viewName">如果匹配成功，表示动作对象(即视图名称)的名称</param>
         /// <returns>是否匹配</returns>
-        public static bool CheckRouterEventMatch(string uiName,RouteEvent eventName, out string viewName)
+        public static bool CheckRouterEventMatch(string uiName, RouteEvent eventName, out string viewName)
         {
             viewName = null;
             NamingFormat format = Vue.Config.Format;
             if (!uiName.Contains(" & "))
             {
                 int viewNameGroupIdx;
-                Match match = Regex.Match(uiName, GetRouterEventRegex(ref format,ref eventName, out viewNameGroupIdx));
+                Match match = Regex.Match(uiName, GetRouterEventRegex(ref format, ref eventName, out viewNameGroupIdx));
                 if (eventName != RouteEvent.Return && match.Success)
                 {
                     viewName = match.Groups[viewNameGroupIdx].Value;
@@ -80,7 +80,7 @@ namespace UniVue.Rule
             {
                 //视图事件的索引为倒数第二
                 string[] strs = uiName.Split(" & ");
-                return CheckRouterEventMatch(strs[strs.Length-2], eventName, out viewName);
+                return CheckRouterEventMatch(strs[strs.Length - 2], eventName, out viewName);
             }
         }
 
@@ -93,7 +93,7 @@ namespace UniVue.Rule
         /// <param name="isOnlyEvt">当前是否只是事件触发器</param>
         /// <param name="isOnlyArg">当前是否只是事件参数</param>
         /// <returns>是否匹配成功</returns>
-        public static bool CheckCustomEventAndArgMatch(string uiName, out string eventName, out string argName,out bool isOnlyEvt,out bool isOnlyArg)
+        public static bool CheckCustomEventAndArgMatch(string uiName, out string eventName, out string argName, out bool isOnlyEvt, out bool isOnlyArg)
         {
             eventName = argName = null;
             NamingFormat format = Vue.Config.Format;
@@ -101,13 +101,13 @@ namespace UniVue.Rule
             {
                 isOnlyEvt = false;
                 isOnlyArg = false;
-                int eventNameIdx, argNameIdx=-1;
+                int eventNameIdx, argNameIdx = -1;
                 Match match;
                 if (uiName.Contains('&')) //Evt&Arg
                 {
                     match = Regex.Match(uiName, GetCustomEventAndArgRegex(out eventNameIdx, ref format, out argNameIdx));
                 }
-                else if(uiName.Contains("Arg",StringComparison.OrdinalIgnoreCase)) //Arg
+                else if (uiName.Contains("Arg", StringComparison.OrdinalIgnoreCase)) //Arg
                 {
                     isOnlyArg = true;
                     match = Regex.Match(uiName, GetCustomEventArgRegex(out eventNameIdx, ref format, out argNameIdx));
@@ -116,7 +116,7 @@ namespace UniVue.Rule
                 {
                     isOnlyEvt = true;
 
-                    match = Regex.Match(uiName, GetCustomEventRegex(ref format,out eventNameIdx));
+                    match = Regex.Match(uiName, GetCustomEventRegex(ref format, out eventNameIdx));
                 }
 
                 if (match.Success)
@@ -131,7 +131,7 @@ namespace UniVue.Rule
             {
                 string[] names = uiName.Split(" & ");
                 //自定义事件一定是在最后一个
-                return CheckCustomEventAndArgMatch(names[names.Length - 1], out eventName, out argName,out isOnlyEvt,out isOnlyArg);
+                return CheckCustomEventAndArgMatch(names[names.Length - 1], out eventName, out argName, out isOnlyEvt, out isOnlyArg);
             }
         }
 
@@ -141,7 +141,7 @@ namespace UniVue.Rule
         /// </summary>
         /// <param name="uiName"></param>
         /// <returns></returns>
-        public static bool FullFuzzyMatch(NamingFormat format,string uiName)
+        public static bool FullFuzzyMatch(NamingFormat format, string uiName)
         {
             if (UITypeUtil.GetUIType(uiName) == UIType.None) return false;
 
@@ -164,7 +164,7 @@ namespace UniVue.Rule
             return false;
         }
 
-        private static string GetCustomEventAndArgRegex(out int eventNameIdx,ref NamingFormat format ,out int argNameIdx)
+        private static string GetCustomEventAndArgRegex(out int eventNameIdx, ref NamingFormat format, out int argNameIdx)
         {
             eventNameIdx = argNameIdx = -1;
             switch (format)
@@ -341,7 +341,7 @@ namespace UniVue.Rule
                 case NamingFormat.UnderlineLower | NamingFormat.UI_Prefix:
                     return @$"^(slider|txt|text|input|dropdown|toggle|btn|img|button|image)_({modelName}_){{0,1}}{propertyName}$";
 
-                case  NamingFormat.SpaceLower | NamingFormat.UI_Suffix:
+                case NamingFormat.SpaceLower | NamingFormat.UI_Suffix:
                     return @$"^({modelName} ){{0,1}}{propertyName} (slider|txt|text|input|dropdown|toggle|btn|img|button|image)$";
                 case NamingFormat.SpaceLower | NamingFormat.UI_Prefix:
                     return @$"^(slider|txt|text|input|dropdown|toggle|btn|img|button|image) ({modelName} ){{0,1}}{propertyName}$";

@@ -10,11 +10,11 @@ namespace UniVue.Tween.Tweens
 
         private event Action _tasks; //定时任务
 
-        private TweenTimer() :base(){ }
+        private TweenTimer() : base() { }
 
         public static TweenTimer CreateTimer(Action task)
         {
-            if(task == null) { return null; }
+            if (task == null) { return null; }
             TweenTimer timer = new TweenTimer();
             timer._tasks = task;
             return timer;
@@ -38,7 +38,7 @@ namespace UniVue.Tween.Tweens
         /// <returns></returns>
         public TweenTimer ExecuteNum(int num)
         {
-            _executeNum = num>1 ? num : 1 ;
+            _executeNum = num > 1 ? num : 1;
             return this;
         }
 
@@ -78,7 +78,7 @@ namespace UniVue.Tween.Tweens
             //计算延迟 或 间隔
             if (_delay > 0) { _delay -= deltaTime; return false; }
 
-            if (!_perFrameExecute){ _delay = _interval; }
+            if (!_perFrameExecute) { _delay = _interval; }
 
             _tasks();
             if (--_executeNum == 0)

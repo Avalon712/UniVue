@@ -8,7 +8,7 @@ namespace UniVue.Utils
 
         public static GameObject RectTransformClone(GameObject prefab, Transform parent)
         {
-            GameObject clone = GameObject.Instantiate(prefab,parent);
+            GameObject clone = GameObject.Instantiate(prefab, parent);
 
             RectTransform cloneRect = clone.GetComponent<RectTransform>();
             RectTransform prefabRect = prefab.GetComponent<RectTransform>();

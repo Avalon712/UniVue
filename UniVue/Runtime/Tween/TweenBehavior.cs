@@ -11,7 +11,7 @@ namespace UniVue.Tween
     /// </summary>
     public sealed class TweenBehavior
     {
-        private TweenBehavior(){  }
+        private TweenBehavior() { }
 
         /// <summary>
         /// 实现定时调用功能
@@ -26,14 +26,14 @@ namespace UniVue.Tween
 
         public static TweenTask DoMove(Transform transform, float duration, Vector3 end, TweenEase ease = TweenEase.Linear)
         {
-            TweenMove tween = new TweenMove(duration,ease);
+            TweenMove tween = new TweenMove(duration, ease);
             tween.Move(transform, end);
             return tween;
         }
 
-        public static TweenTask DoMoveX(Transform transform,float duration, float end, TweenEase ease = TweenEase.Linear)
+        public static TweenTask DoMoveX(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
-            return DoMove(transform,duration, new Vector3(end, transform.position.y, transform.position.z),ease);
+            return DoMove(transform, duration, new Vector3(end, transform.position.y, transform.position.z), ease);
         }
 
         public static TweenTask DoMoveY(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
@@ -41,21 +41,21 @@ namespace UniVue.Tween
             return DoMove(transform, duration, new Vector3(transform.position.x, end, transform.position.z), ease);
         }
 
-        public static TweenTask DoMoveZ(Transform transform,float duration, float end, TweenEase ease = TweenEase.Linear)
+        public static TweenTask DoMoveZ(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
             return DoMove(transform, duration, new Vector3(transform.position.x, transform.position.y, end), ease);
         }
 
-        public static TweenTask DoLocalMove(Transform transform,float duration, Vector3 end, TweenEase ease = TweenEase.Linear)
+        public static TweenTask DoLocalMove(Transform transform, float duration, Vector3 end, TweenEase ease = TweenEase.Linear)
         {
             TweenMove tween = new TweenMove(duration, ease);
             tween.LocalMove(transform, end);
             return tween;
         }
 
-        public static TweenTask DoLocalMoveX(Transform transform,float duration, float end, TweenEase ease = TweenEase.Linear)
+        public static TweenTask DoLocalMoveX(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
-            return DoLocalMove(transform,duration, new Vector3(end, transform.position.y, transform.position.z), ease);
+            return DoLocalMove(transform, duration, new Vector3(end, transform.position.y, transform.position.z), ease);
         }
 
         public static TweenTask DoLocalMoveY(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
@@ -77,7 +77,7 @@ namespace UniVue.Tween
 
         public static TweenTask DoLocalScaleX(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
-            return DoLocalScale(transform,duration, new Vector3(end, transform.localScale.y, transform.localScale.z),ease);
+            return DoLocalScale(transform, duration, new Vector3(end, transform.localScale.y, transform.localScale.z), ease);
         }
 
         public static TweenTask DoLocalScaleY(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
@@ -99,8 +99,8 @@ namespace UniVue.Tween
 
         public static TweenTask DoRotationX(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
-            Quaternion r = transform.rotation;  r.x = end;
-            return DoRotation(transform,duration,r,ease);
+            Quaternion r = transform.rotation; r.x = end;
+            return DoRotation(transform, duration, r, ease);
         }
         public static TweenTask DoRotationY(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
@@ -121,8 +121,8 @@ namespace UniVue.Tween
         }
         public static TweenTask DoLocalRotationX(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
-            Quaternion r = transform.localRotation;  r.x = end;
-            return DoLocalRotation(transform,duration,r,ease);
+            Quaternion r = transform.localRotation; r.x = end;
+            return DoLocalRotation(transform, duration, r, ease);
         }
         public static TweenTask DoLocalRotationY(Transform transform, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
@@ -142,13 +142,13 @@ namespace UniVue.Tween
         /// <param name="force">施加的力的大小[10,100]</param>
         public static TweenTask DoPunch(Transform transform, float duration, float force = 30)
         {
-            Action<float,int,int> customTween = (time,loopNum,pingPong) =>
+            Action<float, int, int> customTween = (time, loopNum, pingPong) =>
             {
                 float v = TweenComputer.Vibrate(time, duration, 1, force);
                 transform.localScale = new Vector3(v, v, 1);
-                if(loopNum>0 && time == duration) { transform.localScale = Vector3.one; }
+                if (loopNum > 0 && time == duration) { transform.localScale = Vector3.one; }
             };
-            return new TweenCustom(customTween,duration,TweenEase.Linear);
+            return new TweenCustom(customTween, duration, TweenEase.Linear);
         }
 
         /// <summary>
@@ -172,23 +172,23 @@ namespace UniVue.Tween
                 if (loopNum > 0 && time == duration) { transform.localPosition = start; }
             };
 
-            return new TweenCustom(customTween,duration, TweenEase.Linear);
+            return new TweenCustom(customTween, duration, TweenEase.Linear);
         }
 
-        public static TweenTask Typewriter(TMP_Text tmpText,string text, float duration, TweenEase ease = TweenEase.Linear)
+        public static TweenTask Typewriter(TMP_Text tmpText, string text, float duration, TweenEase ease = TweenEase.Linear)
         {
             TweenText tween = new TweenText(duration, ease);
             tween.Text(tmpText, text);
             return tween;
         }
 
-        public static TweenTask DoFade(Image image,float duration,float end, TweenEase ease = TweenEase.Linear)
+        public static TweenTask DoFade(Image image, float duration, float end, TweenEase ease = TweenEase.Linear)
         {
             Color endColor = image.color; endColor.a = end;
             return DoColor(image, duration, endColor, ease);
         }
 
-        public static TweenTask DoColor(Image image,float duration, Color end, TweenEase ease = TweenEase.Linear)
+        public static TweenTask DoColor(Image image, float duration, Color end, TweenEase ease = TweenEase.Linear)
         {
             TweenImage tween = new TweenImage(duration, ease);
             tween.Color(image, end);

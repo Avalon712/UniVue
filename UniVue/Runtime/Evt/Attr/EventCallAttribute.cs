@@ -7,7 +7,7 @@ namespace UniVue.Evt.Attr
     /// 同时方法参数的类型应该与EventArg的UI返回的数据类型一致。
     /// <para>方法参数支持的类型: int、float、string、bool、enum、自定义类型(不能是结构体)、EventCall、Sprite、UIEvent、EventArg[]</para>
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method,AllowMultiple =false,Inherited =true)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public sealed class EventCallAttribute : Attribute
     {
         /// <summary>
@@ -29,9 +29,9 @@ namespace UniVue.Evt.Attr
         /// 只有在这些视图下的事件触发时才调用此函数
         /// 注：如果此函数为null，则表示无论在哪个视图，只要触发此事件都将进行回调
         /// </param>
-        public EventCallAttribute(string eventName,params string[] views)
+        public EventCallAttribute(string eventName, params string[] views)
         {
-            EventName = eventName; 
+            EventName = eventName;
         }
     }
 

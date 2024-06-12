@@ -8,9 +8,12 @@ using UniVue.Utils;
 using UniVue.View;
 using UniVue.View.Config;
 using UniVue.ViewModel;
+
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using UniVue.Tween;
+#endif
 
 namespace UniVue
 {
@@ -20,7 +23,7 @@ namespace UniVue
     public static class Vue
     {
         private static bool _initialized;
-        private static VueConfig _config; 
+        private static VueConfig _config;
         private static ViewRouter _router;
         private static ViewUpdater _updater;
         private static EventManager _event;
@@ -87,7 +90,7 @@ namespace UniVue
         {
             CheckInitialize();
 
-            if(config == null)
+            if (config == null)
             {
 #if UNITY_EDITOR
                 LogUtil.Warning("SceneConfig为null!");
@@ -95,7 +98,7 @@ namespace UniVue
                 return;
             }
             //构建视图
-            ScriptableViewBuilder.Build(config);
+            ViewBuilder.Build(config);
         }
 
         /// <summary>
@@ -124,7 +127,7 @@ namespace UniVue
         /// 注意：这个函数只会被执行一次
         /// </summary>
         /// <param name="scanAssemblies">要扫描的程序集，如果为null则默认为"Assembly-CSharp"</param>
-        public static void AutowireEventCalls(string[] scanAssemblies=null)
+        public static void AutowireEventCalls(string[] scanAssemblies = null)
         {
             CheckInitialize();
             if (scanAssemblies == null) { scanAssemblies = new string[] { "Assembly-CSharp" }; }
@@ -162,13 +165,13 @@ namespace UniVue
         /// <param name="allowUIUpdateModel">是否允许通过UI来修改模型数据</param>
         /// <param name="modelName">模型名称，若为null则将默认为模型TypeName</param>
         /// <returns>UIBundle</returns>
-        public static UIBundle BuildUIBundle<T>(GameObject uiBundle,T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
+        public static UIBundle BuildUIBundle<T>(GameObject uiBundle, T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
         {
             CheckInitialize();
 
             var uis = ComponentFindUtil.FindAllSpecialUIComponents(uiBundle);
             UIBundle bundle = UIBundleBuilder.Build(uiBundle.name, uis, model, modelName, allowUIUpdateModel);
-            if(bundle != null) { Updater.AddUIBundle(bundle); }
+            if (bundle != null) { Updater.AddBundle(bundle); }
 #if UNITY_EDITOR
             else
             {
@@ -205,10 +208,10 @@ namespace UniVue
             var uis = ComponentFindUtil.FindAllSpecialUIComponents(uiBundle);
 
             //构建UIEvent
-            UIEventBuilder.Build(uiBundle.name, uis); 
+            UIEventBuilder.Build(uiBundle.name, uis);
             //构建UIBundle
             UIBundle bundle = UIBundleBuilder.Build(uiBundle.name, uis, model, modelName, allowUIUpdateModel);
-            if (bundle != null) { Updater.AddUIBundle(bundle); }
+            if (bundle != null) { Updater.AddBundle(bundle); }
 #if UNITY_EDITOR
             else
             {
@@ -219,9 +222,11 @@ namespace UniVue
             return bundle;
         }
 
+#if UNITY_EDITOR
         /// <summary>
         /// 实时显示内部状态信息
         /// </summary>
+        /// <remarks>请仅在编辑器模式下可以进行调试</remarks>
         /// <param name="text">显示调试信息的UI组件</param>
         public static void Debug(Text text)
         {
@@ -238,8 +243,8 @@ namespace UniVue
                 int modelCount = bundles.Select(b => b.Model).Distinct().Count();
                 text.text = $"View数量：{viewCount}\r\nModel数量：{modelCount}\r\nUIBundle数量：{bundleCount}\r\nPropertyUI数量：{propertyUICount}\r\n";
             }).Interval(5).ExecuteNum(int.MaxValue);
-
         }
+#endif
 
         /// <summary>
         /// 仅在Editor模式下执行
@@ -267,12 +272,12 @@ namespace UniVue
     public sealed class VueConfig
     {
         private NamingFormat _format = NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper;
-       
+
         /// <summary>
         /// 命名风格
         /// </summary>
         /// <remarks>默认风格为 NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper</remarks>
-        public NamingFormat Format 
+        public NamingFormat Format
         {
             get => _format;
             set

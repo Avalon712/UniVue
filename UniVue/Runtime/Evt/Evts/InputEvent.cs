@@ -6,7 +6,7 @@ namespace UniVue.Evt.Evts
     {
         private TMP_InputField _input;
 
-        public InputEvent(string viewName, string eventName,TMP_InputField input) : base(viewName, eventName)
+        public InputEvent(string viewName, string eventName, TMP_InputField input) : base(viewName, eventName)
         {
             _input = input;
             input.onEndEdit.AddListener(InputTriggerEvt);

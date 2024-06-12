@@ -7,7 +7,7 @@ namespace UniVue.ViewModel.Models
     /// <summary>
     /// 模型的最小单元所对应的
     /// </summary>
-    public abstract class PropertyUI :  IUIUpdater
+    public abstract class PropertyUI : IUIUpdater
     {
         /// <summary>
         /// 是否允许UI更新模型数据
@@ -23,7 +23,7 @@ namespace UniVue.ViewModel.Models
         protected string _propertyName;
 
 
-        public PropertyUI(string propertyName,bool allowUIUpdateModel)
+        public PropertyUI(string propertyName, bool allowUIUpdateModel)
         {
             _propertyName = propertyName;
             _allowUIUpdateModel = allowUIUpdateModel;

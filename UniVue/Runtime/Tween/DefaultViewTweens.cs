@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UniVue.Tween.Tweens;
 using UniVue.Utils;
-using System;
 
 namespace UniVue.Tween
 {
@@ -19,7 +19,7 @@ namespace UniVue.Tween
         /// <param name="tween"></param>
         /// <param name="duration">若小于0则使用默认的持续时间</param>
         /// <returns>TweenTask</returns>
-        public static TweenTask ExecuteTween(Transform transform,DefaultTween tween,float duration)
+        public static TweenTask ExecuteTween(Transform transform, DefaultTween tween, float duration)
         {
             switch (tween)
             {
@@ -78,7 +78,7 @@ namespace UniVue.Tween
         {
             transform.localScale = new Vector3(0.5f, 0.5f, 1);
             SetGameObjectState(transform.gameObject, true);
-            return TweenBehavior.DoLocalScale(transform,duration, Vector3.one, TweenEase.OutElastic);
+            return TweenBehavior.DoLocalScale(transform, duration, Vector3.one, TweenEase.OutElastic);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace UniVue.Tween
         /// </summary>
         public static TweenTask FromOffScreenRightOpen(Transform transform, float duration = 1.1f)
         {
-            return FromOffScreenOpen(transform, Direction.Right,duration);
+            return FromOffScreenOpen(transform, Direction.Right, duration);
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace UniVue.Tween
         /// </summary>
         public static TweenTask FromOffScreenDownOpen(Transform transform, float duration = 1.1f)
         {
-            return FromOffScreenOpen(transform, Direction.Down,duration);
+            return FromOffScreenOpen(transform, Direction.Down, duration);
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace UniVue.Tween
         /// </summary>
         public static TweenTask ToOffScreenLeftClose(Transform transform, float duration = 1.1f)
         {
-            return ToOffScreenClose(transform, Direction.Left,duration);
+            return ToOffScreenClose(transform, Direction.Left, duration);
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace UniVue.Tween
         /// </summary>
         public static TweenTask ToOffScreenRightClose(Transform transform, float duration = 1.1f)
         {
-            return ToOffScreenClose(transform, Direction.Right,duration);
+            return ToOffScreenClose(transform, Direction.Right, duration);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace UniVue.Tween
         /// </summary>
         public static TweenTask ToOffScreenDownClose(Transform transform, float duration = 1.1f)
         {
-            return ToOffScreenClose(transform, Direction.Down,duration);
+            return ToOffScreenClose(transform, Direction.Down, duration);
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace UniVue.Tween
         /// <param name="dir">从屏幕外的那个位置（以UI原始位置外参考，上、下、左、右四个方向）</param>
         /// <param name="duration">动画时间</param>
         /// <returns>TweenTask</returns>
-        private static TweenTask FromOffScreenOpen(Transform transform,Direction dir, float duration)
+        private static TweenTask FromOffScreenOpen(Transform transform, Direction dir, float duration)
         {
             RectTransform rectTransform = transform.GetComponent<RectTransform>();
             Vector3 targetWorldPos = CalculateScreenEdgeWorldPos(rectTransform, dir);
@@ -205,9 +205,9 @@ namespace UniVue.Tween
             SetGameObjectState(transform.gameObject, true);
             RectTransform rectTransform = transform.GetComponent<RectTransform>();
             Vector3 targetWorldPos = CalculateScreenEdgeWorldPos(rectTransform, dir);
-            
+
             Vector3 startPos = transform.position;
-            
+
             if (dir == Direction.Left || dir == Direction.Right)
             {
                 return TweenBehavior.DoMoveX(transform, duration, targetWorldPos.x, TweenEase.OutExp).Call(() =>
@@ -228,9 +228,9 @@ namespace UniVue.Tween
 
 
 
-        private static void SetGameObjectState(GameObject obj,bool state)
+        private static void SetGameObjectState(GameObject obj, bool state)
         {
-            if(state != obj.activeSelf)
+            if (state != obj.activeSelf)
             {
                 obj.SetActive(state);
             }
@@ -243,10 +243,10 @@ namespace UniVue.Tween
         /// <param name="rectTransform"></param>
         /// <param name="dir">左、右、上、下四个位置</param>
         /// <returns>UI处于屏幕外的世界坐标</returns>
-        public static Vector3 CalculateScreenEdgeWorldPos(RectTransform rectTransform,Direction dir)
+        public static Vector3 CalculateScreenEdgeWorldPos(RectTransform rectTransform, Direction dir)
         {
             Vector3 worldPos;
-            
+
             float offset = 200; //偏移位置量
 
             //获取UI在屏幕空间中的坐标
@@ -257,16 +257,16 @@ namespace UniVue.Tween
             switch (dir)
             {
                 case Direction.Left:
-                    targetScreenPos = new Vector2(-rectTransform.rect.width/2- offset, screenPos.y);
+                    targetScreenPos = new Vector2(-rectTransform.rect.width / 2 - offset, screenPos.y);
                     break;
                 case Direction.Right:
-                    targetScreenPos = new Vector2(Screen.width+rectTransform.rect.width/2+ offset, screenPos.y);
+                    targetScreenPos = new Vector2(Screen.width + rectTransform.rect.width / 2 + offset, screenPos.y);
                     break;
                 case Direction.Up:
-                    targetScreenPos = new Vector2(screenPos.x,Screen.height+rectTransform.rect.height/2+ offset);
+                    targetScreenPos = new Vector2(screenPos.x, Screen.height + rectTransform.rect.height / 2 + offset);
                     break;
                 case Direction.Down:
-                    targetScreenPos = new Vector2(screenPos.x,-rectTransform.rect.height/2- offset);
+                    targetScreenPos = new Vector2(screenPos.x, -rectTransform.rect.height / 2 - offset);
                     break;
             }
 
@@ -277,7 +277,7 @@ namespace UniVue.Tween
              */
             bool isNull = ComponentFindUtil.LookUpFindComponent<Canvas>(rectTransform.gameObject)?.renderMode == RenderMode.ScreenSpaceOverlay;
             RectTransformUtility.ScreenPointToWorldPointInRectangle(rectTransform, targetScreenPos, isNull ? null : Camera.main, out worldPos);
-            
+
             return worldPos;
         }
     }

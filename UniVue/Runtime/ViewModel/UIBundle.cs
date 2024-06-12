@@ -15,8 +15,13 @@ namespace UniVue.ViewModel
     /// 创建一个UIBundle对象去管理你的PropertyUI，之后将创建的UIBundle交给ViewUpdater进行管理，这样就能
     /// 实现数据模型的双向绑定，同时实现了你想要的UI更新效果。
     /// </remarks>
-    public sealed class UIBundle : IModelNotifier 
+    public sealed class UIBundle : IModelNotifier
     {
+        /// <summary>
+        /// 当前UIBundle的状态
+        /// </summary>
+        public bool active { get; private set; } = true;
+
         /// <summary>
         /// UIBundle绑定的视图的名称
         /// </summary>
@@ -35,9 +40,9 @@ namespace UniVue.ViewModel
 
         private List<PropertyUI> _properties;
 
-        internal List<PropertyUI> ProertyUIs => _properties; 
+        internal List<PropertyUI> ProertyUIs => _properties;
 
-        public UIBundle(string modelName,string viewName, IBindableModel model, List<PropertyUI> properties) 
+        public UIBundle(string modelName, string viewName, IBindableModel model, List<PropertyUI> properties)
         {
             ViewName = viewName;
             Model = model;
@@ -52,7 +57,7 @@ namespace UniVue.ViewModel
         /// <summary>
         /// 更新UI
         /// </summary>
-        public void UpdateUI(string propertyName,int propertyValue)
+        public void UpdateUI(string propertyName, int propertyValue)
         {
             for (int i = 0; i < _properties.Count; i++)
             {
@@ -124,9 +129,9 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI(string propertyName, List<int> propertyValue)
         {
-            int k = 0; 
+            int k = 0;
             bool congfig = Vue.Config.WhenListLessThanUIThenHide;
-            
+
             for (int i = 0; i < _properties.Count; i++)
             {
                 if (propertyName.Equals(_properties[i].PropertyName))
@@ -159,7 +164,7 @@ namespace UniVue.ViewModel
                     if (k < propertyValue.Count)
                     {
                         _properties[i].SetActive(true);
-                        _properties[i].UpdateUI(propertyValue[k++]); 
+                        _properties[i].UpdateUI(propertyValue[k++]);
                     }
                     else if (congfig)
                     {
@@ -272,39 +277,48 @@ namespace UniVue.ViewModel
         public void Rebind<T>(T model) where T : IBindableModel
         {
             Model = model;
+            active = true;
         }
 
-     
 
-        public void Unbind() 
+        public void Unbind()
+        {
+            active = false;
+        }
+
+        public void Destroy()
         {
             for (int i = 0; i < _properties.Count; i++)
             {
                 _properties[i].Unbind();
-                _properties[i] = null;
             }
+            _properties.Clear();
             _properties = null;
             Model = null;
         }
 
         public void NotifyModelUpdate(string propertyName, int propertyValue)
         {
-            Model.UpdateModel(propertyName, propertyValue);
+            if (active)
+                Model.UpdateModel(propertyName, propertyValue);
         }
 
         public void NotifyModelUpdate(string propertyName, string propertyValue)
         {
-            Model.UpdateModel(propertyName, propertyValue);
+            if (active)
+                Model.UpdateModel(propertyName, propertyValue);
         }
 
         public void NotifyModelUpdate(string propertyName, bool propertyValue)
         {
-            Model.UpdateModel(propertyName, propertyValue);
+            if (active)
+                Model.UpdateModel(propertyName, propertyValue);
         }
 
         public void NotifyModelUpdate(string propertyName, float propertyValue)
         {
-            Model.UpdateModel(propertyName, propertyValue);
+            if (active)
+                Model.UpdateModel(propertyName, propertyValue);
         }
     }
 }

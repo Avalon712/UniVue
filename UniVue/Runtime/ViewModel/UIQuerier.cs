@@ -17,7 +17,7 @@ namespace UniVue.ViewModel
         /// <param name="modelName">模型名</param>
         /// <param name="propertyName">属性名</param>
         /// <returns>所有找到的UI组件</returns>
-        public static IEnumerable<T> Query<T>(string viewName, string modelName, string propertyName) where T : Component 
+        public static IEnumerable<T> Query<T>(string viewName, string modelName, string propertyName) where T : Component
         {
             List<UIBundle> bundles = Vue.Updater.Bundles;
             for (int i = 0; i < bundles.Count; i++)
@@ -29,7 +29,7 @@ namespace UniVue.ViewModel
                     {
                         if (propertyUIs[j].PropertyName == propertyName)
                         {
-                            using(var it = propertyUIs[j].GetUI<T>().GetEnumerator())
+                            using (var it = propertyUIs[j].GetUI<T>().GetEnumerator())
                             {
                                 while (it.MoveNext())
                                 {
@@ -50,7 +50,7 @@ namespace UniVue.ViewModel
         /// <param name="model">模型</param>
         /// <param name="propertyName">属性名称</param>
         /// <returns>IEnumerable<T></returns>
-        public static IEnumerable<T> Query<T>(string viewName,IBindableModel model, string propertyName) where T : Component
+        public static IEnumerable<T> Query<T>(string viewName, IBindableModel model, string propertyName) where T : Component
         {
             List<UIBundle> bundles = Vue.Updater.Bundles;
             for (int i = 0; i < bundles.Count; i++)
@@ -127,6 +127,62 @@ namespace UniVue.ViewModel
             }
         }
 
+        /// <summary>
+        /// 查询某个视图是否已经绑定了指定模型类型的UIBundle对象
+        /// </summary>
+        /// <typeparam name="T">模型类型</typeparam>
+        /// <param name="viewName">视图名称</param>
+        /// <param name="model">模型</param>
+        /// <returns>已经生成过的此类型的UIBundle对象</returns>
+        public static UIBundle Query<T>(string viewName, T model) where T : IBindableModel
+        {
+            List<UIBundle> bundles = Vue.Updater.Bundles;
+            Type type = model.GetType();
+            for (int i = 0; i < bundles.Count; i++)
+            {
+                if (bundles[i].ViewName == viewName && type == bundles[i].Model.GetType())
+                {
+                    return bundles[i];
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 查询所有符合条件的UIBundle对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="match">匹配条件</param>
+        /// <returns>IEnumerable<UIBundle></returns>
+        public static IEnumerable<UIBundle> Query(Predicate<UIBundle> match)
+        {
+            List<UIBundle> bundles = Vue.Updater.Bundles;
+            for (int i = 0; i < bundles.Count; i++)
+            {
+                if (match(bundles[i]))
+                {
+                    yield return bundles[i];
+                }
+            }
+        }
+
+        /// <summary>
+        /// 查询UIBundle
+        /// </summary>
+        /// <param name="viewName">视图名称</param>
+        /// <param name="modelName">模型名称</param>
+        /// <returns>IEnumerable<UIBundle></returns>
+        public static IEnumerable<UIBundle> Query(string viewName, string modelName)
+        {
+            List<UIBundle> bundles = Vue.Updater.Bundles;
+            for (int i = 0; i < bundles.Count; i++)
+            {
+                if (bundles[i].ViewName == viewName && bundles[i].ModelName == modelName)
+                {
+                    yield return bundles[i];
+                }
+            }
+        }
 
     }
 }

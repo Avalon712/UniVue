@@ -13,7 +13,7 @@ namespace UniVue.Evt
     {
         private UIEventBuilder() { }
 
-        public static void Build(string viewName,List<ValueTuple<Component,UIType>> uis)
+        public static void Build(string viewName, List<ValueTuple<Component, UIType>> uis)
         {
             Dictionary<string, List<EventArg>> args = new();
             List<UIEvent> events = new();
@@ -23,7 +23,7 @@ namespace UniVue.Evt
                 ValueTuple<Component, UIType> result = uis[i];
 
                 string evtName, argName; bool isOnlyEvt, isOnlyArg;
-                if (NamingRuleEngine.CheckCustomEventAndArgMatch(result.Item1.name, out evtName, out argName,out isOnlyEvt,out isOnlyArg))
+                if (NamingRuleEngine.CheckCustomEventAndArgMatch(result.Item1.name, out evtName, out argName, out isOnlyEvt, out isOnlyArg))
                 {
                     if (isOnlyArg || !(isOnlyArg || isOnlyEvt))
                     {
@@ -37,7 +37,7 @@ namespace UniVue.Evt
                         }
                     }
 
-                    if(isOnlyEvt || (!isOnlyArg && !isOnlyEvt))
+                    if (isOnlyEvt || (!isOnlyArg && !isOnlyEvt))
                     {
                         switch (result.Item2)
                         {

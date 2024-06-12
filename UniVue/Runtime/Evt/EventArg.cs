@@ -26,16 +26,16 @@ namespace UniVue.Evt
         /// </summary>
         public string ArgumentName { get; private set; }
 
-        internal EventArg(string name,UIType type,Component argUI)
+        internal EventArg(string name, UIType type, Component argUI)
         {
-            ArgumentName = name ; _type = type; _argUI = argUI;
+            ArgumentName = name; _type = type; _argUI = argUI;
         }
 
         public void SetArgumentValue(object value)
         {
             SupportableArgType argType = EventUtil.GetSupportableArgType(value.GetType());
 
-            if(argType==SupportableArgType.None || ((int)argType) > 6) 
+            if (argType == SupportableArgType.None || ((int)argType) > 6)
             {
 #if UNITY_EDITOR
                 LogUtil.Warning("EventArg参数值设置失败，不被支持的参数值类型,仅支持int/float/string/enum/bool/Sprite类型!");
@@ -43,10 +43,10 @@ namespace UniVue.Evt
                 return;
             }
 
-            _SetArgumentValue(value,ref argType);
+            _SetArgumentValue(value, ref argType);
         }
 
-        private void _SetArgumentValue(object value,ref SupportableArgType argType)
+        private void _SetArgumentValue(object value, ref SupportableArgType argType)
         {
             switch (_type)
             {
@@ -56,29 +56,29 @@ namespace UniVue.Evt
                     ((TMP_Dropdown)_argUI).itemText.text = s1;
                     break;
                 case UIType.TMP_Text:
-                    string s2= value as string;
+                    string s2 = value as string;
                     if (argType != SupportableArgType.String) { s2 = value.ToString(); }
                     ((TMP_Text)_argUI).text = s2;
                     break;
                 case UIType.TMP_InputField:
                     string s3 = value as string;
-                    if(argType != SupportableArgType.String) { s3 = value.ToString(); }
+                    if (argType != SupportableArgType.String) { s3 = value.ToString(); }
                     ((TMP_InputField)_argUI).text = s3;
                     break;
                 case UIType.Toggle:
-                    if(argType == SupportableArgType.Bool)
+                    if (argType == SupportableArgType.Bool)
                     {
                         ((Toggle)_argUI).isOn = Convert.ToBoolean(value);
                     }
                     break;
                 case UIType.Slider:
-                    if(argType == SupportableArgType.Int || argType == SupportableArgType.Float)
+                    if (argType == SupportableArgType.Int || argType == SupportableArgType.Float)
                     {
                         ((Slider)_argUI).value = Convert.ToSingle(value);
                     }
                     break;
                 case UIType.Image:
-                    if(argType == SupportableArgType.Sprite)
+                    if (argType == SupportableArgType.Sprite)
                     {
                         ((Image)_argUI).sprite = value as Sprite;
                     }

@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UniVue.Evt.Attr;
-using UniVue.Utils;
 
 namespace UniVue.Evt
 {
@@ -15,7 +10,7 @@ namespace UniVue.Evt
 
         public Type type { get; private set; }
 
-        public AutowireInfo(Type type,EventCallAutowireAttribute eventCallInfo)
+        public AutowireInfo(Type type, EventCallAutowireAttribute eventCallInfo)
         {
             this.type = type; EventCallInfo = eventCallInfo;
         }
@@ -25,7 +20,7 @@ namespace UniVue.Evt
             //必须先判断MonoBehaviour
             if (typeof(MonoBehaviour).IsAssignableFrom(type))
             {
-                return new GameObject(type.Name,type);
+                return new GameObject(type.Name, type);
             }
             else if (typeof(IEventRegister).IsAssignableFrom(type))
             {

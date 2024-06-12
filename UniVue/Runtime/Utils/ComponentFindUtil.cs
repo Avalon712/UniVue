@@ -18,13 +18,13 @@ namespace UniVue.Utils
         /// <param name="view">指定当前的GameObject是否是ViewObject，如果是则需要传递此参数</param>
         /// <param name="exclude">要排除的后代（这些GameObject的后代都不会进行查找）</param>
         /// <returns>List<ValueTuple<Component, UIType>></returns>
-        public static List<ValueTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject,IView view = null, params GameObject[] exclude)
+        public static List<ValueTuple<Component, UIType>> FindAllSpecialUIComponents(GameObject gameObject, IView view = null, params GameObject[] exclude)
         {
             //广度式搜索
             Queue<Transform> queue = new Queue<Transform>();
             Transform root = gameObject.transform;
             List<ValueTuple<Component, UIType>> results = new();
-            
+
             char SKIP_ALL_DESCENDANT_SEPARATOR = Vue.Config.SkipDescendantNodeSeparator;
             char SKIP_CURRENT_SEPARATOR = Vue.Config.SkipCurrentNodeSeparator;
 
@@ -32,13 +32,13 @@ namespace UniVue.Utils
 
             //获取视图的所有嵌套视图
             List<IView> nestedViews = null;
-            if(view != null)
+            if (view != null)
             {
-                using(var v = view.GetNestedViews().GetEnumerator())
+                using (var v = view.GetNestedViews().GetEnumerator())
                 {
                     while (v.MoveNext() && v.Current != null)
                     {
-                        if(nestedViews == null) { nestedViews = new List<IView>(); }
+                        if (nestedViews == null) { nestedViews = new List<IView>(); }
                         nestedViews.Add(v.Current);
                     }
                 }
@@ -60,7 +60,7 @@ namespace UniVue.Utils
                         {
                             if (exclude[j] == child.gameObject) { skip = true; break; }
                         }
-                        if(skip) { continue; }
+                        if (skip) { continue; }
                     }
 
                     if (child.name.StartsWith(SKIP_ALL_DESCENDANT_SEPARATOR)) { continue; }
@@ -72,7 +72,7 @@ namespace UniVue.Utils
                         bool flag = false;
                         for (int j = 0; j < nestedViews.Count; j++)
                         {
-                            if(child.gameObject == nestedViews[j].viewObject) { flag = true;break; }
+                            if (child.gameObject == nestedViews[j].viewObject) { flag = true; break; }
                         }
                         if (flag) { continue; }
                     }
@@ -110,7 +110,7 @@ namespace UniVue.Utils
                         if (image != null)
                         {
                             ValueTuple<Component, UIType> result = new();
-                            result.Item1 = image; 
+                            result.Item1 = image;
                             result.Item2 = UIType.Image;
                             return result;
                         }
@@ -119,10 +119,10 @@ namespace UniVue.Utils
                 case UIType.TMP_Dropdown:
                     {
                         TMP_Dropdown dropdown = gameObject.GetComponent<TMP_Dropdown>();
-                        if (dropdown != null) 
+                        if (dropdown != null)
                         {
                             ValueTuple<Component, UIType> result = new();
-                            result.Item1 = dropdown; 
+                            result.Item1 = dropdown;
                             result.Item2 = UIType.TMP_Dropdown;
                             return result;
                         }
@@ -155,10 +155,10 @@ namespace UniVue.Utils
                 case UIType.Button:
                     {
                         Button button = gameObject.GetComponent<Button>();
-                        if (button != null) 
+                        if (button != null)
                         {
                             ValueTuple<Component, UIType> result = new();
-                            result.Item1 = button; 
+                            result.Item1 = button;
                             result.Item2 = UIType.Button;
                             return result;
                         }
@@ -204,14 +204,14 @@ namespace UniVue.Utils
         /// <returns>首次挂载此组件的GameObject身上的组件</returns>
         public static T LookUpFindComponent<T>(GameObject current) where T : Component
         {
-            if (current == null) 
-                return null; 
-            else if (current.TryGetComponent(out T t)) 
+            if (current == null)
+                return null;
+            else if (current.TryGetComponent(out T t))
                 return t;
-            else 
-                return LookUpFindComponent<T>(current.transform.parent?.gameObject); 
+            else
+                return LookUpFindComponent<T>(current.transform.parent?.gameObject);
         }
-    
+
         /// <summary>
         /// 判断当前GameObject或其子孙GameObject身上是否含有包含组件
         /// </summary>
@@ -244,7 +244,7 @@ namespace UniVue.Utils
         /// </summary>
         public static T DepthFind<T>(GameObject self) where T : Component
         {
-            if(self == null) { return null; }
+            if (self == null) { return null; }
 
             T comp = self.GetComponent<T>();
             if (comp != null) { return comp; }
@@ -268,7 +268,7 @@ namespace UniVue.Utils
         public static T BreadthFind<T>(GameObject self) where T : Component
         {
             T comp = self.GetComponent<T>();
-            if(comp != null) { return comp; }
+            if (comp != null) { return comp; }
 
             Queue<Transform> parents = new Queue<Transform>();
             parents.Enqueue(self.transform);
@@ -299,11 +299,11 @@ namespace UniVue.Utils
         /// <summary> 
         /// 从自身开始查找一个指定名称的GameObject同时获得其身上指定类型的组件 深度搜索
         /// </summary>
-        public static T DepthFind<T>(GameObject self,string name) where T : Component
+        public static T DepthFind<T>(GameObject self, string name) where T : Component
         {
             if (self == null) { return null; }
 
-            if(self.name == name)
+            if (self.name == name)
             {
                 return self.GetComponent<T>();
             }
@@ -311,8 +311,8 @@ namespace UniVue.Utils
             int childNum = self.transform.childCount;
             for (int i = 0; i < childNum; i++)
             {
-                 T comp = DepthFind<T>(self.transform.GetChild(i).gameObject);
-                 if(comp != null && comp.name == name) { return comp; }
+                T comp = DepthFind<T>(self.transform.GetChild(i).gameObject);
+                if (comp != null && comp.name == name) { return comp; }
             }
 
             return null;
@@ -321,9 +321,9 @@ namespace UniVue.Utils
         /// <summary>
         /// 从自身开始查找一个指定名称的GameObject同时获得其身上指定类型的组件 广度搜索
         /// </summary>
-        public static T BreadthFind<T>(GameObject self,string name) where T : Component
+        public static T BreadthFind<T>(GameObject self, string name) where T : Component
         {
-            if (self.name == name){ return self.GetComponent<T>(); }
+            if (self.name == name) { return self.GetComponent<T>(); }
 
             Queue<Transform> parents = new Queue<Transform>();
             parents.Enqueue(self.transform);
@@ -336,7 +336,7 @@ namespace UniVue.Utils
                 {
                     Transform child = transform.GetChild(i);
 
-                    if(child.name == name)
+                    if (child.name == name)
                     {
                         parents.Clear();
                         return child.GetComponent<T>();

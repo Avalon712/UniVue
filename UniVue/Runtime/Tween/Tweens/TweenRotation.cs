@@ -5,14 +5,14 @@ namespace UniVue.Tween.Tweens
     public sealed class TweenRotation : TweenTask
     {
         private Transform _transform;
-        private Vector3 _startRotation, _endRotation,_rotation;
+        private Vector3 _startRotation, _endRotation, _rotation;
         private bool _isLocal;
 
         public TweenRotation(float duration, TweenEase ease) : base(duration, ease)
         {
         }
 
-        public void Rotation(Transform transform,Vector3 end)
+        public void Rotation(Transform transform, Vector3 end)
         {
             _transform = transform;
             _startRotation = transform.rotation.eulerAngles;
@@ -42,9 +42,9 @@ namespace UniVue.Tween.Tweens
             _rotation.x = TweenComputer.Compute(_ease, _time, _duration, _startRotation.x, _endRotation.x - _startRotation.x);
             _rotation.y = TweenComputer.Compute(_ease, _time, _duration, _startRotation.y, _endRotation.y - _startRotation.y);
             _rotation.z = TweenComputer.Compute(_ease, _time, _duration, _startRotation.z, _endRotation.z - _startRotation.z);
-            
+
             if (_isLocal) { _transform.localRotation = Quaternion.Euler(_rotation); }
-            else{ _transform.rotation = Quaternion.Euler(_rotation); }
+            else { _transform.rotation = Quaternion.Euler(_rotation); }
 
             //检查loop 和 pingpong
             if (executed)

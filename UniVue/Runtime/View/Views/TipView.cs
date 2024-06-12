@@ -1,32 +1,23 @@
-﻿using System;
-using TMPro;
-using UnityEngine;
-using UniVue.Utils;
+﻿using UnityEngine;
+using UniVue.View.Widgets;
 
 namespace UniVue.View.Views
 {
     public sealed class TipView : BaseView
     {
-        [Header("用于显示提示消息的TMP_Text组件的名称")]
-        [SerializeField] private string content;
+        private Tip _tipComp;
 
-        private struct RuntimeData
+        public TipView(Tip tipComp, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {
-            public TMP_Text text;
+            _tipComp = tipComp;
         }
 
-        private RuntimeData _runtime;
 
-        public override void OnLoad()
+        public override void OnUnload()
         {
-            _runtime.text = GameObjectFindUtil.DepthFind(content, viewObject).GetComponent<TMP_Text>();
-           
-            if (string.IsNullOrEmpty(content) || _runtime.text == null)
-            {
-                throw new ArgumentException("TipView必须指定用于显示消息内容的TMP_Text组件的名称!");
-            }
-
-            base.OnLoad();
+            _tipComp.Destroy();
+            _tipComp = null;
+            base.OnUnload();
         }
 
         /// <summary>
@@ -34,16 +25,14 @@ namespace UniVue.View.Views
         /// </summary>
         /// <param name="message">提示消息</param>
         /// <param name="top">是否显示与顶部</param>
-        public void Open(string message,bool top=true)
+        public void Open(string message, bool top = true)
         {
-            _runtime.text.text = message;
-            Vue.Router.Open(name, top);
+            _tipComp.Open(message, top);
         }
 
-        public override void OnUnload()
+        public override T GetWidget<T>()
         {
-            base.OnUnload();
-            _runtime = default;
+            return _tipComp as T;
         }
     }
 }

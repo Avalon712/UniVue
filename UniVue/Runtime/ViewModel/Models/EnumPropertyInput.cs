@@ -19,7 +19,7 @@ namespace UniVue.ViewModel.Models
             }
         }
 
-        private void UpdateModel(string str) 
+        private void UpdateModel(string str)
         {
             Vue.Updater.Publisher = this;
             _notifier?.NotifyModelUpdate(_propertyName, GetValue(str));

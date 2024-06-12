@@ -1,11 +1,18 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
+using UniVue.View.Widgets;
 
 namespace UniVue.View.Views
 {
     public interface IView
     {
+        /// <summary>
+        /// 当前视图在同一层视图的排序
+        /// </summary>
+        /// <remarks>值越大越先被渲染</remarks>
+        int order { get; }
+
         /// <summary>
         /// 当前视图的级别
         /// </summary>
@@ -29,7 +36,7 @@ namespace UniVue.View.Views
         /// <summary>
         /// 当前视图是否是属主视图
         /// </summary>
-        bool isMaster { get; }
+        bool isMaster { get;}
 
         /// <summary>
         /// 获取当前嵌套视图的根视图名称
@@ -99,5 +106,12 @@ namespace UniVue.View.Views
         /// <typeparam name="T"></typeparam>
         /// <param name="newModel"></param>
         void RebindModel<T>(T newModel) where T : IBindableModel;
+
+        /// <summary>
+        /// 获取视图身上挂载的组件
+        /// </summary>
+        /// <typeparam name="T">实现IWidget接口</typeparam>
+        /// <returns>视图身上挂载的组件，没有将返回为null</returns>
+        T GetWidget<T>() where T : Widget;
     }
 }

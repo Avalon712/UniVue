@@ -6,8 +6,8 @@ namespace UniVue.ViewModel.Models
 {
     public sealed class EnumPropertyDropdown : EnumPropertyUI<TMP_Dropdown>
     {
-        public EnumPropertyDropdown(TMP_Dropdown ui, Array array,  string propertyName, bool allowUIUpdateModel)
-            : base(ui, array,propertyName, allowUIUpdateModel)
+        public EnumPropertyDropdown(TMP_Dropdown ui, Array array, string propertyName, bool allowUIUpdateModel)
+            : base(ui, array, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel) { ui.onValueChanged.AddListener(UpdateModel); }
         }

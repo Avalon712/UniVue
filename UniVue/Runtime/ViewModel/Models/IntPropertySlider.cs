@@ -5,7 +5,7 @@ namespace UniVue.ViewModel.Models
 {
     public sealed class IntPropertySlider : IntPropertyUI<Slider>
     {
-        public IntPropertySlider(Slider ui, string propertyName, bool allowUIUpdateModel): base(ui,propertyName, allowUIUpdateModel)
+        public IntPropertySlider(Slider ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel) { ui.onValueChanged.AddListener(UpdateModel); }
         }

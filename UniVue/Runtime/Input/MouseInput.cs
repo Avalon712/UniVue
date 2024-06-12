@@ -1,12 +1,12 @@
-﻿using UnityEngine.EventSystems;
+﻿using System;
 using UnityEngine;
-using System;
+using UnityEngine.EventSystems;
 
 namespace UniVue.Input
 {
     public sealed class MouseInput : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
-        IPointerDownHandler,  IPointerMoveHandler, IPointerUpHandler
+        IPointerDownHandler, IPointerMoveHandler, IPointerUpHandler
     {
 
         /// <summary>

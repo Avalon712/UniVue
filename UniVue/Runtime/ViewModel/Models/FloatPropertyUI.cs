@@ -34,7 +34,7 @@ namespace UniVue.ViewModel.Models
 
         public sealed override void UpdateUI(Sprite propertyValue) { }
 
-        public override void Unbind() { _notifier = null;_propertyName=null ; _ui = default; }
+        public override void Unbind() { _notifier = null; _propertyName = null; _ui = default; }
 
         public override IEnumerable<T> GetUI<T>()
         {

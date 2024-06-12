@@ -11,7 +11,7 @@ namespace UniVue.Tween.Tweens
         {
         }
 
-        public void Text(TMP_Text text,string str)
+        public void Text(TMP_Text text, string str)
         {
             _text = text;
             text.maxVisibleCharacters = 0;

@@ -63,7 +63,7 @@ namespace UniVue.Model
             Vue.Updater.UpdateUI(Binder, propertyName, propertyValue);
         }
 
-        void IUINotifier.NotifyUIUpdate<T>(string propertyName, List<T> propertyValue) 
+        void IUINotifier.NotifyUIUpdate<T>(string propertyName, List<T> propertyValue)
         {
             Vue.Updater.UpdateUI(Binder, propertyName, propertyValue);
         }

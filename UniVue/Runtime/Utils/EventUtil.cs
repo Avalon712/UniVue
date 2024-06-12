@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
-using UniVue.Evt.Evts;
 using UniVue.Evt;
+using UniVue.Evt.Evts;
 
 namespace UniVue.Utils
 {

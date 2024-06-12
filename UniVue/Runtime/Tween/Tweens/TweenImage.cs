@@ -12,7 +12,7 @@ namespace UniVue.Tween.Tweens
         {
         }
 
-        public void Color(Image image,Color endColor)
+        public void Color(Image image, Color endColor)
         {
             _image = image;
             _startColor = image.color;
@@ -62,7 +62,7 @@ namespace UniVue.Tween.Tweens
             if (_OnComplete != null && executed) { _OnComplete(); }
 
             //将下一个序列动画进行播放
-            if (next != null && executed){ next.Play();}
+            if (next != null && executed) { next.Play(); }
 
             return executed;
         }

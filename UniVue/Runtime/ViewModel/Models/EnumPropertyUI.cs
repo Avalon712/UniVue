@@ -26,7 +26,7 @@ namespace UniVue.ViewModel.Models
 
         private void InitEnumInfos(Array array)
         {
-            _enums = new List<ValueTuple<string, string,int>>(array.Length);
+            _enums = new List<ValueTuple<string, string, int>>(array.Length);
             for (int i = 0; i < array.Length; i++)
             {
                 ValueTuple<string, string, int> tuple = new();
@@ -54,10 +54,10 @@ namespace UniVue.ViewModel.Models
         {
             for (int i = 0; i < _enums.Count; i++)
             {
-                if (_enums[i].Item3 == value){ return _enums[i].Item2; }
+                if (_enums[i].Item3 == value) { return _enums[i].Item2; }
             }
             return null;
-        } 
+        }
 
         /// <summary>
         /// 根据枚举值获取枚举值的字符串
@@ -66,7 +66,7 @@ namespace UniVue.ViewModel.Models
         {
             for (int i = 0; i < _enums.Count; i++)
             {
-                if (_enums[i].Item3 == value){ return _enums[i].Item1; }
+                if (_enums[i].Item3 == value) { return _enums[i].Item1; }
             }
             return null;
         }
@@ -78,7 +78,7 @@ namespace UniVue.ViewModel.Models
         {
             for (int i = 0; i < _enums.Count; i++)
             {
-                if (_enums[i].Item1 == aliasOrEnumStr || _enums[i].Item2 == aliasOrEnumStr) 
+                if (_enums[i].Item1 == aliasOrEnumStr || _enums[i].Item2 == aliasOrEnumStr)
                 {
                     return _enums[i].Item3;
                 }

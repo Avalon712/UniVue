@@ -1,9 +1,7 @@
 ﻿using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UniVue.Runtime.View.Views;
 using UniVue.View.Config;
-using UniVue.View.Views;
 
 namespace UniVue.Editor
 {
@@ -18,7 +16,7 @@ namespace UniVue.Editor
         private string _saveDirectory = "Assets/";
 
         private bool _attachToRoot;
-        private ScriptableView _root;
+        private ViewConfig _root;
 
         [MenuItem("UniVue/ViewEditor")]
         public static void OpenEditorWindow()
@@ -75,27 +73,27 @@ namespace UniVue.Editor
                 return false;
             }
 
-            ScriptableView view = null;
+            ViewConfig view = null;
 
             switch (_viewConfigType)
             {
                 case ViewType.BaseView:
-                    view = ViewBuilderInEditor.CreateViewConfig<ScriptableView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<ViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ListView:
-                    view = ViewBuilderInEditor.CreateViewConfig<SListView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<ListViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.GridView:
-                    view = ViewBuilderInEditor.CreateViewConfig<SGridView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<GridViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.TipView:
-                    view = ViewBuilderInEditor.CreateViewConfig<STipView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<TipViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.EnsureTipView:
-                    view = ViewBuilderInEditor.CreateViewConfig<SEnsureTipView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<EnsureTipViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ClampListView:
-                    view = ViewBuilderInEditor.CreateViewConfig<SClampListView>(_configFileName, _saveDirectory);
+                    view = ViewBuilderInEditor.CreateViewConfig<ClampListViewConfig>(_configFileName, _saveDirectory);
                     break;
             }
 
@@ -109,6 +107,7 @@ namespace UniVue.Editor
             else if(view != null)
             {
                 (view as ScriptableObject).name = _configFileName;
+                view.viewName = _configFileName;
                 AssetDatabase.CreateAsset(view, $"{_saveDirectory}{_configFileName}.asset");
                 AssetDatabase.SaveAssets();
             }
@@ -192,7 +191,7 @@ namespace UniVue.Editor
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("选择此视图的根视图");
-                _root = (ScriptableView)EditorGUILayout.ObjectField(_root, typeof(ScriptableView), false);
+                _root = (ViewConfig)EditorGUILayout.ObjectField(_root, typeof(ViewConfig), false);
                 EditorGUILayout.EndHorizontal();
                 EditorGUILayout.Space();
             }

@@ -21,7 +21,7 @@ namespace UniVue.Evt.Evts
         /// </summary>
         public EventArg[] EventArgs { get; internal set; }
 
-        public UIEvent(string viewName,string eventName)
+        public UIEvent(string viewName, string eventName)
         {
             ViewName = viewName;
             EventName = eventName;
@@ -40,7 +40,7 @@ namespace UniVue.Evt.Evts
         /// 为当前事件设置事件参数
         /// </summary>
         /// <param name="values">key=参数名，value=参数值</param>
-        public void SetEventArgs(Dictionary<string,object> values)
+        public void SetEventArgs(Dictionary<string, object> values)
         {
             for (int i = 0; i < EventArgs.Length; i++)
             {
@@ -56,7 +56,7 @@ namespace UniVue.Evt.Evts
         /// </summary>
         public virtual void Unregister()
         {
-            if(EventArgs != null)
+            if (EventArgs != null)
             {
                 for (int i = 0; i < EventArgs.Length; i++)
                 {

@@ -19,7 +19,7 @@ namespace UniVue.View
         private IUIAudioEffectController _audioEffectCtr;
         #endregion
 
-        internal ViewRouter() 
+        internal ViewRouter()
         {
             _views = new Dictionary<string, IView>();
             _histories = new List<string>(Vue.Config.MaxHistoryRecord);
@@ -46,7 +46,7 @@ namespace UniVue.View
         public T GetView<T>(string viewName) where T : IView
         {
             if (string.IsNullOrEmpty(viewName)) { return default; }
-            if (_views.ContainsKey(viewName)) { return (T) _views[viewName]; }
+            if (_views.ContainsKey(viewName)) { return (T)_views[viewName]; }
             return default;
         }
 
@@ -62,7 +62,7 @@ namespace UniVue.View
 
         public IView GetView(string viewName)
         {
-            if(string.IsNullOrEmpty(viewName)) { return null; }
+            if (string.IsNullOrEmpty(viewName)) { return null; }
             if (_views.ContainsKey(viewName)) { return _views[viewName]; }
             return null;
         }
@@ -80,19 +80,19 @@ namespace UniVue.View
             _views.Add(view.name, view);
 
             //如果当前视图的初始状态处于打开状态
-            if (view.state && view.level != ViewLevel.Permanent) 
-            { 
+            if (view.state && view.level != ViewLevel.Permanent)
+            {
                 ListUtil.AddButNoOutOfCapacity(_histories, view.name);
             }
         }
 
-        
+
         #region 视图动作相关
         /// <summary>
         /// 关闭当前视图，跳转打开指定名称的视图
         /// </summary>
         /// <param name="viewName">待打开的视图</param>
-        public void Skip(string currentViewName,string viewName)
+        public void Skip(string currentViewName, string viewName)
         {
             Close(currentViewName);
             Open(viewName);
@@ -114,15 +114,16 @@ namespace UniVue.View
         /// </summary>
         /// <param name="viewName">视图名称</param>
         /// <param name="top">是否将打开的视图置于同级视图最前方</param>
-        public void Open(string viewName,bool top=true)
+        public void Open(string viewName, bool top = true)
         {
             IView opening = GetView(viewName);
 
-            if (opening == null) {
+            if (opening == null)
+            {
 #if UNITY_EDITOR
                 LogUtil.Warning($"未找到名称为{viewName}的视图进行打开操作，不存在这个名称的视图！");
 #endif
-                return; 
+                return;
             }
 
             //1.检查当前视图是否以及处于打开状态
@@ -171,7 +172,7 @@ namespace UniVue.View
                     for (int i = 0; i < _histories.Count; i++)
                     {
                         IView view = GetView(_histories[i]);
-                        if(view.state && view.level == ViewLevel.System && view.root == opening.root)
+                        if (view.state && view.level == ViewLevel.System && view.root == opening.root)
                         {
                             Close(view.name);
                             break;
@@ -193,7 +194,7 @@ namespace UniVue.View
                     }
                 }
             }
-            
+
             //7.将其设置为最后一个子物体，保证被打开的视图能被显示
             if (top)
             {
@@ -245,7 +246,7 @@ namespace UniVue.View
             if (!closing.state) { return; }
 
             //2.视图级别检查
-            if(closing.level == ViewLevel.Permanent)
+            if (closing.level == ViewLevel.Permanent)
             {
 #if UNITY_EDITOR
                 LogUtil.Warning($"不能关闭一个视图级别为{closing.level}的视图!");
@@ -269,11 +270,11 @@ namespace UniVue.View
             //4.当前关闭的视图是否被其它视图关联，是==> 如果该视图是master，则关闭所有关联了它的视图
             if (closing.isMaster)
             {
-                using(var view = GetAllView().GetEnumerator())
+                using (var view = GetAllView().GetEnumerator())
                 {
                     while (view.MoveNext())
                     {
-                        if(view.Current.master == closing.name)
+                        if (view.Current.master == closing.name)
                         {
                             Close(view.Current.name);
                         }
@@ -300,8 +301,9 @@ namespace UniVue.View
         /// <returns>最新被打开的视图名称</returns>
         public string CurrentOpenedView()
         {
-            if (_histories.Count > 0) {
-                for (int i = _histories.Count-1; i >= 0; i--)
+            if (_histories.Count > 0)
+            {
+                for (int i = _histories.Count - 1; i >= 0; i--)
                 {
                     if (GetView(_histories[i]).state) { return _histories[i]; }
                 }
@@ -352,7 +354,7 @@ namespace UniVue.View
         /// <summary>
         /// 绑定路由事件
         /// </summary>
-        internal void BindRouteEvt(string currentViewName,List<ValueTuple<Component, UIType>> uis)
+        internal void BindRouteEvt(string currentViewName, List<ValueTuple<Component, UIType>> uis)
         {
             for (int i = 0; i < uis.Count; i++)
             {
@@ -389,7 +391,7 @@ namespace UniVue.View
                     }
                     else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Open, out viewName))
                     {
-                        toggle.onValueChanged.AddListener((isOn) => { if (isOn) {  Open(viewName); } });
+                        toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Open(viewName); } });
                     }
                     else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Return, out viewName))
                     {
@@ -397,7 +399,7 @@ namespace UniVue.View
                     }
                     else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Skip, out viewName))
                     {
-                        toggle.onValueChanged.AddListener((isOn) => { if (isOn) {  Skip(currentViewName, viewName); } });
+                        toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Skip(currentViewName, viewName); } });
                     }
                 }
             }

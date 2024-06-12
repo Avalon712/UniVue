@@ -31,11 +31,11 @@ namespace UniVue.ViewModel.Models
             yield return _img as T;
         }
 
-        public override void UpdateUI(int propertyValue){ }
+        public override void UpdateUI(int propertyValue) { }
 
-        public override void UpdateUI(float propertyValue){ }
+        public override void UpdateUI(float propertyValue) { }
 
-        public override void UpdateUI(string propertyValue){ }
+        public override void UpdateUI(string propertyValue) { }
 
         //为null时隐藏显示
         public override void UpdateUI(Sprite propertyValue)

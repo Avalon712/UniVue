@@ -37,13 +37,16 @@ namespace UniVue.Utils
             else if (type == typeof(bool))
             {
                 return BindableType.Bool;
-            }else if(type == typeof(Sprite))
+            }
+            else if (type == typeof(Sprite))
             {
                 return BindableType.Sprite;
-            }else if(type == typeof(List<Sprite>))
+            }
+            else if (type == typeof(List<Sprite>))
             {
                 return BindableType.ListSprite;
-            }else if(type == typeof(List<int>))
+            }
+            else if (type == typeof(List<int>))
             {
                 return BindableType.ListInt;
             }
@@ -60,7 +63,7 @@ namespace UniVue.Utils
                 return BindableType.ListBool;
             }
 
-            if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
             {
                 Type[] types = type.GenericTypeArguments;
                 if (types != null && types.Length == 1)
@@ -71,7 +74,7 @@ namespace UniVue.Utils
 
             return BindableType.None;
         }
-    
+
         /// <summary>
         /// 获取一个枚举类上是否有[Flags]特性
         /// </summary>
@@ -105,9 +108,9 @@ namespace UniVue.Utils
         /// 获取所有注解了[EventCallAttribute]的方法
         /// </summary>
         /// <returns>List<MethodInfo></returns>
-        public static IEnumerable<ValueTuple<MethodInfo,EventCallAttribute>> GetEventCallMethods<T>(T register) where T : IEventRegister
+        public static IEnumerable<ValueTuple<MethodInfo, EventCallAttribute>> GetEventCallMethods<T>(T register) where T : IEventRegister
         {
-            MethodInfo[] methods = register.GetType().GetMethods(BindingFlags.NonPublic|BindingFlags.Public|BindingFlags.Static|BindingFlags.Instance|BindingFlags.DeclaredOnly);
+            MethodInfo[] methods = register.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
             for (int i = 0; i < methods.Length; i++)
             {
@@ -124,7 +127,7 @@ namespace UniVue.Utils
                     }
 
                     ParameterInfo[] parameters = methods[i].GetParameters();
-                    if(parameters != null)
+                    if (parameters != null)
                     {
                         bool flag = false;
                         for (int j = 0; j < parameters.Length; j++)
@@ -145,12 +148,12 @@ namespace UniVue.Utils
             }
 
         }
-    
+
         public static bool IsCustomType(Type type)
         {
             return !type.IsValueType && type != typeof(string);
         }
-      
+
         public static T CreateInstance<T>(Type type)
         {
             return (T)Activator.CreateInstance(type);
@@ -163,7 +166,7 @@ namespace UniVue.Utils
         /// <returns>IEnumerable<AutowireInfo></returns>
         public static IEnumerable<AutowireInfo> GetAutowireInfos(string[] assemblyNames)
         {
-            using(var a = GetAssemblies(assemblyNames).GetEnumerator())
+            using (var a = GetAssemblies(assemblyNames).GetEnumerator())
             {
                 while (a.MoveNext())
                 {
@@ -171,7 +174,7 @@ namespace UniVue.Utils
                     for (int i = 0; i < types.Length; i++)
                     {
                         var attribute = types[i].GetCustomAttribute<EventCallAutowireAttribute>();
-                        if(attribute != null)
+                        if (attribute != null)
                         {
                             if (types[i].GetInterface("IEventRegister") != null)
                             {

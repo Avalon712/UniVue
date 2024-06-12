@@ -25,7 +25,7 @@ namespace UniVue.Utils
                 list.RemoveAt(trialIdx);
             }
         }
-  
+
         /// <summary>
         /// 添加一个元素但是不会使List进行扩容，如果当前Count==Capacity时将会自动删除头元素
         /// 然后再添加元素(会导致数据整体向前移动)
@@ -33,9 +33,10 @@ namespace UniVue.Utils
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
         /// <param name="item"></param>
-        public static void AddButNoOutOfCapacity<T>(List<T> list,T item)
+        public static void AddButNoOutOfCapacity<T>(List<T> list, T item)
         {
-            if(list.Count == list.Capacity){
+            if (list.Count == list.Capacity)
+            {
                 list.RemoveAt(0);
                 list.Add(item);
             }

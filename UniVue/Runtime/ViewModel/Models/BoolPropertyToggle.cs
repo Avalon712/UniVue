@@ -15,7 +15,7 @@ namespace UniVue.ViewModel.Models
         /// </summary>
         private Toggle _toggle;
 
-        public BoolPropertyToggle(Toggle toggle,string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
+        public BoolPropertyToggle(Toggle toggle, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _toggle = toggle;
             if (allowUIUpdateModel)
@@ -41,7 +41,7 @@ namespace UniVue.ViewModel.Models
         public override void Unbind()
         {
             if (_allowUIUpdateModel) { _toggle.onValueChanged.RemoveListener(UpdateModel); }
-            _notifier = null;_propertyName = null; _toggle = null;
+            _notifier = null; _propertyName = null; _toggle = null;
         }
 
         public override void UpdateUI(int propertyValue) { }
@@ -54,7 +54,7 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(bool propertyValue)
         {
-            if(!IsPublisher())
+            if (!IsPublisher())
                 _toggle.isOn = propertyValue;
         }
 

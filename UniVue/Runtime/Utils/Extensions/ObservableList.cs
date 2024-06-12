@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace UniVue.Utils
 {
-    
+
     public sealed class ObservableList<T> : IEnumerable<T>, IObservableList
     {
         private string _debugInfo;          //抛出异常时的调试信息
@@ -32,17 +32,17 @@ namespace UniVue.Utils
         /// <summary>
         /// 当有新数据添加时回调
         /// </summary>
-        private List<ValueTuple<int, Action<object>>>  _adds = new(1);
+        private List<ValueTuple<int, Action<object>>> _adds = new(1);
 
         /// <summary>
         /// 当有元素被移除时回调（arg0: 被移除的元素 arg1: 被移除元素的索引； ）
         /// </summary>
-        private List<ValueTuple<int, Action<object, int>>>  _removes = new(1);
+        private List<ValueTuple<int, Action<object, int>>> _removes = new(1);
 
         /// <summary>
         /// 当元素被替换时回调。arg0是元素的索引；arg1是替换前的元素；arg2是替换后的元素
         /// </summary>
-        private List<ValueTuple<int, Action<int, object, object>>>  _replaces = new(1);
+        private List<ValueTuple<int, Action<int, object, object>>> _replaces = new(1);
 
         public int Capacity
         {
@@ -64,7 +64,7 @@ namespace UniVue.Utils
             _currId = int.MinValue;
         }
 
-        private void Removed(int index,T reomved)
+        private void Removed(int index, T reomved)
         {
             for (int i = 0; i < _removes.Count; i++)
             {
@@ -86,7 +86,7 @@ namespace UniVue.Utils
             Changed(NotificationMode.Add);
         }
 
-        private void Replaced(int index,T r1, T r2)
+        private void Replaced(int index, T r1, T r2)
         {
             for (int i = 0; i < _replaces.Count; i++)
             {

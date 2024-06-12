@@ -10,8 +10,8 @@ namespace UniVue.ViewModel.Models
     /// </summary>
     public sealed class FlagsEnumPropertyToggles : EnumPropertyUI<ValueTuple<Toggle, string>[]>
     {
-        public FlagsEnumPropertyToggles(ValueTuple<Toggle, string>[] ui, Array array,string propertyName, bool allowUIUpdateModel)
-            : base(ui, array,propertyName, allowUIUpdateModel)
+        public FlagsEnumPropertyToggles(ValueTuple<Toggle, string>[] ui, Array array, string propertyName, bool allowUIUpdateModel)
+            : base(ui, array, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel)
             {
@@ -23,7 +23,7 @@ namespace UniVue.ViewModel.Models
         }
 
         //空实现
-        public override void SetActive(bool active)  { }
+        public override void SetActive(bool active) { }
 
         private void UpdateModel(bool isOn)
         {
@@ -50,7 +50,7 @@ namespace UniVue.ViewModel.Models
                 }
             }
         }
-         
+
         public override void Unbind()
         {
             if (_allowUIUpdateModel)

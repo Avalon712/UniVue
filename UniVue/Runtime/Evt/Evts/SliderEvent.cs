@@ -6,7 +6,7 @@ namespace UniVue.Evt.Evts
     {
         private Slider _slider;
 
-        public SliderEvent(string viewName, string eventName,Slider slider) : base(viewName, eventName)
+        public SliderEvent(string viewName, string eventName, Slider slider) : base(viewName, eventName)
         {
             _slider = slider;
             slider.onValueChanged.AddListener(OnValueChanged);

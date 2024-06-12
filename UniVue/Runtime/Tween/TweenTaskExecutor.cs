@@ -20,7 +20,7 @@ namespace UniVue.Tween
             return _executor;
         }
 
-        internal void RemoveTween(ITweenTask tween) 
+        internal void RemoveTween(ITweenTask tween)
         {
             for (int i = 0; i < _tweens.Count; i++)
             {
@@ -30,7 +30,7 @@ namespace UniVue.Tween
                     break;
                 }
             }
-        } 
+        }
 
         internal void AddTween(ITweenTask tween)
         {

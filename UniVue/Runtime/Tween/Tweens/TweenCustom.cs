@@ -13,7 +13,8 @@ namespace UniVue.Tween.Tweens
         /// 参数3是当前pingpong次数
         /// </summary>
         /// <param name="tween">参数是动画已经播放了多长时间</param>
-        public TweenCustom(Action<float,int,int> tween,float duration,TweenEase ease) :base(duration,ease){
+        public TweenCustom(Action<float, int, int> tween, float duration, TweenEase ease) : base(duration, ease)
+        {
             _tween = tween;
         }
 
@@ -26,7 +27,7 @@ namespace UniVue.Tween.Tweens
             _time = (_time += deltaTime) >= _duration ? _duration : _time;
 
             bool executed = _time >= _duration;
-            _tween(_time,_loopNum,_pingPong);
+            _tween(_time, _loopNum, _pingPong);
 
             //检查loop 和 pingpong
             if (executed)

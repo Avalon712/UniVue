@@ -69,7 +69,7 @@ namespace UniVue.ViewModel
 
         internal static PropertyUI DoBuildToggle(string propertyName, Toggle toggle, bool allowUIUpdateModel)
         {
-            return new BoolPropertyToggle(toggle,propertyName, allowUIUpdateModel);
+            return new BoolPropertyToggle(toggle, propertyName, allowUIUpdateModel);
         }
 
         internal static PropertyUI DoBuildSingleChoiceToggles(string propertyName, Type type, List<Toggle> toggles, bool allowUIUpdateModel)
