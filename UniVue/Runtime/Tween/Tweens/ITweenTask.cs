@@ -3,6 +3,8 @@ namespace UniVue.Tween
 {
     public interface ITweenTask
     {
+        public TweenState State { get; }
+
         /// <summary>
         /// 执行缓动
         /// </summary>

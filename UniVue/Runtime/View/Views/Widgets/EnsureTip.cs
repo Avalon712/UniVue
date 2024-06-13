@@ -6,14 +6,13 @@ using UnityEngine.UI;
 
 namespace UniVue.View.Widgets
 {
-    [Serializable]
     public sealed class EnsureTip : Widget
     {
-        [SerializeField] private string _viewName;
-        [SerializeField] private Button _cancelBtn;
-        [SerializeField] private Button _sureBtn;
-        [SerializeField] private TMP_Text _message;
-        [SerializeField] private TMP_Text _title;
+        private string _viewName;
+        private Button _cancelBtn;
+        private Button _sureBtn;
+        private TMP_Text _message;
+        private TMP_Text _title;
 
         public EnsureTip(string viewName, Button cancelBtn, Button sureBtn, TMP_Text message, TMP_Text title)
         {

@@ -14,22 +14,14 @@ namespace UniVue.View.Widgets
     /// List高性能滚动组件
     /// </summary>
     /// <remarks>第一个Item的锚点位置必须为左上角，位置为(0,0,0)，否则位置计算可能会出错</remarks>
-    [Serializable]
     public sealed class LoopList : Widget
     {
-        [SerializeField]
         private Direction _scrollDir;               //滚动方向
-        [SerializeField]
         private int _viewCount;                     //可见的数量
-        [SerializeField]
         private float _distance;                    //相连两个item在滚动方向上的距离
-        [SerializeField]
         private ScrollRect _scrollRect;             //必须的滚动组件
-        [SerializeField]
         private bool _playScrollEffectOnRefresh;    //当刷新视图时是否播放滚动效果
-        [SerializeField]
         private bool _alwaysShowNewestData;         //是否总是显示最新的数据
-        [SerializeField]
         private bool _renderModelOnScroll;          //在进行滚动动画时是否重新绑定模型数据（减少数据重新渲染的开销）
         private List<IBindableModel> _models;       //绑定的数据
         private IObservableList _observer;          //绑定的数据 ---> 不会产生数据冗余
@@ -262,7 +254,6 @@ namespace UniVue.View.Widgets
                 else
                     startPos.x = (_head * deltaPos).x * flag;
 
-                //减一的原因是为了减少偏差
                 Vector3 sumDeltaPos = (index - _head) * deltaPos * flag;
                 Vector3 endPos = startPos + sumDeltaPos;
 
@@ -473,14 +464,14 @@ namespace UniVue.View.Widgets
             Vector3[] viewportCorners = new Vector3[4];
 
             ScrollRect scrollRect = _scrollRect;
-
+            RectTransform viewport = scrollRect.viewport;
+            Transform content = scrollRect.content;
             if (_scrollDir == Direction.Vertical)
             {
                 scrollRect.onValueChanged.AddListener((v2) =>
                 {
                     //计算出视口区域的四个角
-                    scrollRect.GetComponent<RectTransform>().GetWorldCorners(viewportCorners);
-                    Transform content = scrollRect.content;
+                    viewport.GetWorldCorners(viewportCorners);
                     content.GetChild(0).GetComponent<RectTransform>().GetWorldCorners(corners0);
                     content.GetChild(content.childCount - 2).GetComponent<RectTransform>().GetWorldCorners(corners1);
                     //只需监听第一个和倒数第二个
@@ -492,8 +483,7 @@ namespace UniVue.View.Widgets
                 scrollRect.onValueChanged.AddListener((v2) =>
                 {
                     //计算出视口区域的四个角
-                    scrollRect.GetComponent<RectTransform>().GetWorldCorners(viewportCorners);
-                    Transform content = scrollRect.content;
+                    viewport.GetWorldCorners(viewportCorners);
                     content.GetChild(0).GetComponent<RectTransform>().GetWorldCorners(corners0);
                     content.GetChild(content.childCount - 2).GetComponent<RectTransform>().GetWorldCorners(corners1);
                     //只需监听第一个和倒数第二个

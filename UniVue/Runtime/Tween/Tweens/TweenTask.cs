@@ -4,14 +4,14 @@ namespace UniVue.Tween.Tweens
 {
     public abstract class TweenTask : ITweenTask
     {
-        protected TweenState _state = TweenState.Idel; //动画状态
-        protected TweenEase _ease = TweenEase.Linear; //缓动曲线
-        protected float _time; //当前动画时间
-        protected float _delay;//延迟时间
-        protected int _loopNum;//循环次数
-        protected int _pingPong; //回合次数
-        protected float _duration; //持续时间
-        protected Action _OnComplete; //回调函数
+        protected TweenState _state = TweenState.Idel;  //动画状态
+        protected TweenEase _ease = TweenEase.Linear;   //缓动曲线
+        protected float _time;                          //当前动画时间
+        protected float _delay;                         //延迟时间
+        protected int _loopNum;                         //循环次数
+        protected int _pingPong;                        //回合次数
+        protected float _duration;                      //持续时间
+        protected Action _OnComplete;                   //回调函数
 
         public TweenState State => _state;
 
@@ -35,7 +35,11 @@ namespace UniVue.Tween.Tweens
             return previous;
         }
 
-        protected TweenTask() { TweenTaskExecutor.GetExecutor().AddTween(this); }
+        protected TweenTask()
+        { 
+            TweenTaskExecutor.GetExecutor().AddTween(this);
+            _state = TweenState.Playing;
+        }
 
         public TweenTask(float duration, TweenEase ease) : this()
         {
@@ -44,7 +48,7 @@ namespace UniVue.Tween.Tweens
 
         public TweenTask Call(Action callback)
         {
-            _OnComplete += callback;
+            _OnComplete = _OnComplete == null ? callback : _OnComplete + callback;
             return this;
         }
 
@@ -67,12 +71,9 @@ namespace UniVue.Tween.Tweens
         public void Kill(bool isExecuteCall = false)
         {
             if (_OnComplete != null && isExecuteCall) { _OnComplete(); }
-
-            if (_state == TweenState.Playing)
-            {
-                TweenTaskExecutor.GetExecutor().RemoveTween(this);
-                Reset();
-            }
+            _state = TweenState.Idel;
+            TweenTaskExecutor.GetExecutor().RemoveTween(this);
+            Reset();
         }
 
         /// <summary>
@@ -103,10 +104,7 @@ namespace UniVue.Tween.Tweens
         /// </summary>
         public void Pause()
         {
-            if (_state == TweenState.Playing)
-            {
-                TweenTaskExecutor.GetExecutor().RemoveTween(this);
-            }
+            _state = TweenState.Paused;
         }
 
         /// <summary>
@@ -114,10 +112,7 @@ namespace UniVue.Tween.Tweens
         /// </summary>
         public void Play()
         {
-            if (_state == TweenState.Paused)
-            {
-                TweenTaskExecutor.GetExecutor().AddTween(this);
-            }
+            _state = TweenState.Playing;
         }
 
         /// <summary>
@@ -129,6 +124,7 @@ namespace UniVue.Tween.Tweens
             _state = TweenState.Idel;
             _ease = TweenEase.Linear;
             next = null;
+            _OnComplete = null;
         }
     }
 }

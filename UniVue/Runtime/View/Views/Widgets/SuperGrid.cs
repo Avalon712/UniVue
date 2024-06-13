@@ -12,10 +12,8 @@ namespace UniVue.View.Widgets
     /// 对GridWidget的功能进行增强，支持对元素的拖拽、交换；
     /// 以及两个或多个SuperGridWidget之间的元素互换、添加等操作（前提是绑定的数据类型是一致的）
     /// </summary>
-    [Serializable]
     public sealed class SuperGrid : Widget
     {
-        [SerializeField]
         private LoopGrid _grid;
         private GridGroup _group;           //当前SuperGridWidget所属组
         private DraggableItem[] _items;     //当前SuperGridWidget所有的可拖拽元素

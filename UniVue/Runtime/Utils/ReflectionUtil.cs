@@ -4,7 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UniVue.Evt;
 using UniVue.Evt.Attr;
-using UniVue.ViewModel.Attr;
+using UniVue.ViewModel;
 using UniVue.ViewModel.Models;
 
 namespace UniVue.Utils

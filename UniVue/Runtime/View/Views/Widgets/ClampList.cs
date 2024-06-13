@@ -8,11 +8,9 @@ using UniVue.View.Views;
 
 namespace UniVue.View.Widgets
 {
-    [Serializable]
     public sealed class ClampList : Widget
     {
         private List<IBindableModel> _models;
-        [SerializeField]
         private Transform _content;
 
         /// <summary>

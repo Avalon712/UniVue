@@ -1,21 +1,18 @@
-﻿using System;
-using TMPro;
-using UnityEngine;
+﻿using TMPro;
 
 namespace UniVue.View.Widgets
 {
-    [Serializable]
     public sealed class Tip : Widget
     {
         /// <summary>
         /// 获取用于显示提示文本的内容的TMP_Text的UI组件
         /// </summary>
-        [SerializeField] private TMP_Text _content;
+        private TMP_Text _content;
 
         /// <summary>
         /// 视图名称
         /// </summary>
-        [SerializeField] private string _name;
+        private string _name;
 
         public Tip(string viewName, TMP_Text content)
         {

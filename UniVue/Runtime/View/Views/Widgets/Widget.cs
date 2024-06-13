@@ -7,12 +7,6 @@ namespace UniVue.View.Widgets
     public abstract class Widget
     {
         /// <summary>
-        /// Unity序列化接口
-        /// </summary>
-        /// <remarks>请不要使用此构造函数</remarks>
-        public Widget() { }
-
-        /// <summary>
         /// 销毁组件
         /// </summary>
         public abstract void Destroy();

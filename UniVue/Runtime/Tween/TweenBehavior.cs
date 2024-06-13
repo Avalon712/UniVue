@@ -24,6 +24,13 @@ namespace UniVue.Tween
             return TweenTimer.CreateTimer(timerTask);
         }
 
+        public static TweenTask DoAnchorMove(RectTransform transform, float duration, Vector3 end, TweenEase ease = TweenEase.Linear)
+        {
+            TweenAnchorMove tween = new TweenAnchorMove(duration, ease);
+            tween.Move(transform, end);
+            return tween;
+        }
+
         public static TweenTask DoMove(Transform transform, float duration, Vector3 end, TweenEase ease = TweenEase.Linear)
         {
             TweenMove tween = new TweenMove(duration, ease);

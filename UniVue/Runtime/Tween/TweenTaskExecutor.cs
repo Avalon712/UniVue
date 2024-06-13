@@ -41,13 +41,20 @@ namespace UniVue.Tween
         {
             if (_tweens.Count > 0)
             {
+                //这一步是为了防止有动画在执行期间将另外一个动画给Kill()掉了从而导致这儿尾删除会出异常
+                int version = _tweens.Count;
                 for (int i = 0; i < _tweens.Count; i++)
                 {
-                    if (_tweens[i].Execute(Time.deltaTime))
+                    ITweenTask task = _tweens[i];
+                    if (task.State == TweenState.Playing && task.Execute(Time.deltaTime))
                     {
-                        _tweens[i].Reset();
-                        ListUtil.TrailDelete(_tweens, i--);
+                        task.Reset();
+                        if (version == _tweens.Count)
+                            ListUtil.TrailDelete(_tweens, i--);
+                        else
+                            _tweens.Remove(task);
                     }
+                    version = _tweens.Count;
                 }
             }
         }

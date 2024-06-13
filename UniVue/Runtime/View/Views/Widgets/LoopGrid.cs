@@ -14,24 +14,15 @@ namespace UniVue.View.Widgets
     /// Grid高性能滚动组件，轻松实现任何背包等网格组件
     /// </summary>
     /// <remarks>第一个Item的锚点位置必须为左上角，位置为(0,0,0)，否则位置计算可能会出错</remarks>
-    [Serializable]
     public sealed class LoopGrid : Widget
     {
-        [SerializeField]
         private Direction _scrollDir;               //只能选Vertical（垂直）、Horizontal（水平）
-        [SerializeField]
         private ScrollRect _scrollRect;             //必须的ScrollRect组件
-        [SerializeField]
         private int _rows;                          //网格可见的视图行数(实际的行数=可见的行数+1)
-        [SerializeField]
         private int _cols;                          //网格可见的视图列数(实际的列数=可见的列数+1)
-        [SerializeField]
         private float _x;                           //leftItemPos.x+x=rightItemPos.x
-        [SerializeField]
         private float _y;                           //upItemPos.y+y=downItemPos.y
-        [SerializeField]
         private bool _playScrollEffectOnRefresh;    //当刷新视图时是否播放滚动效果
-        [SerializeField]
         private bool _renderModelOnScroll;          //在进行滚动动画时是否重新绑定模型数据（减少数据重新渲染的开销）
         private List<IBindableModel> _models;       //获取绑定的模型数据
         private IObservableList _observer;          //IObservableList模式
@@ -458,6 +449,9 @@ namespace UniVue.View.Widgets
             Vector3[] corners1 = new Vector3[4];
             Vector3[] viewportCorners = new Vector3[4];
 
+            RectTransform viewport = _scrollRect.viewport;
+            Transform content = _scrollRect.content;
+
             if (_scrollDir == Direction.Vertical)
             {
                 int lastRowFirstIdx = _rows * _cols; //最后一行的第一个索引
@@ -465,12 +459,11 @@ namespace UniVue.View.Widgets
 
                 _scrollRect.onValueChanged.AddListener((v2) =>
                 {
-                    Transform content = _scrollRect.content;
+                    //5.计算可视域的边界
+                    viewport.GetWorldCorners(viewportCorners);
                     content.GetChild(0).GetComponent<RectTransform>().GetWorldCorners(corners0);
                     content.GetChild(lastFirst).GetComponent<RectTransform>().GetWorldCorners(corners1);
-                    //5.计算可视域的边界
-                    _scrollRect.GetComponent<RectTransform>().GetWorldCorners(viewportCorners);
-
+                    
                     //监听第一行的第一个以及倒数第二行的第一个
                     if (corners0[0].y > viewportCorners[1].y && _tail > _head)
                     {
@@ -489,11 +482,11 @@ namespace UniVue.View.Widgets
 
                 _scrollRect.onValueChanged.AddListener((v2) =>
                 {
-                    Transform content = _scrollRect.content;
+                    //5.计算可视域的边界
+                    viewport.GetWorldCorners(viewportCorners);
                     content.GetChild(0).GetComponent<RectTransform>().GetWorldCorners(corners0);
                     content.GetChild(lastFirst).GetComponent<RectTransform>().GetWorldCorners(corners1);
-                    //5.计算可视域的边界
-                    _scrollRect.GetComponent<RectTransform>().GetWorldCorners(viewportCorners);
+                    
                     //监听第一列的第一个和倒数第二列的第一个
                     if (corners0[2].x < viewportCorners[1].x && _tail > _head)
                     {

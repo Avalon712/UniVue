@@ -4,9 +4,9 @@ namespace UniVue.Tween.Tweens
 {
     public sealed class TweenTimer : TweenTask
     {
-        private float _interval;// 每多少秒执行一次
-        private int _executeNum = 1;// 执行多少次，默认执行一次
-        private bool _perFrameExecute; //是否每帧执行
+        private float _interval;        // 每多少秒执行一次
+        private int _executeNum = 1;    // 执行多少次，默认执行一次
+        private bool _perFrameExecute;  //是否每帧执行
 
         private event Action _tasks; //定时任务
 
@@ -23,6 +23,7 @@ namespace UniVue.Tween.Tweens
         /// <summary>
         /// 是否每帧执行
         /// </summary>
+        /// <remarks>当指定为每帧执行后其它设置均会失效，此时你可能需要手动调用Kill()函数来停止调用</remarks>
         /// <param name="perFrameExecute"></param>
         /// <returns></returns>
         public TweenTimer PerFrameExecute(bool perFrameExecute)
@@ -30,6 +31,7 @@ namespace UniVue.Tween.Tweens
             _perFrameExecute = perFrameExecute;
             return this;
         }
+
 
         /// <summary>
         /// 执行多少次
@@ -75,24 +77,31 @@ namespace UniVue.Tween.Tweens
 
         public override bool Execute(float deltaTime)
         {
-            //计算延迟 或 间隔
-            if (_delay > 0) { _delay -= deltaTime; return false; }
-
-            if (!_perFrameExecute) { _delay = _interval; }
-
-            _tasks();
-            if (--_executeNum == 0)
+            if (_perFrameExecute)
+                _tasks();
+            else
             {
-                //将下一个序列动画进行播放
-                if (next != null) { next.Play(); }
-                return true;
-            }
+                //计算延迟 或 间隔
+                if (_delay > 0) { _delay -= deltaTime; return false; }
 
+                if (!_perFrameExecute)
+                    _delay = _interval;
+
+                _tasks();
+
+                if (--_executeNum <= 0)
+                {
+                    //将下一个序列动画进行播放
+                    if (next != null) { next.Play(); }
+                    return true;
+                }
+            }
             return false;
         }
 
         public override void Reset()
         {
+            base.Reset();
             _tasks = null;
             _interval = _delay = 0;
             _executeNum = 1;
