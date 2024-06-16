@@ -34,7 +34,7 @@ namespace UniVue.Tween.Tweens
             _pos.y = TweenComputer.Compute(_ease, _time, _duration, _startPos.y, _endPos.y - _startPos.y);
             _pos.z = TweenComputer.Compute(_ease, _time, _duration, _startPos.z, _endPos.z - _startPos.z);
 
-            _transform.anchoredPosition = _pos; 
+            _transform.anchoredPosition = _pos;
 
             //检查loop 和 pingpong
             if (executed)
@@ -42,7 +42,7 @@ namespace UniVue.Tween.Tweens
                 if (_loopNum > 0 && _pingPong <= 0)
                 {
                     --_loopNum;
-                    _transform.anchoredPosition = _startPos; 
+                    _transform.anchoredPosition = _startPos;
                     executed = false;
                 }
                 else if (_pingPong > 0 && _loopNum <= 0)

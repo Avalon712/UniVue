@@ -62,13 +62,13 @@ namespace UniVue.View.Config
         public ViewConfig[] nestedViews;
 
 
-        internal virtual IView CreateView(GameObject viewObject) 
+        internal virtual IView CreateView(GameObject viewObject)
         {
             ViewUtil.SetActive(viewObject, initState);
 
             var view = new BaseView(viewObject, viewName, level);
             BaseSettings(view);
-           
+
             return view;
         }
 
@@ -86,7 +86,7 @@ namespace UniVue.View.Config
             view.openTween = openTween;
             view.openDuration = openDuration;
             view.closeTween = closeTween;
-            view.closeDuration = closeDuration; 
+            view.closeDuration = closeDuration;
             //拖拽设置
             view.SetDraggable(_dragInputConfigs);
         }

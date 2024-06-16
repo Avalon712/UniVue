@@ -42,11 +42,6 @@ namespace UniVue.View.Widgets
         public int Count => _count;
 
         /// <summary>
-        /// 为Unity序列化提供接口
-        /// </summary>
-        public Carousel() { }
-
-        /// <summary>
         /// 手动创建组件
         /// </summary>
         /// <remarks>Content下的GameObject将作为每个滚动页，同时默认显示的是第零页</remarks>
@@ -75,7 +70,7 @@ namespace UniVue.View.Widgets
         /// <remarks>索引就代表其对应的页码</remarks>
         /// <param name="navigators">导航器</param>
         /// <param name="interactive">是否允许通过导航栏设置当前显示的页</param>
-        public void UseNavigators(Toggle[] navigators, bool interactive=true)
+        public void UseNavigators(Toggle[] navigators, bool interactive = true)
         {
             CheckCount(navigators.Length);
             _navigator = new ToggleNavigator(ScrollTo, navigators, interactive);
@@ -134,12 +129,12 @@ namespace UniVue.View.Widgets
 
             Vector3 startPos = _content.anchoredPosition;
             startPos.x = ((int)(startPos.x / _deltaPos.x)) * _deltaPos.x;
-            
+
             Vector3 sumDeltaPos;
             //从最后一页滚动到第一页或从第一页滚动到最后一页时需要特殊处理
             if (_currPage == 0 && pageNumber == Count - 1)
                 sumDeltaPos = _deltaPos;
-            else if(_currPage == Count - 1 && pageNumber == 0)
+            else if (_currPage == Count - 1 && pageNumber == 0)
                 sumDeltaPos = -1 * _deltaPos;
             else
                 sumDeltaPos = (_currPage - pageNumber) * _deltaPos;
@@ -166,7 +161,7 @@ namespace UniVue.View.Widgets
 
             TweenTask onPosChanged = TweenBehavior.Timer(OnPositionChanged).Interval(interval).ExecuteNum(executeNum);
             _scrollTween = TweenBehavior.DoAnchorMove(_content, duration, endPos)
-                .Call(() => 
+                .Call(() =>
                 {
                     onPosChanged.Kill(); //杀死位置改变函数
                     _timer.Play(); //恢复定时器
@@ -183,7 +178,7 @@ namespace UniVue.View.Widgets
         {
             DragInput input = _viewport.GetComponent<DragInput>();
             if (input == null)
-               input = _viewport.gameObject.AddComponent<DragInput>();
+                input = _viewport.gameObject.AddComponent<DragInput>();
 
             input.Draggable = false; //不允许拖拽
             Vector2 start = Vector2.zero;
@@ -333,7 +328,7 @@ namespace UniVue.View.Widgets
         {
             ToggleGroup group = states[0].group;
             bool threw = group == null;
-            
+
             for (int i = 0; i < states.Length && !threw; i++)
                 threw = ReferenceEquals(states[i], group);
 

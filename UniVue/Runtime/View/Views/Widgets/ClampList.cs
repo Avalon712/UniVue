@@ -18,7 +18,6 @@ namespace UniVue.View.Widgets
         /// </summary>
         public Transform Content => _content;
 
-        public ClampList() { }
 
         public ClampList(Transform content)
         {

@@ -6,6 +6,8 @@ namespace UniVue.View.Widgets
     /// </summary>
     public abstract class Widget
     {
+        protected Widget() { }
+
         /// <summary>
         /// 销毁组件
         /// </summary>

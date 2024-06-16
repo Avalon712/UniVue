@@ -36,7 +36,7 @@ namespace UniVue.View.Views
         /// <summary>
         /// 当前视图是否是属主视图
         /// </summary>
-        bool isMaster { get;}
+        bool isMaster { get; }
 
         /// <summary>
         /// 获取当前嵌套视图的根视图名称

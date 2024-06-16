@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UniVue.Input;
 using UniVue.Model;
+using UniVue.Utils;
 
 namespace UniVue.View.Widgets
 {
@@ -15,12 +16,72 @@ namespace UniVue.View.Widgets
     public sealed class SuperGrid : Widget
     {
         private LoopGrid _grid;
-        private GridGroup _group;           //当前SuperGridWidget所属组
-        private DraggableItem[] _items;     //当前SuperGridWidget所有的可拖拽元素
+        private GridGroup _group;                                    //当前SuperGrid所属组
+        private Dictionary<RectTransform, DraggableItem> _items;     //key=Item、value=此时绑定的数据的索引
 
         public SuperGrid(LoopGrid grid)
         {
             _grid = grid;
+            grid.OnRebind += OnRebind;
+        }
+
+        internal LoopGrid Grid => _grid;
+
+        /// <summary>
+        /// 获取当前所加入的组
+        /// </summary>
+        /// <returns>GridGroup</returns>
+        public GridGroup Group => _group;
+
+        /// <summary>
+        /// 获取ScrollRect组件
+        /// </summary>
+        public ScrollRect ScrollRect => _grid.ScrollRect;
+
+
+        /// <summary>
+        /// 更新Item绑定的模型数据的索引
+        /// </summary>
+        internal void OnRebind(RectTransform item, int dataIndex)
+        {
+            _items[item].DataIndex = dataIndex;
+        }
+
+        /// <summary>
+        /// 获得距离target位置最近的那个Item
+        /// </summary>
+        internal DraggableItem GetItem(RectTransform target)
+        {
+            DraggableItem min = null;
+            float distance = 99999;
+
+            Vector3 worldPos = target.position;
+            foreach (var item in _items.Keys)
+            {
+                if (item == target) { continue; }
+
+                float d = Vector3.Distance(worldPos, item.position);
+                if (d < distance)
+                {
+                    min = _items[item];
+                    distance = d;
+                }
+            }
+            return min;
+        }
+
+
+        internal int GetSiblingIndex(RectTransform item)
+        {
+            Transform content = ScrollRect.content;
+            for (int i = 0; i < content.childCount; i++)
+            {
+                if (content.GetChild(i) == item)
+                {
+                    return i;
+                }
+            }
+            return -1;
         }
 
         /// <summary>
@@ -43,125 +104,7 @@ namespace UniVue.View.Widgets
             _group = null;
         }
 
-        /// <summary>
-        /// 获取当前所加入的组
-        /// </summary>
-        /// <returns>GridGroup</returns>
-        public GridGroup GetGroup() => _group;
-
-        /// <summary>
-        /// 将replaced元素替换为target元素
-        /// </summary>
-        /// <remarks>注意：出来交换元素外还会将两个元素绑定的数据也会在两个SuperGridWidget之间进行交换</remarks>
-        /// <param name="replaced">即将被替换的元素元素</param>
-        /// <param name="target">替代replaced的目标元素</param>
-        /// <param name="targetPos">target在没有进行拖拽前的目标位置</param>
-        /// <param name="targetOfGrid">目标元素所属的SuperGridWidget</param>
-        internal void Swap(Transform replaced, Transform target, Vector3 targetPos, SuperGrid targetOfGrid)
-        {
-            //如果当前交换的元素属于同一个SuperGridWidget --> 只交换数据然后重新渲染数据
-            if (ReferenceEquals(this, targetOfGrid))
-            {
-                int rIndex = GetDataIndex(replaced);
-                int tIndex = GetDataIndex(target);
-                _grid.SwapData(rIndex, tIndex);
-                Vue.Router.GetView(replaced.name).RebindModel(_grid.GetData(tIndex));
-                Vue.Router.GetView(replaced.name).RebindModel(_grid.GetData(rIndex));
-            }
-            //即交换位置又要交换数据的清空
-            else if (replaced != null)
-            {
-                Vector3 replacePos = replaced.localPosition;
-                int rIndex = GetDataIndex(replaced);
-                int tIndex = targetOfGrid.GetDataIndex(target);
-                IBindableModel replacedModel = _grid.GetData(rIndex);
-                IBindableModel targetModel = targetOfGrid.GetData(tIndex);
-
-                //交换位置
-                replaced.SetParent(targetOfGrid.ScrollRect.content);
-                replaced.localPosition = targetPos;
-                target.SetParent(ScrollRect.content);
-                target.localPosition = replacePos;
-                //交换数据
-                Replace(rIndex, targetModel);
-                targetOfGrid.Replace(tIndex, replacedModel);
-            }
-            //当replaced为null时说明是将一个Item数据放到当前GridWidget中
-            else
-            {
-                int tIndex = targetOfGrid.GetDataIndex(target);
-                IBindableModel targetModel = targetOfGrid.GetData(tIndex);
-                targetOfGrid.RemoveData(targetModel);
-                AddData(targetModel);
-            }
-
-            //刷新Item
-            RefreshItems();
-            if (!ReferenceEquals(this, targetOfGrid))
-                targetOfGrid.RefreshItems();
-        }
-
-        /// <summary>
-        /// 获取指定索引的数据
-        /// </summary>
-        internal IBindableModel GetData(int index) => _grid.GetData(index);
-
-        /// <summary>
-        /// 将指定的索引的数据替换为目标数据
-        /// </summary>
-        internal void Replace(int replacedIndex, IBindableModel newModel) => _grid.Replace(replacedIndex, newModel);
-
-        /// <summary>
-        /// 通过一个位置获得距离此pos位置最近的那个Item
-        /// </summary>
-        /// <param name="worldPos">被拖拽元素在世界空间下的位置</param>
-        internal DraggableItem GetItem(Vector3 worldPos)
-        {
-            DraggableItem min = null;
-            float distance = 99999;
-            //float checkDistance = 10f; //设置一个最小检查的距离
-            for (int i = 0; i < _items.Length; i++)
-            {
-                RectTransform trans = _items[i].Target.GetComponent<RectTransform>();
-                float d = Vector3.Distance(worldPos, trans.position);
-                if (d < distance) { min = _items[i]; distance = d; }
-            }
-            return min;
-        }
-
-        /// <summary>
-        /// 刷新元素（当进行元素进行交换之后都需要调用此函数）
-        /// </summary>
-        internal void RefreshItems()
-        {
-            Transform content = _grid.ScrollRect.content;
-            for (int i = 0; i < content.childCount; i++)
-            {
-                _items[i].Target = content.GetChild(i);
-                _items[i].BelongsToGrid = this;
-            }
-        }
-
-        /// <summary>
-        /// 获取ScrollRect组件
-        /// </summary>
-        public ScrollRect ScrollRect => _grid.ScrollRect;
-
-        /// <summary>
-        /// 获取Item上绑定的数据的索引
-        /// </summary>
-        private int GetDataIndex(Transform item)
-        {
-            Transform content = _grid.ScrollRect.content;
-            int headPtr = _grid.Head;
-            for (int i = 0; i < content.childCount; i++)
-            {
-                if (item == content.GetChild(i)) { return headPtr; }
-                headPtr++;
-            }
-
-            throw new Exception($"未找到{item.name}所绑定数据的索引");
-        }
+        #region 对LoopGrid中的方法进行装饰
 
         /// <summary>
         /// 重新绑定数据
@@ -181,20 +124,22 @@ namespace UniVue.View.Widgets
         public void BindData<T>(List<T> data) where T : IBindableModel
         {
             _grid.BindList(data);
+
             //为每个Item挂载上DragInput组件
             Transform content = _grid.ScrollRect.content;
-            _items = new DraggableItem[content.childCount];
+            _items = new Dictionary<RectTransform, DraggableItem>(content.childCount);
             for (int i = 0; i < content.childCount; i++)
             {
-                Transform item = content.GetChild(i);
-                var input = item.gameObject.AddComponent<DragInput>();
-                DraggableItem draggableItem = new() { Target = item, BelongsToGrid = this };
+                RectTransform item = content.GetChild(i) as RectTransform;
+                DragInput input = item.gameObject.AddComponent<DragInput>();
+                DraggableItem draggableItem = new() { Target = item, Owner = this };
                 input.onBeginDrag += draggableItem.OnBeginDrag;
-                input.onDrag += draggableItem.OnDrag;
                 input.onEndDrag += draggableItem.OnEndDrag;
-                _items[i] = draggableItem;
+                draggableItem.DataIndex = i;
+                _items.Add(item, draggableItem);
             }
         }
+
 
         /// <summary>
         /// 排序，本质上是对数据进行排序
@@ -225,9 +170,9 @@ namespace UniVue.View.Widgets
         /// <summary>
         /// 视图刷新
         /// </summary>
-        public void Refresh()
+        public void Refresh(bool force = false)
         {
-            _grid.Refresh();
+            _grid.Refresh(force);
         }
 
         /// <summary>
@@ -242,20 +187,21 @@ namespace UniVue.View.Widgets
         {
             _grid.Destroy();
             _grid = null;
-            for (int i = 0; i < _items.Length; i++)
-            {
-                _items[i] = null;
-            }
+            _items.Clear();
             _items = null;
             _group?.Remove(this);
             _group = null;
         }
+        #endregion
     }
 
+    /// <summary>
+    /// 在一组的格子应该保证其数据类型是一致的
+    /// </summary>
+    /// <remarks>拖拽交换时的本质其实只有数据在交换</remarks>
     public sealed class GridGroup
     {
         private List<SuperGrid> _grids;
-        private List<Vector3[]> _corners;
 
         /// <summary>
         /// 当前正在被拖拽的元素
@@ -270,29 +216,77 @@ namespace UniVue.View.Widgets
         public GridGroup(int memberCount = 2)
         {
             _grids = new(memberCount);
-            _corners = new(memberCount);
         }
 
-        internal void Check(Vector3 worldPos)
+        /// <summary>
+        /// 将拖拽元素与当前网格的元素进行互换
+        /// </summary>
+        /// <remarks>注意：出来交换元素外还会将两个元素绑定的数据也会在两个SuperGrid之间进行交换</remarks>
+        /// <param name="noDragged">当前网格中没有被拖拽的元素</param>
+        /// <param name="dragged">正在被拖拽的元素</param>
+        internal void Swap(DraggableItem noDragged, DraggableItem dragged)
         {
+            SuperGrid noDraggedGrid = noDragged.Owner;
+            SuperGrid draggedGrid = dragged.Owner;
+            IBindableModel noDraggedModel = noDraggedGrid.Grid.GetData(noDragged.DataIndex);
+            IBindableModel draggedModel = draggedGrid.Grid.GetData(dragged.DataIndex);
+
+            //Debug.Log($"Dragged=(index={dragged.DataIndex} value={((AtomModel<int>)draggedModel).Value}], noDragged=[index={noDragged.DataIndex}, value={((AtomModel<int>)noDraggedModel).Value}]");
+
+            //当放置拖拽元素的地方是一个空位，则只需要传递数据而不做交换
+            if (!noDragged.Target.gameObject.activeSelf)
+            {
+                //直接在尾巴位置放入数据
+                draggedGrid.Grid.RemoveData(dragged.DataIndex);
+                noDraggedGrid.AddData(draggedModel);
+                noDragged.Target.gameObject.SetActive(true);
+                Vue.Router.GetView(noDragged.Target.name).BindModel(draggedModel, true, dragged.Target.name, true);
+                dragged.Target.gameObject.SetActive(false);
+            }
+            else
+            {
+                //交换数据
+                noDraggedGrid.Grid.SetData(noDragged.DataIndex, draggedModel);
+                draggedGrid.Grid.SetData(dragged.DataIndex, noDraggedModel);
+
+                //重新绑定数据
+                Vue.Router.GetView(dragged.Target.name).BindModel(noDraggedModel, true, noDragged.Target.name, true);
+                Vue.Router.GetView(noDragged.Target.name).BindModel(draggedModel, true, dragged.Target.name, true);
+
+                //刷新数据
+                noDraggedModel.NotifyAll();
+                draggedModel.NotifyAll();
+            }
+        }
+
+        /// <summary>
+        /// 要求Item必须完全进入到格子中去
+        /// </summary>
+        internal bool DropWhere(RectTransform item)
+        {
+            Vector3[] gridCorners = new Vector3[4];
+            Vector3[] itemCorners = new Vector3[4];
+
+            item.GetWorldCorners(itemCorners);
+
             for (int i = 0; i < _grids.Count; i++)
             {
                 ScrollRect scrollRect = _grids[i].ScrollRect;
                 //顺时针方向，左下角为索引0的位置
-                scrollRect.GetComponent<RectTransform>().GetWorldCorners(_corners[i]);
-                if (_corners[i][0].y <= worldPos.y && worldPos.y <= _corners[i][1].y &&
-                    _corners[i][0].x <= worldPos.x && worldPos.x <= _corners[i][3].x)
+                scrollRect.GetComponent<RectTransform>().GetWorldCorners(gridCorners);
+                if (gridCorners[0].x < itemCorners[0].x && gridCorners[0].y < itemCorners[0].y
+                    && gridCorners[2].x > itemCorners[2].x && gridCorners[2].y > itemCorners[2].y)
                 {
                     CurrentEnteredGrid = _grids[i];
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         internal void Add(SuperGrid grid)
         {
             _grids.Add(grid);
-            if (_corners.Count < _grids.Count) { _corners.Add(new Vector3[4]); }
         }
 
         internal void Remove(SuperGrid remove)
@@ -325,41 +319,65 @@ namespace UniVue.View.Widgets
     internal class DraggableItem
     {
         /// <summary>
-        /// 获取当前拖拽元素所属的
+        /// 获取当前拖拽元素所属的格子
         /// </summary>
-        public SuperGrid BelongsToGrid { get; set; }
+        public SuperGrid Owner { get; set; }
 
         /// <summary>
         /// 当前可拖拽元素的Transform对象
         /// </summary>
-        public Transform Target { get; set; }
+        public RectTransform Target { get; set; }
 
         /// <summary>
         /// 当前被拖拽元素最初在SuperGridWidget这的位置
         /// </summary>
-        public Vector3 TargetPos { get; set; }
+        public Vector3 OriginalPos { get; private set; }
+
+        /// <summary>
+        /// 当前元素在Content下的第几个
+        /// </summary>
+        public int SiblingIndex { get; set; }
+
+        /// <summary>
+        /// 绑定的数据的索引
+        /// </summary>
+        public int DataIndex { get; set; }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            TargetPos = Target.localPosition;
-            GridGroup group = BelongsToGrid.GetGroup();
+            OriginalPos = Target.anchoredPosition;
+            GridGroup group = Owner.Group;
             group.CurrentDraggedItem = this;
-            group.CurrentEnteredGrid = BelongsToGrid;
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            BelongsToGrid.GetGroup().Check(eventData.pointerCurrentRaycast.worldPosition);
+            group.CurrentEnteredGrid = Owner;
+            SiblingIndex = Owner.GetSiblingIndex(Target);
+            //将当前被拖拽的元素设置为Canvas下的物体，这样总能被看见
+            RectTransform canvas = ComponentFindUtil.LookUpFindComponent<Canvas>(Target.gameObject).transform as RectTransform;
+            Target.SetParent(canvas);
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            GridGroup group = BelongsToGrid.GetGroup();
-            group.CurrentEnteredGrid.Swap(
-                group.CurrentEnteredGrid.GetItem(Target.GetComponent<RectTransform>().position)?.Target,
-                Target, TargetPos, BelongsToGrid);
-            group.CurrentDraggedItem = null;
-            group.CurrentEnteredGrid = null;
+            GridGroup group = Owner.Group;
+
+            //计算当前拖拽元素落入了哪个格子中
+            if (group.DropWhere(Target))
+            {
+                DraggableItem noDraggedItem = group.CurrentEnteredGrid.GetItem(Target);
+                group.Swap(noDraggedItem, this);
+            }
+            ToOriginalPos();
         }
+
+        /// <summary>
+        /// 回到开始的位置
+        /// </summary>
+        public void ToOriginalPos()
+        {
+            Target.SetParent(Owner.ScrollRect.content);
+            Target.SetSiblingIndex(SiblingIndex);
+            Target.anchoredPosition = OriginalPos;
+        }
+
+
     }
 }

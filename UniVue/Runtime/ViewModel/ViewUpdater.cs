@@ -23,6 +23,8 @@ namespace UniVue.ViewModel
 
         internal List<UIBundle> Bundles => _bundles;
 
+        internal VMTable Table { get; private set; }
+
         /// <summary>
         /// 双向绑定
         /// </summary>
@@ -32,7 +34,7 @@ namespace UniVue.ViewModel
 
             if (bundle != null)
             {
-                _bundles.Add(bundle);
+                AddBundle(bundle);
             }
 #if UNITY_EDITOR
             else
@@ -43,6 +45,21 @@ namespace UniVue.ViewModel
         }
 
         /// <summary>
+        /// 优化UIBundle的查询
+        /// <para>
+        /// #2024/6/16 尚未修复的bug: 当一个视图绑定了两个不同的对象但是是同一类型时，可能更新会出问题或建立查询表时会出异常。考虑到
+        /// 一个视图很少有可能会绑定不同对象但是是同一类型的情况，因此还没准备修复。
+        /// </para>
+        /// </summary>
+        /// <remarks>此项的设置受配置的影响，同时UIBundle数量没有500以上没有开启的必要。开启优化后会占用更多的内存</remarks>
+        public void OptimizeQuery()
+        {
+            if (Table == null && Vue.Config.OptimizeQuery)
+                Table = new VMTable(_bundles);
+        }
+
+
+        /// <summary>
         /// 添加UIBundle
         /// </summary>
         /// <remarks>只有被ViewUpdater维护的UIBundle才会进行UI更新</remarks>
@@ -50,6 +67,7 @@ namespace UniVue.ViewModel
         public void AddBundle(UIBundle bundle)
         {
             _bundles.Add(bundle);
+            Table?.UpdateTable_OnAdded(bundle, _bundles.Count - 1);
         }
 
         /// <summary>
@@ -71,6 +89,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, int propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -86,6 +111,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, float propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -101,6 +133,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, string propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -116,6 +155,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, bool propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -131,6 +177,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, Sprite propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -146,6 +199,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, List<int> propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -161,6 +221,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, List<float> propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -176,6 +243,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, List<string> propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -191,6 +265,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, List<bool> propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -206,6 +287,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T>(T model, string propertyName, List<Sprite> propertyValue) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -221,6 +309,13 @@ namespace UniVue.ViewModel
         /// </summary>
         public void UpdateUI<T, V>(V model, string propertyName, List<T> propertyValue) where T : Enum
         {
+            if (Table != null)
+            {
+                Table.UpdateUI(model, propertyName, propertyValue);
+                Publisher = null;
+                return;
+            }
+
             for (int i = 0; i < _bundles.Count; i++)
             {
                 if (_bundles[i].active && ReferenceEquals(_bundles[i].Model, model))
@@ -350,6 +445,12 @@ namespace UniVue.ViewModel
         /// <param name="newModel">新模型</param>
         public void Rebind<T>(string viewName, T newModel) where T : IBindableModel
         {
+            if (Table != null)
+            {
+                Table.Rebind(newModel, viewName);
+                return;
+            }
+
             Type type = newModel.GetType();
             for (int i = 0; i < _bundles.Count; i++)
             {
@@ -421,6 +522,9 @@ namespace UniVue.ViewModel
                 _bundles[i].Destroy();
             }
             _bundles.Clear();
+
+            Table?.Destroy();
+            Table = null;
         }
 
     }

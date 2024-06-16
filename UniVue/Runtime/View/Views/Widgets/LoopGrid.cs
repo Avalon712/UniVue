@@ -31,6 +31,11 @@ namespace UniVue.View.Widgets
         private bool _OnScroll;                     //指示当前是否在进行滚动动画
 
         /// <summary>
+        /// 当重新进行数据绑定时调用
+        /// </summary>
+        internal event Action<RectTransform, int> OnRebind;
+
+        /// <summary>
         /// 构建Grid视图组件
         /// </summary>
         /// <param name="scrollRect">必须的ScrollRect组件</param>
@@ -95,30 +100,18 @@ namespace UniVue.View.Widgets
             set => _renderModelOnScroll = value;
         }
 
-        /// <summary>
-        /// 获取当前头指针
-        /// </summary>
-        internal int Head => _head;
 
-        /// <summary>
-        /// 获取指定索引的模型
-        /// </summary>
         internal IBindableModel GetData(int index) => this[index];
 
-        /// <summary>
-        /// 交换两个数据的顺序
-        /// </summary>
-        internal void SwapData(int index1, int index2)
-        {
-            IBindableModel data1 = this[index1];
-            this[index1] = this[index2];
-            this[index2] = data1;
-        }
+        internal void SetData(int index, IBindableModel model) => this[index] = model;
 
-        /// <summary>
-        /// 将指定的索引的数据替换为目标数据
-        /// </summary>
-        internal void Replace(int replacedIndex, IBindableModel newModel) => this[replacedIndex] = newModel;
+        internal void RemoveData(int index)
+        {
+            if (_observer == null)
+                RemoveData(this[index], index);
+            else
+                _observer.RemoveAt(index);
+        }
 
         /// <summary>
         /// 绑定集合
@@ -302,10 +295,14 @@ namespace UniVue.View.Widgets
             _tail = _head;
             for (int i = 0; i < len; i++)
             {
-                GameObject itemObj = content.GetChild(i).gameObject;
-                ViewUtil.SetActive(itemObj, _tail < count);
+                RectTransform item = content.GetChild(i) as RectTransform;
+                ViewUtil.SetActive(item.gameObject, _tail < count);
                 if (_tail < count)
-                    Rebind(itemObj.name, this[_tail++]);
+                {
+                    Rebind(item, this[_tail], _tail);
+                    _tail++;
+                }
+
             }
             --_tail;
             _OnScroll = false;
@@ -316,9 +313,10 @@ namespace UniVue.View.Widgets
             return _scrollDir == Direction.Vertical ? Vector2.up : Vector2.zero;
         }
 
-        private void Rebind(string itemName, IBindableModel model)
+        private void Rebind(RectTransform item, IBindableModel model, int dataIndex)
         {
-            Vue.Router.GetView(itemName).BindModel(model, true, itemName, true);
+            Vue.Router.GetView(item.name).BindModel(model, true, item.name, true);
+            OnRebind?.Invoke(item, dataIndex);
             model.NotifyAll();
         }
 
@@ -438,8 +436,6 @@ namespace UniVue.View.Widgets
             }
         }
 
-
-
         #region 算法实现
 
         private void BindScrollEvt()
@@ -463,7 +459,7 @@ namespace UniVue.View.Widgets
                     viewport.GetWorldCorners(viewportCorners);
                     content.GetChild(0).GetComponent<RectTransform>().GetWorldCorners(corners0);
                     content.GetChild(lastFirst).GetComponent<RectTransform>().GetWorldCorners(corners1);
-                    
+
                     //监听第一行的第一个以及倒数第二行的第一个
                     if (corners0[0].y > viewportCorners[1].y && _tail > _head)
                     {
@@ -486,7 +482,7 @@ namespace UniVue.View.Widgets
                     viewport.GetWorldCorners(viewportCorners);
                     content.GetChild(0).GetComponent<RectTransform>().GetWorldCorners(corners0);
                     content.GetChild(lastFirst).GetComponent<RectTransform>().GetWorldCorners(corners1);
-                    
+
                     //监听第一列的第一个和倒数第二列的第一个
                     if (corners0[2].x < viewportCorners[1].x && _tail > _head)
                     {
@@ -517,7 +513,7 @@ namespace UniVue.View.Widgets
                 _head = (_head + 1) % dataCount;
 
                 if (_OnScroll && RenderModelOnScroll || !_OnScroll)
-                    Rebind(itemTrans.name, this[_tail]);
+                    Rebind(itemTrans as RectTransform, this[_tail], _tail);
                 if (_tail < _head) { itemTrans.gameObject.SetActive(false); }
             }
 
@@ -543,7 +539,7 @@ namespace UniVue.View.Widgets
                 _head = (_head + dataCount - 1) % dataCount;
 
                 if (_OnScroll && RenderModelOnScroll || !_OnScroll)
-                    Rebind(itemTrans.name, this[_head]);
+                    Rebind(itemTrans as RectTransform, this[_head], _head);
                 //向下滑动全部显示
                 if (!itemTrans.gameObject.activeSelf) { itemTrans.gameObject.SetActive(true); }
             }
@@ -572,7 +568,7 @@ namespace UniVue.View.Widgets
                 _head = (_head + 1) % dataCount;
 
                 if (_OnScroll && RenderModelOnScroll || !_OnScroll)
-                    Rebind(itemTrans.name, this[_tail]);
+                    Rebind(itemTrans as RectTransform, this[_tail], _tail);
                 //如果没有设置无限滚动则数据渲染到底时隐藏显示，但是任然进行数据渲染
                 if (_tail < _head) { itemTrans.gameObject.SetActive(false); }
             }
@@ -600,7 +596,7 @@ namespace UniVue.View.Widgets
                 _head = (_head + dataCount - 1) % dataCount;
 
                 if (_OnScroll && RenderModelOnScroll || !_OnScroll)
-                    Rebind(itemTrans.name, this[_head]);
+                    Rebind(itemTrans as RectTransform, this[_head], _head);
                 //向右滑动全部显示
                 if (!itemTrans.gameObject.activeSelf) { itemTrans.gameObject.SetActive(true); }
             }

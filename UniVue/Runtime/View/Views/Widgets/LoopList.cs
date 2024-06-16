@@ -16,9 +16,9 @@ namespace UniVue.View.Widgets
     /// <remarks>第一个Item的锚点位置必须为左上角，位置为(0,0,0)，否则位置计算可能会出错</remarks>
     public sealed class LoopList : Widget
     {
-        private Direction _scrollDir;               //滚动方向
-        private int _viewCount;                     //可见的数量
-        private float _distance;                    //相连两个item在滚动方向上的距离
+        private readonly Direction _scrollDir;      //滚动方向
+        private readonly int _viewCount;            //可见的数量
+        private readonly float _distance;           //相连两个item在滚动方向上的距离
         private ScrollRect _scrollRect;             //必须的滚动组件
         private bool _playScrollEffectOnRefresh;    //当刷新视图时是否播放滚动效果
         private bool _alwaysShowNewestData;         //是否总是显示最新的数据
@@ -110,10 +110,10 @@ namespace UniVue.View.Widgets
             _viewCount = viewNum;
             _scrollRect = scrollRect;
             _loop = loop;
+            _renderModelOnScroll = Vue.Config.RenderModelOnScroll;
             scrollRect.movementType = loop ? MovementType.Unrestricted : MovementType.Elastic;
             scrollRect.horizontal = scrollDir == Direction.Horizontal;
             scrollRect.vertical = scrollDir == Direction.Vertical;
-            _renderModelOnScroll = Vue.Config.RenderModelOnScroll;
         }
 
         /// <summary>
@@ -491,6 +491,7 @@ namespace UniVue.View.Widgets
                 });
             }
         }
+
 
         /// <summary>
         ///监听垂直方向的滚动（ 左下[0] 左上[1] 右上[2] 右下[3]）

@@ -49,8 +49,9 @@ namespace UniVue.Utils
 
         public static void BindModel<T>(IView view, T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel
         {
-            //先查询之前是否生成过相同模型类型的UIBundle对象
+            //先查询之前是否生成过相同模型类型的UIBundle对象，防止重复生成
             UIBundle bundle = UIQuerier.Query(view.name, model);
+
             //当前尚未为此模型生成任何UIBundle对象
             if (bundle == null)
             {
@@ -60,9 +61,12 @@ namespace UniVue.Utils
                 Vue.Updater.BindViewAndModel(view.name, model, uis, modelName, allowUIUpdateModel);
                 model.NotifyAll();
             }
-            else if (!bundle.active || forceRebind)
+            else if (forceRebind || !bundle.active)
             {
-                bundle.Rebind(model);
+                if (Vue.Updater.Table == null)
+                    bundle.Rebind(model);
+                else
+                    Vue.Updater.Rebind(view.name, model);
             }
 #if UNITY_EDITOR
             else

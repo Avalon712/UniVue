@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
+using UniVue.Utils;
 using UniVue.ViewModel.Models;
 
 namespace UniVue.ViewModel
@@ -276,8 +277,15 @@ namespace UniVue.ViewModel
         /// </summary>
         public void Rebind<T>(T model) where T : IBindableModel
         {
-            Model = model;
-            active = true;
+            if (model.GetType() == Model.GetType())
+            {
+                Model = model;
+                active = true;
+            }
+#if UNITY_EDITOR
+            else
+                LogUtil.Warning("只要类型一致才允许进行重新绑定");
+#endif
         }
 
 

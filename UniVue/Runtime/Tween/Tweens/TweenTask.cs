@@ -36,7 +36,7 @@ namespace UniVue.Tween.Tweens
         }
 
         protected TweenTask()
-        { 
+        {
             TweenTaskExecutor.GetExecutor().AddTween(this);
             _state = TweenState.Playing;
         }

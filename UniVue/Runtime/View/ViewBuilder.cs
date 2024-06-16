@@ -84,7 +84,7 @@ namespace UniVue.View
 
                 ViewConfig config = roots[i].Item1;
                 ViewConfig[] nestedViews = config.nestedViews;
-                if(nestedViews != null)
+                if (nestedViews != null)
                 {
                     for (int j = 0; j < nestedViews.Length; j++)
                     {

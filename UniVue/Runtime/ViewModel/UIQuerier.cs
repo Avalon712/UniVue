@@ -136,6 +136,13 @@ namespace UniVue.ViewModel
         /// <returns>已经生成过的此类型的UIBundle对象</returns>
         public static UIBundle Query<T>(string viewName, T model) where T : IBindableModel
         {
+            VMTable table = Vue.Updater.Table;
+            if (table != null)
+            {
+                int typeCode = model.GetType().GetHashCode();
+                return table.GetBundle(typeCode, viewName);
+            }
+
             List<UIBundle> bundles = Vue.Updater.Bundles;
             Type type = model.GetType();
             for (int i = 0; i < bundles.Count; i++)
@@ -145,6 +152,7 @@ namespace UniVue.ViewModel
                     return bundles[i];
                 }
             }
+
             return null;
         }
 

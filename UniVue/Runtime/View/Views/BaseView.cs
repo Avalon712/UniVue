@@ -32,7 +32,7 @@ namespace UniVue.View.Views
 
         public bool forbid { get; set; }
 
-        public IView[] nestedViews { get;internal set; }
+        public IView[] nestedViews { get; internal set; }
 
         /// <summary>
         /// ViewLevel.Transient视图显示时间

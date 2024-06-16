@@ -338,5 +338,12 @@ namespace UniVue
         /// </summary>
         /// <remarks>这儿是全局配置，也可以单独为每个ListWidget和GridWidget组件进行设置，局部设置优先级高于全局设置</remarks>
         public bool RenderModelOnScroll { get; set; } = false;
+
+        /// <summary>
+        /// 是否开启查询优化，开启此选项后还需调用ViewUpdater.OptimizeQuery()方法，由于每个场景下的UIBundle数量都是不一样的
+        /// 因此在UIBundle数量不是很多的情况下没有必要开启优化
+        /// </summary>
+        /// <remarks>当项目中的UIBundle数量过多时，多余500个后才有开启的必要，开启后会占用更多的内存</remarks>
+        public bool OptimizeQuery { get; set; } = false;
     }
 }
