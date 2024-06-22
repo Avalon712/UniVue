@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Utils;
 using UniVue.View.Config;
+using UniVue.View.Views;
 
 namespace UniVue.View
 {
@@ -65,11 +66,36 @@ namespace UniVue.View
                 roots[i].Item1.CreateView(roots[i].Item2);
             }
 
-            //3. 按order层级进行排序
+            //3. 维持配置的嵌套视图的关系
+            for (int i = 0; i < views.Length; i++)
+            {
+                ViewConfig config = views[i];
+                KeepNested(config);
+            }
+
+            //4. 按order层级进行排序
             roots.Sort((r1, r2) => r1.Item1.order - r2.Item1.order); //升序排序，因为order值越大越先被渲染
             for (int i = 0; i < roots.Count; i++)
             {
                 roots[i].Item2.transform.SetAsLastSibling();
+            }
+        }
+
+        /// <summary>
+        /// 维护配置的视图的嵌套关系
+        /// </summary>
+        private static void KeepNested(ViewConfig viewConfig)
+        {
+            ViewConfig[] nestedViews = viewConfig?.nestedViews;
+            if(viewConfig == null || nestedViews==null || nestedViews.Length == 0)
+                return;
+
+            BaseView view = Vue.Router.GetView(viewConfig.name) as BaseView;
+            view.nestedViews = new IView[nestedViews.Length];
+            for (int i = 0; i < nestedViews.Length; i++)
+            {
+                view.nestedViews[i] = Vue.Router.GetView(nestedViews[i].name);
+                KeepNested(nestedViews[i]);
             }
         }
 
@@ -88,7 +114,7 @@ namespace UniVue.View
                 {
                     for (int j = 0; j < nestedViews.Length; j++)
                     {
-                        GameObject viewObject = GameObjectFindUtil.BreadthFind(config.viewName, roots[i].Item2);
+                        GameObject viewObject = GameObjectFindUtil.BreadthFind(nestedViews[j].name, roots[i].Item2);
                         roots.Add((nestedViews[j], viewObject, level + 1));
 
                         if (nestedViews[j].nestedViews != null)
