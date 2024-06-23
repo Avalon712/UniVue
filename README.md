@@ -67,47 +67,37 @@ CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=
 
 ​       一个原型的过程如下图显示
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/mvvm.png" alt="MV" width="800px" height="433px" />
-
 ​       与MVC、MVP模式不同的是，MVVM模式能够实现UI与模型的自更新行为，即当UI变化时他所关联的模型数据也能及时更新，当模型数据变化时UI显示的内容也能得到立即更新。而两者的中介者是ViewModel，本框架主要实现ViewModel的接口从上述图中可见分为是IUIUpdater、IUINotifier、IModelNotifier、IModelUpdater。
 
 
 ### 视图加载流程
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/视图加载流程.png" width="600px" height="634px" />
-
 
 
 ### 数据绑定流程
-
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/数据绑定流程.png" width="500px" height="324px" />
 
 
 
 ### UI更新流程
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/UI更新流程.png" width="450px" height="430px" />
+
 
 
 ### 模型更新流程
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/模型更新流程.png" width="550px" height="637px" />
+
 
 
 ### 事件触发流程
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/事件触发执行流程.png" width="440px" height="495px" />
+
 
 
 ### 资源卸载流程
 
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/资源卸载流程.png" width="450px" height="512px" />
-
 
 
 ### 自动装配与卸载EventCall的执行逻辑
-
-<img src="https://github.com/Avalon712/UniVue/blob/master/imgs/自动装配与卸载EventCall的流程.png" width="1200px" height="609px" />
 
 
 
