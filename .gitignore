@@ -1,6 +1,9 @@
 /*
 .git
+.gitignore
 !/UniVue/
 !*.cs
 *.meta
 *.asmdef
+/imgs/
+*.png
