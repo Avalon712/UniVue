@@ -140,6 +140,7 @@ namespace UniVue.View.Widgets
             {
                 _observer.RemoveListeners(GetHashCode()); //移除上次绑定的数据
                 _observer = observer;
+                BindListeners();
                 Refresh(true); //刷新数据
             }
         }

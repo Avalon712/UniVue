@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
+using UniVue.Utils;
 using UniVue.View.Widgets;
 
 namespace UniVue.View.Views
@@ -30,39 +31,50 @@ namespace UniVue.View.Views
         }
 
         /// <summary>
+        /// 绑定集合
+        /// </summary>
+        /// <remarks>使用这个函数可以防止数据的冗余。同时能够在数据发生变化时自动更新响应变化</remarks>
+        public void BindList(IObservableList observer)
+        {
+            _comp.BindList(observer);
+        }
+
+        /// <summary>
+        /// 绑定集合
+        /// </summary>
+        /// <remarks>
+        /// 使用这个函数可以防止数据的冗余。同时能够在数据发生变化时自动更新响应变化</remarks>
+        public void RebindList(IObservableList observer)
+        {
+            _comp.RebindList(observer);
+        }
+
+        /// <summary>
         /// 重新绑定数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="newData">绑定的新数据，注意必须与旧数据的类型一致！</param>
-        public void RebindData<T>(List<T> newData) where T : IBindableModel
+        public void RebindList<T>(List<T> newData) where T : IBindableModel
         {
-            _comp.RebindData(newData);
+            _comp.RebindList(newData);
         }
 
         /// <summary>
         /// 为Item绑定显示数据
         /// </summary>
         /// <param name="data">绑定的数据</param>
-        public void BindData<T>(List<T> data) where T : IBindableModel
+        public void BindList<T>(List<T> data) where T : IBindableModel
         {
-            _comp.BindData(data);
+            _comp.BindList(data);
         }
 
         /// <summary>
         /// 对列表进行排序，排序规则
         /// </summary>
         /// <param name="comparer">排序规则</param>
-        public void Sort(Comparison<IBindableModel> comparer)
+        public void Sort<T>(Comparison<T> comparer) where T : IBindableModel
         {
             _comp.Sort(comparer);
-        }
-
-        /// <summary>
-        /// 清空数据
-        /// </summary>
-        public void Clear()
-        {
-            _comp.Clear();
         }
 
         /// <summary>
@@ -83,8 +95,18 @@ namespace UniVue.View.Views
         }
 
         /// <summary>
+        /// 清空数据
+        /// </summary>
+        public void Clear()
+        {
+            _comp.Clear();
+        }
+
+
+        /// <summary>
         /// 刷新视图
         /// </summary>
+        /// <param name="force">是否强制刷新</param>
         public void Refresh()
         {
             _comp.Refresh();

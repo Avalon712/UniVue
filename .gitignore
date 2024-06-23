@@ -1,1 +1,6 @@
+/*
 .git
+!/UniVue/
+!*.cs
+*.meta
+*.asmdef

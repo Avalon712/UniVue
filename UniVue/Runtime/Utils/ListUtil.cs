@@ -48,13 +48,10 @@ namespace UniVue.Utils
         /// </summary>
         public static void Copy<T1, T2>(List<T1> source, List<T2> target) where T2 : T1
         {
-            if (source.Count > target.Count)
-            {
-                source.RemoveRange(target.Count - 1, source.Count - target.Count);
-            }
+            source.Clear();
             for (int i = 0; i < target.Count; i++)
             {
-                source.Insert(i, target[i]);
+                source.Add(target[i]);
             }
         }
     }
