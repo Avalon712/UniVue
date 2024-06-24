@@ -1,7 +1,7 @@
 /*
 .git
 .gitignore
-!/UniVue/
+!UniVue/
 !*.cs
 *.meta
 *.asmdef
