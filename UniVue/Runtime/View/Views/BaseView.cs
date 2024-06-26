@@ -164,7 +164,7 @@ namespace UniVue.View.Views
 
             if (level == ViewLevel.Transient)
             {
-                TweenBehavior.Timer(Close).Delay(transientTime);
+                TweenBehavior.Timer(() => Vue.Router.Close(name)).Delay(transientTime);
             }
         }
 

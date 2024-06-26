@@ -59,7 +59,7 @@ namespace UniVue.Editor
         private void CreateVueConfigEdit()
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("创建的Canvas配置文件的名称");
+            EditorGUILayout.LabelField("创建的Vue配置文件的名称");
             _configFileName = EditorGUILayout.TextField(_configFileName);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
@@ -73,7 +73,7 @@ namespace UniVue.Editor
 
         private bool CreateVueConfig()
         {
-            return ConfigBuilderInEditor.CreateViewConfig<VueConfig>(_configFileName, _saveDirectory) != null;
+            return ConfigBuilderInEditor.CreateVueConfig(_configFileName, _saveDirectory);
         }
 
 
@@ -282,6 +282,22 @@ namespace UniVue.Editor
             {
                 Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
             }
+        }
+
+        public static bool CreateVueConfig(string fileName, string directory)
+        {
+            string path = $"{directory}{fileName}.asset";
+            if (!Contains(path, out VueConfig config))
+            {
+                config = ScriptableObject.CreateInstance<VueConfig>();
+                AssetDatabase.CreateAsset(config, path);
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning($"路径{directory}下已经存在一个同名{fileName}的资产!");
+            }
+            return false;
         }
 
         public static V CreateViewConfig<V>(string fileName, string directory) where V : ScriptableObject

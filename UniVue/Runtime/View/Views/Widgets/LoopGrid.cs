@@ -368,7 +368,7 @@ namespace UniVue.View.Widgets
             {
                 RectTransform itemRect = _scrollRect.content.GetChild(i).GetComponent<RectTransform>();
                 if (_tail < count)
-                    ViewUtil.Patch3Pass(itemRect.gameObject, this[_tail++]);
+                    Rebind(itemRect, this[_tail], _tail++);
                 else
                     itemRect.gameObject.SetActive(false);
             }

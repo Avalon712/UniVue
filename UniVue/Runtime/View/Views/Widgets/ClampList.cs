@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Utils;
+using UniVue.ViewModel;
 
 namespace UniVue.View.Widgets
 {
@@ -41,7 +42,7 @@ namespace UniVue.View.Widgets
 
 #if UNITY_EDITOR
             if (content.GetComponent<LayoutGroup>() == null)
-                LogUtil.Warning("建议在显示Item的父物体上挂载一个Unity自带的布局组件!ClampList组件不会自动进行布局!");
+                LogUtil.Warning($"建议在显示Item的父物体{content.name}上挂载一个Unity自带的布局组件! ClampList组件不会自动进行布局!");
 #endif
 
             _content = content;
@@ -168,7 +169,7 @@ namespace UniVue.View.Widgets
                 if (!itemObj.activeSelf)
                 {
                     itemObj.SetActive(true);
-                    Rebind(itemObj.name, newData);
+                    Rebind(itemObj, newData);
                     instance = false;
                     break;
                 }
@@ -178,7 +179,7 @@ namespace UniVue.View.Widgets
             {
                 GameObject itemViewObject = CreatItemView();
                 itemViewObject.SetActive(true);
-                ViewUtil.Patch3Pass(itemViewObject, newData);
+                Rebind(itemViewObject, newData);
             }
         }
 
@@ -207,7 +208,7 @@ namespace UniVue.View.Widgets
                 ViewUtil.SetActive(itemObj, i < count);
                 if (i < count)
                 {
-                    Rebind(itemObj.name, this[i]);
+                    Rebind(itemObj, this[i]);
                 }
             }
         }
@@ -236,9 +237,14 @@ namespace UniVue.View.Widgets
             return itemViewObject;
         }
 
-        private void Rebind(string itemName, IBindableModel model)
+        private void Rebind(GameObject itemViewObject, IBindableModel model)
         {
-            Vue.Updater.Rebind(itemName, model);
+            UIBundle bundle = UIQuerier.Query(itemViewObject.name, model);
+            if (bundle == null)
+                ViewUtil.Patch3Pass(itemViewObject, model);
+            else
+                Vue.Updater.Rebind(itemViewObject.name, model);
+
             model.NotifyAll();
         }
 

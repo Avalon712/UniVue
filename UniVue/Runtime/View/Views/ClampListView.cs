@@ -14,13 +14,11 @@ namespace UniVue.View.Views
         public ClampListView(ClampList comp, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
         {
             _comp = comp;
-            BindEvent(comp.Content.gameObject);
         }
-
 
         public override void OnLoad()
         {
-
+            BindEvent(_comp.Content.gameObject);
         }
 
         public override void OnUnload()
