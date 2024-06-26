@@ -74,11 +74,14 @@ namespace UniVue.View
                 KeepNested(config);
             }
 
-            //4. 按order层级进行排序
+            //4. 按order层级进行排序 : 只对根视图执行排序操作
             roots.Sort((r1, r2) => r1.Item1.order - r2.Item1.order); //升序排序，因为order值越大越先被渲染
             for (int i = 0; i < roots.Count; i++)
             {
-                roots[i].Item2.transform.SetAsLastSibling();
+                if (roots[i].Item3 == 0)
+                {
+                    roots[i].Item2.transform.SetAsLastSibling();
+                }
             }
 
             //5.调用OnLoad()函数
@@ -114,7 +117,7 @@ namespace UniVue.View
             int before = roots.Count;
             for (int i = 0; i < roots.Count; i++)
             {
-                if (roots[i].Item3 == level) 
+                if (roots[i].Item3 == level)
                 {
                     ViewConfig config = roots[i].Item1;
                     ViewConfig[] nestedViews = config.nestedViews;
@@ -129,7 +132,7 @@ namespace UniVue.View
                 }
             }
 
-            if(before < roots.Count)
+            if (before < roots.Count)
                 FindNestedViewObject(roots, level + 1);
         }
 

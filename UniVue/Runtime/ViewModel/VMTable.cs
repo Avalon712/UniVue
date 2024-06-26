@@ -151,7 +151,7 @@ namespace UniVue.ViewModel
         {
             if (_models.TryGetValue(model, out List<string> viewNames) && !viewNames.Contains(viewName))
                 viewNames.Add(viewName);
-            else if(viewNames == null)
+            else if (viewNames == null)
                 _models.Add(model, new List<string>(1) { viewName });
         }
 

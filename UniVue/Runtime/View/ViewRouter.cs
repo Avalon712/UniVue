@@ -175,7 +175,6 @@ namespace UniVue.View
                         if (view.state && view.level == ViewLevel.System && view.root == opening.root)
                         {
                             Close(view.name);
-                            break;
                         }
                     }
                 }
@@ -189,7 +188,6 @@ namespace UniVue.View
                         if (view.state && view.level == ViewLevel.System && string.IsNullOrEmpty(view.root))
                         {
                             Close(view.name);
-                            break;
                         }
                     }
                 }
