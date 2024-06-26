@@ -392,17 +392,16 @@ namespace UniVue.View.Widgets
             for (int i = 0; i < itemsCount; i++)
             {
                 RectTransform itemRectTrans = _scrollRect.content.GetChild(i).GetComponent<RectTransform>();
-                BaseView dynamicView = new BaseView(itemRectTrans.gameObject, null, ViewLevel.Permanent);
+                BaseView view = new BaseView(itemRectTrans.gameObject, null, ViewLevel.Permanent);
+                view.OnLoad();
 
                 //数据渲染
                 if (_tail < count)
                 {
-                    dynamicView.BindModel(this[_tail++]);
+                    view.BindModel(this[_tail++]);
                 }
                 else
                 {
-                    //这一步是为了生成UIBundle
-                    if (count > 0) { dynamicView.BindModel(this[0]); }
                     itemRectTrans.gameObject.SetActive(false);
                 }
             }

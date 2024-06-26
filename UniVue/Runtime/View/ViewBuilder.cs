@@ -42,7 +42,7 @@ namespace UniVue.View
             Build(canvas, canvasConfig.views);
         }
 
-        public static void Build(GameObject canvas, ViewConfig[] views)
+        public static void Build(GameObject canvas, ViewConfig[] viewConfigs)
         {
             Transform parent = canvas.transform;
             //Item1:视图配置 Item2:视图对象 Item3:嵌套层级
@@ -50,9 +50,9 @@ namespace UniVue.View
 
             //1.加载出所有的ViewObject
             //1.1 先加载根视图
-            for (int i = 0; i < views.Length; i++)
+            for (int i = 0; i < viewConfigs.Length; i++)
             {
-                ViewConfig config = views[i];
+                ViewConfig config = viewConfigs[i];
                 GameObject viewObject = PrefabCloneUtil.RectTransformClone(config.viewObjectPrefab, parent);
                 roots.Add((config, viewObject, 0));
             }
@@ -60,16 +60,17 @@ namespace UniVue.View
             FindNestedViewObject(roots, 0);
 
             //2.按嵌套层级从深往浅进行加载视图
+            List<IView> views = new List<IView>(roots.Count);
             roots.Sort((r1, r2) => r2.Item3 - r1.Item3); //降序排序
             for (int i = 0; i < roots.Count; i++)
             {
-                roots[i].Item1.CreateView(roots[i].Item2);
+                views.Add(roots[i].Item1.CreateView(roots[i].Item2));
             }
 
             //3. 维持配置的嵌套视图的关系
-            for (int i = 0; i < views.Length; i++)
+            for (int i = 0; i < viewConfigs.Length; i++)
             {
-                ViewConfig config = views[i];
+                ViewConfig config = viewConfigs[i];
                 KeepNested(config);
             }
 
@@ -78,6 +79,12 @@ namespace UniVue.View
             for (int i = 0; i < roots.Count; i++)
             {
                 roots[i].Item2.transform.SetAsLastSibling();
+            }
+
+            //5.调用OnLoad()函数
+            for (int i = 0; i < views.Count; i++)
+            {
+                views[i].OnLoad();
             }
         }
 

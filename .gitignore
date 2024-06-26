@@ -7,3 +7,4 @@
 *.asmdef
 /imgs/
 *.png
+!*.md

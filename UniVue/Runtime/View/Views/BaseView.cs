@@ -72,8 +72,9 @@ namespace UniVue.View.Views
             //将当前视图对象交给ViewRouter管理
             Vue.Router.AddView(this);
 
-            //调用函数
-            OnLoad();
+            //调用函数  
+            //v1.0.0 在构造函数中调用这个函数会导致基于ViewConfig的方式重复生成UIEvent或UIBundle，原因是此时还没有将此视图的嵌套关系处理好
+            //OnLoad();
         }
 
         /// <summary>

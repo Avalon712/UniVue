@@ -218,6 +218,7 @@ namespace UniVue.View.Widgets
             GameObject firstItem = _content.GetChild(0).gameObject;
 
             BaseView view = new BaseView(firstItem);
+            view.OnLoad();
 
             int count = Count;
             if(count > 0)
@@ -227,7 +228,7 @@ namespace UniVue.View.Widgets
             {
                 GameObject itemViewObject = PrefabCloneUtil.RectTransformClone(firstItem, _content);
                 itemViewObject.name += i;
-                new BaseView(itemViewObject).BindModel(this[i], true);
+                new BaseView(itemViewObject).BindModel(this[i], true).OnLoad();
             }
         }
 
@@ -236,7 +237,7 @@ namespace UniVue.View.Widgets
             GameObject firstItem = _content.GetChild(0).gameObject;
             GameObject itemViewObject = PrefabCloneUtil.RectTransformClone(firstItem, _content);
             itemViewObject.name += _content.childCount - 1;
-            new BaseView(itemViewObject);
+            new BaseView(itemViewObject).OnLoad();
             return itemViewObject;
         }
 

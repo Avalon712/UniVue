@@ -362,16 +362,15 @@ namespace UniVue.View.Widgets
             for (int i = 0; i < len; i++)
             {
                 RectTransform itemRect = _scrollRect.content.GetChild(i).GetComponent<RectTransform>();
-                BaseView dynamicView = new BaseView(itemRect.gameObject, null, ViewLevel.Permanent);
+                BaseView view = new BaseView(itemRect.gameObject, null, ViewLevel.Permanent);
+                view.OnLoad();
 
                 if (_tail < count)
                 {
-                    dynamicView.BindModel(this[_tail++]);
+                    view.BindModel(this[_tail++]);
                 }
                 else
                 {
-                    //这一步是为了生成UIBundle，以此使用RebindModel()函数
-                    if (count > 0) { dynamicView.BindModel(this[0]); }
                     itemRect.gameObject.SetActive(false);
                 }
             }
@@ -415,7 +414,8 @@ namespace UniVue.View.Widgets
                 {
                     for (int j = 0; j < _cols; j++)
                     {
-                        (content.GetChild(i * _rows + j).transform as RectTransform).anchoredPosition = deltaPos;
+                        //Debug.Log($"{content.GetChild(i * _cols + j).name} => ({i}, {j}) = " + deltaPos);
+                        (content.GetChild(i * _cols + j) as RectTransform).anchoredPosition = deltaPos;
                         deltaPos.x += _x;
                     }
                     deltaPos.y += _y; //下一行
@@ -428,7 +428,7 @@ namespace UniVue.View.Widgets
                 {
                     for (int j = 0; j < _rows; ++j)
                     {
-                        (content.GetChild(i * _cols + j).transform as RectTransform).anchoredPosition = deltaPos;
+                        (content.GetChild(i * _rows + j) as RectTransform).anchoredPosition = deltaPos;
                         deltaPos.y += _y;
                     }
                     deltaPos.x += _x; //下一列
