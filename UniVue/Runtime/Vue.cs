@@ -1,19 +1,10 @@
 ﻿using System;
-using UnityEngine;
-using UnityEngine.UI;
 using UniVue.Evt;
-using UniVue.Model;
-using UniVue.Rule;
 using UniVue.Utils;
 using UniVue.View;
 using UniVue.View.Config;
 using UniVue.ViewModel;
 
-#if UNITY_EDITOR
-using System.Collections.Generic;
-using System.Linq;
-using UniVue.Tween;
-#endif
 
 namespace UniVue
 {
@@ -61,23 +52,7 @@ namespace UniVue
                 _router = new ViewRouter();
                 _updater = new ViewUpdater();
                 _initialized = true;
-
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.playModeStateChanged += (mode) =>
-                {
-                    if (mode == UnityEditor.PlayModeStateChange.ExitingPlayMode)
-                    {
-                        Dispose();
-                    }
-                };
-#endif
             }
-#if UNITY_EDITOR
-            else
-            {
-                LogUtil.Warning("Vue已经初始化过了,只能进行一次初始化操作!");
-            }
-#endif
         }
 
         /// <summary>
@@ -114,7 +89,7 @@ namespace UniVue
         }
 
         /// <summary>
-        /// 手动的方式创建AutowireInfo，以对不支持反射的时候实现自动装配与卸载的功能
+        /// 手动的方式创建AutowireInfo，以对不支持反射的时候（程序集扫描）实现自动装配与卸载的功能
         /// </summary>
         public static void BuildAutowireInfos(params Type[] types)
         {
@@ -135,7 +110,7 @@ namespace UniVue
         }
 
         /// <summary>
-        /// 自动装配指定场景的EventCall同时卸载不符合添加的EventCall
+        /// 自动装配指定场景的EventCall同时卸载不符合条件的EventCall
         /// </summary>
         /// <param name="currentSceneName">当前场景名称</param>
         public static void AutowireAndUnloadEventCalls(string currentSceneName)
@@ -156,194 +131,9 @@ namespace UniVue
             _event.UnregisterUIEvents(viewName);
         }
 
-        /// <summary>
-        /// 将模型绑定到一个UIBundle中，这个GameObject不是一个ViewObject的，但是他是一些UI的集合
-        /// 这些UI可用与模型数据进行绑定
-        /// </summary>
-        /// <param name="uiBundle">一些UI的集合的根对象，这个GameObject不是一个ViewObject的</param>
-        /// <param name="model">模型数据</param>
-        /// <param name="allowUIUpdateModel">是否允许通过UI来修改模型数据</param>
-        /// <param name="modelName">模型名称，若为null则将默认为模型TypeName</param>
-        /// <returns>UIBundle</returns>
-        public static UIBundle BuildUIBundle<T>(GameObject uiBundle, T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
-        {
-            CheckInitialize();
-
-            var uis = ComponentFindUtil.FindAllSpecialUIComponents(uiBundle);
-            UIBundle bundle = UIBundleBuilder.Build(uiBundle.name, uis, model, modelName, allowUIUpdateModel);
-            if (bundle != null) { Updater.AddBundle(bundle); }
-#if UNITY_EDITOR
-            else
-            {
-                LogUtil.Warning("将模型数据与uiBundle的游戏对象进行绑定失败!可能的原因是绑定数据的UI的命名不合规范!");
-            }
-#endif
-            uis.Clear();
-            return bundle;
-        }
-
-        /// <summary>
-        /// 生成UIEvent
-        /// </summary>
-        /// <param name="uiBundle">一些UI的集合的根对象，这个GameObject不是一个ViewObject的</param>
-        public static void BuildUIEvents(GameObject uiBundle)
-        {
-            CheckInitialize();
-            var uis = ComponentFindUtil.FindAllSpecialUIComponents(uiBundle);
-            UIEventBuilder.Build(uiBundle.name, uis);
-            uis.Clear();
-        }
-
-        /// <summary>
-        /// 为指定的gameObject构建UIBundle和UIEvent
-        /// </summary>
-        /// <param name="uiBundle">一些UI的集合的根对象，这个GameObject不是一个ViewObject的</param>
-        /// <param name="model">模型数据</param>
-        /// <param name="allowUIUpdateModel">是否允许通过UI来修改模型数据</param>
-        /// <param name="modelName">模型名称，若为null则将默认为模型TypeName</param>
-        /// <returns>UIBundle</returns>
-        public static UIBundle BuildUIBundleAndUIEvents<T>(GameObject uiBundle, T model, bool allowUIUpdateModel = true, string modelName = null) where T : IBindableModel
-        {
-            CheckInitialize();
-            var uis = ComponentFindUtil.FindAllSpecialUIComponents(uiBundle);
-
-            //构建UIEvent
-            UIEventBuilder.Build(uiBundle.name, uis);
-            //构建UIBundle
-            UIBundle bundle = UIBundleBuilder.Build(uiBundle.name, uis, model, modelName, allowUIUpdateModel);
-            if (bundle != null) { Updater.AddBundle(bundle); }
-#if UNITY_EDITOR
-            else
-            {
-                LogUtil.Warning("将模型数据与uiBundle的游戏对象进行绑定失败!可能的原因是绑定数据的UI的命名不合规范!");
-            }
-#endif
-            uis.Clear();
-            return bundle;
-        }
-
-#if UNITY_EDITOR
-        /// <summary>
-        /// 实时显示内部状态信息
-        /// </summary>
-        /// <remarks>请仅在编辑器模式下可以进行调试</remarks>
-        /// <param name="text">显示调试信息的UI组件</param>
-        public static void Debug(Text text)
-        {
-            TweenBehavior.Timer(() =>
-            {
-                int viewCount = Router.ViewCount;
-                List<UIBundle> bundles = Updater.Bundles;
-                int bundleCount = bundles.Count;
-                int propertyUICount = 0;
-                for (int i = 0; i < bundles.Count; i++)
-                {
-                    propertyUICount += bundles[i].ProertyUIs.Count;
-                }
-                int modelCount = bundles.Select(b => b.Model).Distinct().Count();
-                text.text = $"View数量：{viewCount}\r\nModel数量：{modelCount}\r\nUIBundle数量：{bundleCount}\r\nPropertyUI数量：{propertyUICount}\r\n";
-            }).Interval(5).ExecuteNum(int.MaxValue);
-        }
-#endif
-
-        /// <summary>
-        /// 仅在Editor模式下执行
-        /// </summary>
-        private static void Dispose()
-        {
-            CheckInitialize();
-
-            _router.UnloadAllViews();
-            _updater.ClearBundles();
-            _event.SignoutAll();
-            _event.UnregisterAllUIEvents();
-            _router = null;
-            _updater = null;
-            _event = null;
-            _initialized = false;
-        }
-
         private static void CheckInitialize()
         {
             if (!_initialized) { throw new Exception("Vue尚未进行初始化操作!"); }
         }
-    }
-
-    public sealed class VueConfig
-    {
-        private NamingFormat _format = NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper;
-
-        /// <summary>
-        /// 命名风格
-        /// </summary>
-        /// <remarks>默认风格为 NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper</remarks>
-        public NamingFormat Format
-        {
-            get => _format;
-            set
-            {
-                if ((value & NamingFormat.UI_Prefix) != NamingFormat.UI_Prefix && (value & NamingFormat.UI_Suffix) != NamingFormat.UI_Suffix)
-                {
-                    throw new ArgumentException("命名格式必须指定UI名称的格式，指定NamedFormat.UI_Prefix或NamedFormat.UI_Suffix");
-                }
-                _format = value;
-            }
-        }
-
-        /// <summary>
-        /// 当更新Sprite、string类型时，如果Sprite的值为null类型则隐藏图片的显示，即: gameObject.SetActive(false);
-        /// </summary>
-        /// <remarks>默认为true</remarks>
-        public bool WhenValueIsNullThenHide { get; set; } = true;
-
-        /// <summary>
-        /// 当更新List类型的数据时，如果当前数据量小于UI数量，则将多余的UI进行隐藏不显示
-        /// </summary>
-        /// <remarks>默认为true</remarks>
-        public bool WhenListLessThanUIThenHide { get; set; } = true;
-
-        /// <summary>
-        /// 设置视图允许的最大历史记录，默认为10
-        /// </summary>
-        /// <remarks>如果你发现你的视图打开逻辑不正确,建议将此值设置大一点</remarks>
-        public int MaxHistoryRecord { get; set; } = 10;
-
-        /// <summary>
-        /// 当[Flags]标记的枚举绑定到TMP_Text上时,指定两两之间使用的分隔符号
-        /// </summary>
-        public string FlagsEnumSeparator { get; set; } = " | ";
-
-        /// <summary>
-        /// 在优化组件查找中，以此字符开头的GameObject以及它所有的后代都不会被进行组件查找
-        /// </summary>
-        public char SkipDescendantNodeSeparator { get; set; } = '~';
-
-        /// <summary>
-        /// 在优化组件查找中，以此字符开头的GameObject不会被进行组件查找，但其后代节点会进行组件查找
-        /// </summary>
-        public char SkipCurrentNodeSeparator { get; set; } = '@';
-
-        /// <summary>
-        /// 显示浮点数时指定浮点数保留的位数
-        /// </summary>
-        public int FloatKeepBit { get; set; } = 2;
-
-        /// <summary>
-        /// 当ListWidget和GridWidget使用刷新时滚动属性时指定滚动一个Item的距离使用的时间
-        /// </summary>
-        public float PerItemScrollTime { get; set; } = 0.1f;
-
-        /// <summary>
-        /// 当ListWidget和GridWidget在使用滚动动画时是否刷新数据
-        /// </summary>
-        /// <remarks>这儿是全局配置，也可以单独为每个ListWidget和GridWidget组件进行设置，局部设置优先级高于全局设置</remarks>
-        public bool RenderModelOnScroll { get; set; } = false;
-
-        /// <summary>
-        /// 是否开启查询优化，开启此选项后还需调用ViewUpdater.OptimizeQuery()方法，由于每个场景下的UIBundle数量都是不一样的
-        /// 因此在UIBundle数量不是很多的情况下没有必要开启优化
-        /// </summary>
-        /// <remarks>当项目中的UIBundle数量过多时，多余500个后才有开启的必要，开启后会占用更多的内存</remarks>
-        public bool OptimizeQuery { get; set; } = false;
     }
 }

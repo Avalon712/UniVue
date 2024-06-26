@@ -5,7 +5,7 @@ using UniVue.View.Config;
 
 namespace UniVue.Editor
 {
-    internal sealed class ViewEditorWindow : EditorWindow
+    internal sealed class ConfigEditorWindow : EditorWindow
     {
         private ConfigType _configType = ConfigType.View;
 
@@ -18,10 +18,10 @@ namespace UniVue.Editor
         private bool _attachToRoot;
         private ViewConfig _root;
 
-        [MenuItem("UniVue/ViewEditor")]
+        [MenuItem("UniVue/ConfigEditor")]
         public static void OpenEditorWindow()
         {
-            var window = GetWindow<ViewEditorWindow>("视图配置编辑器");
+            var window = GetWindow<ConfigEditorWindow>("视图配置编辑器");
             window.position = new Rect(320, 240, 340, 240);
             window.Show();
 
@@ -45,12 +45,37 @@ namespace UniVue.Editor
             {
                 CanvasConfigEdit();
             }
-            else
+            else if(_configType == ConfigType.Scene)
             {
                 SceneConfigEdit();
             }
+            else if(_configType == ConfigType.Vue)
+            {
+                CreateVueConfigEdit();
+            }
            
         }
+
+        private void CreateVueConfigEdit()
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("创建的Canvas配置文件的名称");
+            _configFileName = EditorGUILayout.TextField(_configFileName);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("保存目录 (注: 相对路径,必须以Assets开头,必须存在)");
+            _saveDirectory = EditorGUILayout.TextField(_saveDirectory);
+            EditorGUILayout.Space();
+
+            if (GUILayout.Button("创建Vue配置")) { if (CreateVueConfig()) { AssetDatabase.Refresh(); } }
+        }
+
+        private bool CreateVueConfig()
+        {
+            return ConfigBuilderInEditor.CreateViewConfig<VueConfig>(_configFileName, _saveDirectory) != null;
+        }
+
 
         private bool CreateSceneConfig()
         {
@@ -60,7 +85,7 @@ namespace UniVue.Editor
                 return false;
             }
 
-            ViewBuilderInEditor.CreateSceneConfig(_configFileName, _sceneName, _saveDirectory);
+            ConfigBuilderInEditor.CreateSceneConfig(_configFileName, _sceneName, _saveDirectory);
 
             return true;
         }
@@ -78,22 +103,22 @@ namespace UniVue.Editor
             switch (_viewConfigType)
             {
                 case ViewType.BaseView:
-                    view = ViewBuilderInEditor.CreateViewConfig<ViewConfig>(_configFileName, _saveDirectory);
+                    view = ConfigBuilderInEditor.CreateViewConfig<ViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ListView:
-                    view = ViewBuilderInEditor.CreateViewConfig<ListViewConfig>(_configFileName, _saveDirectory);
+                    view = ConfigBuilderInEditor.CreateViewConfig<ListViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.GridView:
-                    view = ViewBuilderInEditor.CreateViewConfig<GridViewConfig>(_configFileName, _saveDirectory);
+                    view = ConfigBuilderInEditor.CreateViewConfig<GridViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.TipView:
-                    view = ViewBuilderInEditor.CreateViewConfig<TipViewConfig>(_configFileName, _saveDirectory);
+                    view = ConfigBuilderInEditor.CreateViewConfig<TipViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.EnsureTipView:
-                    view = ViewBuilderInEditor.CreateViewConfig<EnsureTipViewConfig>(_configFileName, _saveDirectory);
+                    view = ConfigBuilderInEditor.CreateViewConfig<EnsureTipViewConfig>(_configFileName, _saveDirectory);
                     break;
                 case ViewType.ClampListView:
-                    view = ViewBuilderInEditor.CreateViewConfig<ClampListViewConfig>(_configFileName, _saveDirectory);
+                    view = ConfigBuilderInEditor.CreateViewConfig<ClampListViewConfig>(_configFileName, _saveDirectory);
                     break;
             }
 
@@ -123,7 +148,7 @@ namespace UniVue.Editor
                 return false;
             }
 
-            ViewBuilderInEditor.CreateCanvasConfig(_configFileName, _saveDirectory);
+            ConfigBuilderInEditor.CreateCanvasConfig(_configFileName, _saveDirectory);
 
             return true;
         }
@@ -206,6 +231,7 @@ namespace UniVue.Editor
 
     public enum ConfigType
     {
+        Vue,
         Scene,
         Canvas,
         View
@@ -222,9 +248,9 @@ namespace UniVue.Editor
         ClampListView,
     }
 
-    internal sealed class ViewBuilderInEditor
+    internal sealed class ConfigBuilderInEditor
     {
-        private ViewBuilderInEditor() { }
+        private ConfigBuilderInEditor() { }
 
         public static void CreateSceneConfig(string fileName, string sceneName, string directory)
         {

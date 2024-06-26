@@ -14,7 +14,7 @@ namespace UniVue.Evt.Evts
 
         private void OnValueChanged(bool v)
         {
-            if (v) { Trigger(); } //只有开启状态才触发事件
+            Trigger();
         }
 
         public override void Unregister()

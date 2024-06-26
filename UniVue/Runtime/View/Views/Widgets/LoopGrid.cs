@@ -6,6 +6,7 @@ using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
 using UniVue.View.Views;
+using UniVue.ViewModel;
 using static UnityEngine.UI.ScrollRect;
 
 namespace UniVue.View.Widgets
@@ -316,9 +317,14 @@ namespace UniVue.View.Widgets
 
         private void Rebind(RectTransform item, IBindableModel model, int dataIndex)
         {
-            Vue.Router.GetView(item.name).BindModel(model, true, item.name, true);
-            OnRebind?.Invoke(item, dataIndex);
+            UIBundle bundle = UIQuerier.Query(item.name, model);
+            if (bundle == null)
+                ViewUtil.Patch3Pass(item.gameObject, model);
+            else
+                Vue.Updater.Rebind(item.name, model);
             model.NotifyAll();
+
+            OnRebind?.Invoke(item, dataIndex);
         }
 
         /// <summary>
@@ -362,17 +368,10 @@ namespace UniVue.View.Widgets
             for (int i = 0; i < len; i++)
             {
                 RectTransform itemRect = _scrollRect.content.GetChild(i).GetComponent<RectTransform>();
-                BaseView view = new BaseView(itemRect.gameObject, null, ViewLevel.Permanent);
-                view.OnLoad();
-
                 if (_tail < count)
-                {
-                    view.BindModel(this[_tail++]);
-                }
+                    ViewUtil.Patch3Pass(itemRect.gameObject, this[_tail++]);
                 else
-                {
                     itemRect.gameObject.SetActive(false);
-                }
             }
 
             _tail--; //恢复到正确位置

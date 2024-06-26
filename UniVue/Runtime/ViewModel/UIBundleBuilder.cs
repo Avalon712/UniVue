@@ -20,9 +20,9 @@ namespace UniVue.ViewModel
         /// </summary>
         /// <param name="modelName">模型名称，如果为null将默认为TypeName</param>
         /// <returns>UIModel</returns>
-        public static UIBundle Build<T>(string viewName, List<ValueTuple<Component, UIType>> uis, T model, string modelName, bool allowUIUpdateModel) where T : IBindableModel
+        public static UIBundle Build<T>(List<ValueTuple<Component, UIType>> uis, T model, string modelName, bool allowUIUpdateModel) where T : IBindableModel
         {
-            return CreateUIBundle(viewName, model, GetAllUIComponents(uis), modelName, allowUIUpdateModel);
+            return CreateUIBundle( model, GetAllUIComponents(uis), modelName, allowUIUpdateModel);
         }
 
         private static Dictionary<UIType, List<Component>> GetAllUIComponents(List<ValueTuple<Component, UIType>> uis)
@@ -40,7 +40,7 @@ namespace UniVue.ViewModel
             return uiComponents;
         }
 
-        private static UIBundle CreateUIBundle<T>(string viewName, T model, Dictionary<UIType, List<Component>> comps, string modelName, bool allowUIUpdateModel) where T : IBindableModel
+        private static UIBundle CreateUIBundle<T>(T model, Dictionary<UIType, List<Component>> comps, string modelName, bool allowUIUpdateModel) where T : IBindableModel
         {
             Type type = model.GetType();
             if (modelName == null) { modelName = type.Name; }
@@ -59,7 +59,7 @@ namespace UniVue.ViewModel
             if (propertyUIs == null || propertyUIs.Count == 0)
                 return null;
             else
-                return new UIBundle(modelName, viewName, model, propertyUIs);
+                return new UIBundle(model, propertyUIs);
         }
 
         private static List<PropertyUI> AtomModelBuild<T>(ref string modelName, T model, Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel) where T : IBindableModel

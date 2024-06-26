@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Utils;
-using UniVue.View.Views;
+using UniVue.ViewModel;
 
 namespace UniVue.View.Widgets
 {
@@ -177,9 +177,9 @@ namespace UniVue.View.Widgets
 
             if (instance)
             {
-                GameObject itemObj = CreatItemView();
-                itemObj.SetActive(true);
-                Rebind(itemObj.name, newData);
+                GameObject itemViewObject = CreatItemView();
+                itemViewObject.SetActive(true);
+                ViewUtil.Patch3Pass(itemViewObject, newData);
             }
         }
 
@@ -217,18 +217,15 @@ namespace UniVue.View.Widgets
         {
             GameObject firstItem = _content.GetChild(0).gameObject;
 
-            BaseView view = new BaseView(firstItem);
-            view.OnLoad();
-
             int count = Count;
             if(count > 0)
-                view.BindModel(this[0], true);
+                ViewUtil.Patch3Pass(firstItem, this[0]);
 
             for (int i = 1; i < count; i++)
             {
                 GameObject itemViewObject = PrefabCloneUtil.RectTransformClone(firstItem, _content);
                 itemViewObject.name += i;
-                new BaseView(itemViewObject).BindModel(this[i], true).OnLoad();
+                ViewUtil.Patch3Pass(itemViewObject, this[i]);
             }
         }
 
@@ -237,13 +234,12 @@ namespace UniVue.View.Widgets
             GameObject firstItem = _content.GetChild(0).gameObject;
             GameObject itemViewObject = PrefabCloneUtil.RectTransformClone(firstItem, _content);
             itemViewObject.name += _content.childCount - 1;
-            new BaseView(itemViewObject).OnLoad();
             return itemViewObject;
         }
 
         private void Rebind(string itemName, IBindableModel model)
         {
-            Vue.Router.GetView(itemName).BindModel(model, true, null, true);
+            Vue.Updater.Rebind(itemName, model);
             model.NotifyAll();
         }
 

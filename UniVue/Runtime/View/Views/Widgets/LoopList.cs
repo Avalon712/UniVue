@@ -6,6 +6,7 @@ using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
 using UniVue.View.Views;
+using UniVue.ViewModel;
 using static UnityEngine.UI.ScrollRect;
 
 namespace UniVue.View.Widgets
@@ -339,7 +340,7 @@ namespace UniVue.View.Widgets
                 GameObject itemObj = content.GetChild(i).gameObject;
                 ViewUtil.SetActive(itemObj, _tail < count);
                 if (_tail < count)
-                    Rebind(itemObj.name, this[_tail++]);
+                    Rebind(itemObj, this[_tail++]);
             }
             --_tail;
             _OnScroll = false;
@@ -392,18 +393,11 @@ namespace UniVue.View.Widgets
             for (int i = 0; i < itemsCount; i++)
             {
                 RectTransform itemRectTrans = _scrollRect.content.GetChild(i).GetComponent<RectTransform>();
-                BaseView view = new BaseView(itemRectTrans.gameObject, null, ViewLevel.Permanent);
-                view.OnLoad();
-
                 //数据渲染
                 if (_tail < count)
-                {
-                    view.BindModel(this[_tail++]);
-                }
+                    ViewUtil.Patch3Pass(itemRectTrans.gameObject, this[_tail++]);
                 else
-                {
                     itemRectTrans.gameObject.SetActive(false);
-                }
             }
 
             //绑定滑动事件
@@ -429,9 +423,14 @@ namespace UniVue.View.Widgets
             });
         }
 
-        private void Rebind(string itemName, IBindableModel model)
+        private void Rebind(GameObject itemViewObject, IBindableModel model)
         {
-            Vue.Router.GetView(itemName).BindModel(model, true, itemName, true);
+            UIBundle bundle = UIQuerier.Query(itemViewObject.name, model);
+            if (bundle == null)
+                ViewUtil.Patch3Pass(itemViewObject, model);
+            else
+                Vue.Updater.Rebind(itemViewObject.name, model);
+
             model.NotifyAll();
         }
 
@@ -532,7 +531,7 @@ namespace UniVue.View.Widgets
             if (itemTrans != null && (!_OnScroll || _OnScroll && RenderModelOnScroll))
             {
                 ViewUtil.SetActive(itemTrans.gameObject, true);
-                Rebind(itemTrans.name, this[index]);
+                Rebind(itemTrans.gameObject, this[index]);
             }
         }
 
@@ -577,7 +576,7 @@ namespace UniVue.View.Widgets
             if (itemTrans != null && (!_OnScroll || _OnScroll && RenderModelOnScroll))
             {
                 ViewUtil.SetActive(itemTrans.gameObject, true);
-                Rebind(itemTrans.name, this[index]);
+                Rebind(itemTrans.gameObject, this[index]);
             }
 
         }

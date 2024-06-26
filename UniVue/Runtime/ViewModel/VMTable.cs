@@ -1,298 +1,165 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UniVue.Model;
 
 namespace UniVue.ViewModel
 {
-    public class VMTable
+    public sealed class VMTable
     {
         /// <summary>
-        /// 所有的UIBundle
+        /// key=模型  value=绑定了此模型的所有视图的viewName
         /// </summary>
-        private List<UIBundle> _bundles;
+        /// <remarks>适合不易经常进行Rebind()使用</remarks>
+        private Dictionary<IBindableModel, List<string>> _models;
 
         /// <summary>
-        /// key = model的哈希值
-        /// value = 绑定的视图
+        /// key=viewName value=此视图的所有UIBundle
         /// </summary>
-        private Dictionary<int, List<string>> _models;
+        /// <remarks>适用经常Rebind()使用</remarks>
+        private Dictionary<string, List<UIBundle>> _views;
 
-        /// <summary>
-        /// key = viewName
-        /// value = 所有的UIBundle
-        /// Dictionary<int, int> : key = 类型码 value = bundles中的索引index
-        /// </summary>
-        private Dictionary<string, Dictionary<int, int>> _views;
+        public int ModelCount => _models.Count;
 
-        public VMTable(List<UIBundle> bundles)
+        public int BundleCount { get; private set; }
+
+        public int PropertyUICount { get; private set; }
+
+
+        public VMTable(int tableSize)
         {
-            _bundles = bundles;
-            _models = new Dictionary<int, List<string>>();
-            _views = new Dictionary<string, Dictionary<int, int>>();
-            for (int i = 0; i < bundles.Count; i++)
-            {
-                UpdateTable_OnAdded(bundles[i], i);
-            }
+            _models = new Dictionary<IBindableModel, List<string>>(tableSize);
+            _views = new Dictionary<string, List<UIBundle>>(tableSize);
         }
 
 
-        public void UpdateTable_OnAdded(UIBundle bundle, int index)
+        public void BindVM(string viewName, UIBundle bundle)
         {
-            int hashCode = bundle.Model.GetHashCode();
-            int typeCode = bundle.Model.GetType().GetHashCode();
-            string viewName = bundle.ViewName;
+            BindV(viewName, bundle);
+            BindM(viewName, bundle);
+        }
 
-            if (_models.TryGetValue(hashCode, out List<string> views) && !views.Contains(viewName))
-                views.Add(viewName);
-            else
-                _models.Add(hashCode, new List<string> { viewName });
 
-            if (_views.TryGetValue(viewName, out Dictionary<int, int> table))
-                table.Add(typeCode, index);
+        public void BindV(string viewName, UIBundle bundle)
+        {
+            if (_views.TryGetValue(viewName, out List<UIBundle> bundles))
+                bundles.Add(bundle);
             else
             {
-                table = new Dictionary<int, int>() { { typeCode, index } };
-                _views.Add(viewName, table);
+                BundleCount += 1;
+                PropertyUICount += bundle.ProertyUIs.Count;
+                _views.Add(viewName, new List<UIBundle>(1) { bundle });
             }
         }
 
-        public void Rebind<T>(T newModel, string viewName) where T : IBindableModel
+
+        public void BindM(string viewName, UIBundle bundle)
         {
-            int hashCodeNew = newModel.GetHashCode();
-            int typeCodeNew = newModel.GetType().GetHashCode();
+            if (_models.TryGetValue(bundle.Model, out List<string> viewNames))
+                viewNames.Add(viewName);
+            else
+                _models.Add(bundle.Model, new List<string>(1) { viewName });
+        }
 
-            UIBundle bundle = _bundles[_views[viewName][typeCodeNew]];
-            IBindableModel oldModel = bundle.Model;
-            int typeCodeOld = oldModel.GetType().GetHashCode();
-            int hashCodeOld = oldModel.GetHashCode();
 
-            if (!ReferenceEquals(oldModel, newModel) && typeCodeNew == typeCodeOld)
+        public bool TryGetBundles(string viewName, out List<UIBundle> bundles)
+        {
+            return _views.TryGetValue(viewName, out bundles);
+        }
+
+
+        public bool TryGetViews(IBindableModel model, out List<string> views)
+        {
+            return _models.TryGetValue(model, out views);
+        }
+
+        public void RemoveBundles(string viewName)
+        {
+            if (_views.ContainsKey(viewName))
+                _views.Remove(viewName);
+
+            foreach (var views in _models.Values)
             {
-                if (_models.TryGetValue(hashCodeOld, out List<string> viewsOld) && viewsOld.Contains(viewName))
-                    viewsOld.Remove(viewName);
-
-                if (_models.TryGetValue(hashCodeNew, out List<string> viewsNew) && !viewsNew.Contains(viewName))
-                    viewsNew.Add(viewName);
-                else
-                    _models.Add(hashCodeNew, new List<string>() { viewName });
-
-                bundle.Rebind(newModel);
+                if (views.Contains(viewName))
+                    views.Remove(viewName);
             }
         }
 
-        public UIBundle GetBundle(int typeCode, string viewName)
+        public IEnumerable<List<UIBundle>> GetAllUIBundles()
         {
-            if (_views.TryGetValue(viewName, out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
+            foreach (var bundles in _views.Values)
             {
-                return _bundles[index];
+                yield return bundles;
             }
-            return null;
         }
 
-        public void UpdateUI<T>(T model, string propertyName, int propertyValue) where T : IBindableModel
+        public void Rebind(string viewName, IBindableModel oldModel, IBindableModel newModel)
         {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
+            RemoveBindView(viewName, oldModel);
+            AddBindView(viewName, newModel);
 
-            if (_models.TryGetValue(hashCode, out List<string> views))
+            if(_views.TryGetValue(viewName, out List<UIBundle> bundles))
             {
-                for (int i = 0; i < views.Count; i++)
+                for (int i = 0; i < bundles.Count; i++)
                 {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
+                    if (ReferenceEquals(bundles[i].Model, oldModel))
                     {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
+                        bundles[i].Rebind(newModel);
                     }
                 }
             }
         }
 
 
-        public void UpdateUI<T>(T model, string propertyName, float propertyValue) where T : IBindableModel
+        public void Rebind(string viewName, IBindableModel newModel)
         {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
+            AddBindView(viewName, newModel);
 
-            if (_models.TryGetValue(hashCode, out List<string> views))
+            Type newModelType = newModel.GetType();
+            if (_views.TryGetValue(viewName, out List<UIBundle> bundles))
             {
-                for (int i = 0; i < views.Count; i++)
+                for (int i = 0; i < bundles.Count; i++)
                 {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
+                    IBindableModel oldModel = bundles[i].Model;
+                    if (oldModel.GetType() == newModelType)
                     {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
+                        RemoveBindView(viewName, oldModel);
+                        bundles[i].Rebind(newModel);
                     }
                 }
             }
         }
 
-
-        public void UpdateUI<T>(T model, string propertyName, string propertyValue) where T : IBindableModel
+        public void Unbind(IBindableModel model)
         {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
+            if (TryGetViews(model, out List<string> views))
                 for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
+                    if (TryGetBundles(views[i], out List<UIBundle> bundles))
+                        for (int j = 0; j < bundles.Count; j++)
+                            if (bundles[j].active && ReferenceEquals(bundles[j].Model, model))
+                                bundles[j].Unbind();
         }
 
 
-        public void UpdateUI<T>(T model, string propertyName, bool propertyValue) where T : IBindableModel
+        private void RemoveBindView(string viewName, IBindableModel model)
         {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
+            if (_models.TryGetValue(model, out List<string> viewNames) && viewNames.Contains(viewName))
+                viewNames.Remove(viewName);
         }
 
 
-        public void UpdateUI<T>(T model, string propertyName, Sprite propertyValue) where T : IBindableModel
+        private void AddBindView(string viewName, IBindableModel model)
         {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
+            if (_models.TryGetValue(model, out List<string> viewNames) && !viewNames.Contains(viewName))
+                viewNames.Add(viewName);
+            else
+                _models.Add(model, new List<string>(1) { viewName });
         }
 
-
-        public void UpdateUI<T>(T model, string propertyName, List<int> propertyValue) where T : IBindableModel
-        {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
-        }
-
-
-        public void UpdateUI<T>(T model, string propertyName, List<float> propertyValue) where T : IBindableModel
-        {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
-        }
-
-
-        public void UpdateUI<T>(T model, string propertyName, List<string> propertyValue) where T : IBindableModel
-        {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
-        }
-
-
-        public void UpdateUI<T>(T model, string propertyName, List<bool> propertyValue) where T : IBindableModel
-        {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
-        }
-
-
-        public void UpdateUI<T>(T model, string propertyName, List<Sprite> propertyValue) where T : IBindableModel
-        {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
-        }
-
-
-        public void UpdateUI<T, V>(V model, string propertyName, List<T> propertyValue) where T : Enum
-        {
-            int hashCode = model.GetHashCode();
-            int typeCode = model.GetType().GetHashCode();
-
-            if (_models.TryGetValue(hashCode, out List<string> views))
-            {
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (_views.TryGetValue(views[i], out Dictionary<int, int> table) && table.TryGetValue(typeCode, out int index))
-                    {
-                        _bundles[index].UpdateUI(propertyName, propertyValue);
-                    }
-                }
-            }
-        }
-
-        public void Destroy()
+        public void ClearTable()
         {
             _models.Clear();
             _views.Clear();
-            _models = null;
-            _views = null;
         }
+
     }
 }

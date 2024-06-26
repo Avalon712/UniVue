@@ -82,8 +82,6 @@ namespace UniVue.Utils
                         queue.Enqueue(child);
                     }
 
-                    //排除以字符'@'开头的GameObject
-                    //被'@'标记的GameObject不会被进行查找，但是其后代会被进行查找
                     if (child.name.StartsWith(SKIP_CURRENT_SEPARATOR)) { continue; }
 
                     var result = GetResult(child.gameObject);
