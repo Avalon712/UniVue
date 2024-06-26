@@ -19,7 +19,7 @@ namespace UniVue.ViewModel
         /// <returns>所有找到的UI组件</returns>
         public static IEnumerable<T> Query<T>(string viewName, IBindableModel model, string propertyName) where T : Component
         {
-            if(Vue.Updater.Table.TryGetBundles(viewName, out List<UIBundle> bundles))
+            if (Vue.Updater.Table.TryGetBundles(viewName, out List<UIBundle> bundles))
             {
                 for (int i = 0; i < bundles.Count; i++)
                 {
@@ -54,7 +54,7 @@ namespace UniVue.ViewModel
         /// <returns>IEnumerable<T></returns>
         public static IEnumerable<T> Query<T>(IBindableModel model, string propertyName) where T : Component
         {
-            if(Vue.Updater.Table.TryGetViews(model, out List<string> views))
+            if (Vue.Updater.Table.TryGetViews(model, out List<string> views))
             {
                 for (int i = 0; i < views.Count; i++)
                 {
@@ -115,7 +115,7 @@ namespace UniVue.ViewModel
         public static UIBundle Query<T>(string viewName, T model) where T : IBindableModel
         {
             Type type = model.GetType();
-            if(Vue.Updater.Table.TryGetBundles(viewName, out List<UIBundle> bundles))
+            if (Vue.Updater.Table.TryGetBundles(viewName, out List<UIBundle> bundles))
             {
                 for (int i = 0; i < bundles.Count; i++)
                 {
@@ -134,7 +134,7 @@ namespace UniVue.ViewModel
         /// <returns>IEnumerable<UIBundle></returns>
         public static IEnumerable<UIBundle> Query(Predicate<UIBundle> match)
         {
-            using(var it = Vue.Updater.Table.GetAllUIBundles().GetEnumerator())
+            using (var it = Vue.Updater.Table.GetAllUIBundles().GetEnumerator())
             {
                 while (it.MoveNext())
                 {

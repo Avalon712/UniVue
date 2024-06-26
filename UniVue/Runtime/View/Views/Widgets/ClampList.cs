@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Utils;
-using UniVue.ViewModel;
 
 namespace UniVue.View.Widgets
 {
@@ -188,7 +187,7 @@ namespace UniVue.View.Widgets
         /// </summary>
         public void RemoveData<T>(T remove) where T : IBindableModel
         {
-            if (remove != null && _models!=null && _models.Contains(remove))
+            if (remove != null && _models != null && _models.Contains(remove))
                 _models.Remove(remove);
 
             Refresh();
@@ -218,7 +217,7 @@ namespace UniVue.View.Widgets
             GameObject firstItem = _content.GetChild(0).gameObject;
 
             int count = Count;
-            if(count > 0)
+            if (count > 0)
                 ViewUtil.Patch3Pass(firstItem, this[0]);
 
             for (int i = 1; i < count; i++)
@@ -252,7 +251,7 @@ namespace UniVue.View.Widgets
             _observer.AddListener_OnReplaced<IBindableModel>(observerId, (index, r1, r2) => Refresh());
             _observer.AddListener_OnChanged(observerId, mode =>
             {
-                if(mode == NotificationMode.Sort)
+                if (mode == NotificationMode.Sort)
                     Refresh();
             });
         }

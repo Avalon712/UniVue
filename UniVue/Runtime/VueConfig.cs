@@ -72,7 +72,7 @@ namespace UniVue
         /// <summary>
         /// 在优化组件查找中，以此字符开头的GameObject不会被进行组件查找，但其后代节点会进行组件查找
         /// </summary>
-        public char SkipCurrentNodeSeparator { get => _skipCurrentNodeSeparator; set => _skipCurrentNodeSeparator = value; } 
+        public char SkipCurrentNodeSeparator { get => _skipCurrentNodeSeparator; set => _skipCurrentNodeSeparator = value; }
 
         /// <summary>
         /// 显示浮点数时指定浮点数保留的位数

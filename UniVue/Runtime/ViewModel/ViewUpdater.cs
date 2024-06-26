@@ -48,7 +48,7 @@ namespace UniVue.ViewModel
         public void UpdateUI<T>(T model, string propertyName, int propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
-            if(table.TryGetViews(model, out List<string> views))
+            if (table.TryGetViews(model, out List<string> views))
                 for (int i = 0; i < views.Count; i++)
                     if (table.TryGetBundles(views[i], out List<UIBundle> bundles))
                         for (int j = 0; j < bundles.Count; j++)

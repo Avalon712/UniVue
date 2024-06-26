@@ -22,7 +22,7 @@ namespace UniVue.ViewModel
         /// <returns>UIModel</returns>
         public static UIBundle Build<T>(List<ValueTuple<Component, UIType>> uis, T model, string modelName, bool allowUIUpdateModel) where T : IBindableModel
         {
-            return CreateUIBundle( model, GetAllUIComponents(uis), modelName, allowUIUpdateModel);
+            return CreateUIBundle(model, GetAllUIComponents(uis), modelName, allowUIUpdateModel);
         }
 
         private static Dictionary<UIType, List<Component>> GetAllUIComponents(List<ValueTuple<Component, UIType>> uis)

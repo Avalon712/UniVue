@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Evt;
 using UniVue.Input;
@@ -111,14 +111,14 @@ namespace UniVue.Utils
         public static void Patch3Pass(GameObject viewObject, IBindableModel model, params GameObject[] exclued)
         {
             List<ValueTuple<Component, UIType>> uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, null, exclued);
-            
+
             //1. 构建UIEvent
             UIEventBuilder.Build(viewObject.name, uis);
             //2. 处理路由事件
             Vue.Router.BindRouteEvt(viewObject.name, uis);
             //3. 绑定模型
             Vue.Updater.BindViewModel(viewObject.name, UIBundleBuilder.Build(uis, model, null, true));
-            
+
             model.NotifyAll();
         }
 
@@ -131,7 +131,7 @@ namespace UniVue.Utils
         public static void Patch2Pass(GameObject viewObject, params GameObject[] exclued)
         {
             List<ValueTuple<Component, UIType>> uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, null, exclued);
-            
+
             //1. 构建UIEvent
             UIEventBuilder.Build(viewObject.name, uis);
             //2. 处理路由事件

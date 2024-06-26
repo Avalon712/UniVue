@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Tween;
 using UniVue.Utils;
-using UniVue.View.Views;
 using UniVue.ViewModel;
 using static UnityEngine.UI.ScrollRect;
 

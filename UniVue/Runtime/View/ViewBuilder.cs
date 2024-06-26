@@ -94,7 +94,7 @@ namespace UniVue.View
         private static void KeepNested(ViewConfig viewConfig)
         {
             ViewConfig[] nestedViews = viewConfig?.nestedViews;
-            if(viewConfig == null || nestedViews==null || nestedViews.Length == 0)
+            if (viewConfig == null || nestedViews == null || nestedViews.Length == 0)
                 return;
 
             BaseView view = Vue.Router.GetView(viewConfig.name) as BaseView;
