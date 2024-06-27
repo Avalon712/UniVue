@@ -15,3 +15,13 @@
 2. VueConfig继承自ScriptableObject;
 3. 优化LoopList、LoopGrid、ClampList组件的Item数据绑定逻辑;
 4. 支持为ViewObject（GameObject）生成UIEvent、路由事件、模型数据绑定，无需再构建视图后才能进行绑定，这部分API见**ViewUtil**类;
+
+
+
+**#2024/6/27修复BUG**
+
+1. 当ViewConfig的视图名称与文件名称不一致时导致错误的视图构建;
+
+
+
+**#2024/6/27将版本v1.0.1合并为v1.0.0**

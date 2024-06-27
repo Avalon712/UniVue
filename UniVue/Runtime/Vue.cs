@@ -52,6 +52,16 @@ namespace UniVue
                 _router = new ViewRouter();
                 _updater = new ViewUpdater();
                 _initialized = true;
+
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.playModeStateChanged += (mode) =>
+                {
+                    if (mode == UnityEditor.PlayModeStateChange.ExitingPlayMode)
+                    {
+                        Dispose();
+                    }
+                };
+#endif
             }
         }
 
@@ -135,5 +145,27 @@ namespace UniVue
         {
             if (!_initialized) { throw new Exception("Vue尚未进行初始化操作!"); }
         }
+
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// 仅在Editor模式下执行
+        /// </summary>
+        /// <remarks>Help GC</remarks>
+        private static void Dispose()
+        {
+            CheckInitialize();
+
+            _router.UnloadAllViews();
+            _updater.ClearBundles();
+            _event.SignoutAll();
+            _event.UnregisterAllUIEvents();
+            _router = null;
+            _updater = null;
+            _event = null;
+            _initialized = false;
+        }
+#endif
+
     }
 }

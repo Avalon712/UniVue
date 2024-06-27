@@ -57,8 +57,8 @@ namespace UniVue.View.Widgets
             if (_models != null || _observer != null) { return; }
             _observer = observer;
             BindListeners();
-            //创建Item
             CreateItemViews();
+            Refresh();
         }
 
         /// <summary>
@@ -118,8 +118,8 @@ namespace UniVue.View.Widgets
             _models = new List<IBindableModel>(data.Count);
             ListUtil.Copy(_models, data);
 
-            //创建Item
             CreateItemViews();
+            Refresh(); 
         }
 
         /// <summary>
@@ -218,14 +218,11 @@ namespace UniVue.View.Widgets
             GameObject firstItem = _content.GetChild(0).gameObject;
 
             int count = Count;
-            if (count > 0)
-                ViewUtil.Patch3Pass(firstItem, this[0]);
 
             for (int i = 1; i < count; i++)
             {
                 GameObject itemViewObject = PrefabCloneUtil.RectTransformClone(firstItem, _content);
                 itemViewObject.name += i;
-                ViewUtil.Patch3Pass(itemViewObject, this[i]);
             }
         }
 

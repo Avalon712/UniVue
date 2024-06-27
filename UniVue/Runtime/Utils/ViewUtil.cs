@@ -110,6 +110,13 @@ namespace UniVue.Utils
         /// <param name="exclued">要排除的GameObject</param>
         public static void Patch3Pass(GameObject viewObject, IBindableModel model, params GameObject[] exclued)
         {
+#if UNITY_EDITOR
+            if (Vue.Updater.Table.ContainsViewName(viewObject.name))
+            {
+                LogUtil.Warning($"表中已经存在了一个相同名称{viewObject.name}的ViewObject,这可能将导致错误的结果,你应该确保viewName的唯一性");
+            }
+#endif
+
             List<ValueTuple<Component, UIType>> uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, null, exclued);
 
             //1. 构建UIEvent
@@ -130,6 +137,12 @@ namespace UniVue.Utils
         /// <param name="exclued">要排除的GameObject</param>
         public static void Patch2Pass(GameObject viewObject, params GameObject[] exclued)
         {
+#if UNITY_EDITOR
+            if (Vue.Updater.Table.ContainsViewName(viewObject.name))
+            {
+                LogUtil.Warning($"表中已经存在了一个相同名称{viewObject.name}的ViewObject,这可能将导致错误的结果,你应该确保viewName的唯一性");
+            }
+#endif
             List<ValueTuple<Component, UIType>> uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, null, exclued);
 
             //1. 构建UIEvent

@@ -139,6 +139,10 @@ namespace UniVue.ViewModel
                                 bundles[j].Unbind();
         }
 
+        public bool ContainsViewName(string viewName)
+        {
+            return _views.ContainsKey(viewName);
+        }
 
         private void RemoveBindView(string viewName, IBindableModel model)
         {
@@ -155,7 +159,7 @@ namespace UniVue.ViewModel
                 _models.Add(model, new List<string>(1) { viewName });
         }
 
-        public void ClearTable()
+        internal void ClearTable()
         {
             _models.Clear();
             _views.Clear();

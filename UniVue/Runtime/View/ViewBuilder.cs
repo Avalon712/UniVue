@@ -100,11 +100,11 @@ namespace UniVue.View
             if (viewConfig == null || nestedViews == null || nestedViews.Length == 0)
                 return;
 
-            BaseView view = Vue.Router.GetView(viewConfig.name) as BaseView;
+            BaseView view = Vue.Router.GetView(viewConfig.viewName) as BaseView;
             view.nestedViews = new IView[nestedViews.Length];
             for (int i = 0; i < nestedViews.Length; i++)
             {
-                view.nestedViews[i] = Vue.Router.GetView(nestedViews[i].name);
+                view.nestedViews[i] = Vue.Router.GetView(nestedViews[i].viewName);
                 KeepNested(nestedViews[i]);
             }
         }
@@ -125,7 +125,11 @@ namespace UniVue.View
                     {
                         for (int j = 0; j < nestedViews.Length; j++)
                         {
-                            GameObject viewObject = GameObjectFindUtil.BreadthFind(nestedViews[j].name, roots[i].Item2);
+                            GameObject viewObject = GameObjectFindUtil.BreadthFind(nestedViews[j].viewName, roots[i].Item2);
+#if UNITY_EDITOR
+                            if (viewObject == null)
+                                LogUtil.Warning($"未能在{roots[i].Item1.viewName}的ViewObject下找到名为{nestedViews[j].viewName}的嵌套视图的ViewObject");
+#endif
                             roots.Add((nestedViews[j], viewObject, level + 1));
                         }
                     }
