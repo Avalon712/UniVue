@@ -1,4 +1,7 @@
-﻿namespace UniVue.Model
+﻿using UniVue.Utils;
+using UniVue.ViewModel;
+
+namespace UniVue.Model
 {
     /// <summary>
     /// UniVue可支持的最小模型单元（这个类不会进行反射操作，没有装箱消耗）
@@ -80,6 +83,19 @@
             var p = _property as IntProperty;
             if (p != null)
                 p.Value = propertyValue;
+        }
+
+        void IConsumableModel.UpdateUI(string propertyName, UIBundle bundle)
+        {
+            if(_property.PropertyName.Equals(propertyName))
+            {
+                ModelUtil.UpdateUI(propertyName, Value, bundle);
+            }
+        }
+
+        void IConsumableModel.UpdateAll(UIBundle bundle)
+        {
+            ModelUtil.UpdateUI(_property.PropertyName, Value, bundle);
         }
     }
 

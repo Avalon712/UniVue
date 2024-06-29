@@ -151,6 +151,32 @@ namespace UniVue.Utils
             Vue.Router.BindRouteEvt(viewObject.name, uis);
         }
 
+        /// <summary>
+        /// 同时完成三个处理流程：构建UIEvent、绑定路由事件、构建UIBundle
+        /// </summary>
+        /// <remarks>这种方式无需创建视图对象(BaseView)</remarks>
+        /// <param name="viewObject"></param>
+        /// <param name="model">用于创建UIBundle的模型</param>
+        /// <param name="exclued">要排除的GameObject</param>
+        /// <returns>UIBundle</returns> 
+        public static UIBundle Patch3PassButNoBinding(GameObject viewObject, IBindableModel model, params GameObject[] exclued)
+        {
+#if UNITY_EDITOR
+            if (Vue.Updater.Table.ContainsViewName(viewObject.name))
+            {
+                LogUtil.Warning($"表中已经存在了一个相同名称{viewObject.name}的ViewObject,这可能将导致错误的结果,你应该确保viewName的唯一性");
+            }
+#endif
+
+            List<ValueTuple<Component, UIType>> uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, null, exclued);
+
+            //1. 构建UIEvent
+            UIEventBuilder.Build(viewObject.name, uis);
+            //2. 处理路由事件
+            Vue.Router.BindRouteEvt(viewObject.name, uis);
+            //3. 构建UIBundle
+            return UIBundleBuilder.Build(uis, model, null, true);
+        }
 
         /// <summary>
         /// 构建UI事件

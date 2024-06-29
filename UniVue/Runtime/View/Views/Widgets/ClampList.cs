@@ -238,11 +238,12 @@ namespace UniVue.View.Widgets
         {
             UIBundle bundle = UIQuerier.Query(itemViewObject.name, model);
             if (bundle == null)
-                ViewUtil.Patch3Pass(itemViewObject, model);
-            else
-                Vue.Updater.Rebind(itemViewObject.name, model);
-
-            model.NotifyAll();
+            {
+                bundle = ViewUtil.Patch3PassButNoBinding(itemViewObject, model);
+                Vue.Updater.Table.BindV(itemViewObject.name, bundle);
+            }
+            bundle.Rebind(model);
+            model.UpdateAll(bundle);
         }
 
         private void BindListeners()

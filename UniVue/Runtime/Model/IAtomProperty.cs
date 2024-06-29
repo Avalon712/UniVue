@@ -6,6 +6,10 @@ namespace UniVue.Model
 {
     public interface INotifiableProperty
     {
+        string GetPropertyName();
+
+        object GetPropertyValue();
+
         void NotifyUIUpdate();
     }
 
@@ -14,6 +18,7 @@ namespace UniVue.Model
         T Value { get; set; }
 
         string PropertyName { get; }
+
     }
 
 
@@ -44,6 +49,16 @@ namespace UniVue.Model
         }
 
         public string PropertyName => _propertyName;
+
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+
+        public object GetPropertyValue()
+        {
+            return Value;
+        }
 
 
         public void NotifyUIUpdate()
@@ -86,6 +101,15 @@ namespace UniVue.Model
         {
             _model.NotifyUIUpdate(_propertyName, Convert.ToInt32(_value));
         }
+
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
+        }
     }
 
     public sealed class FloatProperty : IAtomProperty<float>
@@ -119,6 +143,14 @@ namespace UniVue.Model
         public void NotifyUIUpdate()
         {
             _model.NotifyUIUpdate(_propertyName, _value);
+        }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
         }
     }
 
@@ -154,6 +186,14 @@ namespace UniVue.Model
         {
             _model.NotifyUIUpdate(_propertyName, _value);
         }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
+        }
     }
 
     public sealed class StringProperty : IAtomProperty<string>
@@ -187,6 +227,14 @@ namespace UniVue.Model
         public void NotifyUIUpdate()
         {
             _model.NotifyUIUpdate(_propertyName, _value);
+        }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
         }
     }
 
@@ -222,6 +270,14 @@ namespace UniVue.Model
         {
             _model.NotifyUIUpdate(_propertyName, _value);
         }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
+        }
     }
 
     public sealed class ListIntProperty : IAtomProperty<List<int>>
@@ -255,6 +311,14 @@ namespace UniVue.Model
         public void NotifyUIUpdate()
         {
             _model.NotifyUIUpdate(_propertyName, _value);
+        }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
         }
     }
 
@@ -290,6 +354,14 @@ namespace UniVue.Model
         {
             _model.NotifyUIUpdate(_propertyName, _value);
         }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
+        }
     }
 
     public sealed class ListFloatProperty : IAtomProperty<List<float>>
@@ -322,6 +394,14 @@ namespace UniVue.Model
         {
             _model.NotifyUIUpdate(_propertyName, _value);
         }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
+        }
     }
 
     public sealed class ListStringProperty : IAtomProperty<List<string>>
@@ -353,6 +433,14 @@ namespace UniVue.Model
         public void NotifyUIUpdate()
         {
             _model.NotifyUIUpdate(_propertyName, _value);
+        }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
         }
     }
 
@@ -387,6 +475,14 @@ namespace UniVue.Model
         {
             _model.NotifyUIUpdate(_propertyName, _value);
         }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
+        }
     }
 
     public sealed class ListEnumProperty<T> : IAtomProperty<List<T>> where T : Enum
@@ -420,6 +516,14 @@ namespace UniVue.Model
         public void NotifyUIUpdate()
         {
             _model.NotifyUIUpdate(_propertyName, _value);
+        }
+        public string GetPropertyName()
+        {
+            return PropertyName;
+        }
+        public object GetPropertyValue()
+        {
+            return Value;
         }
     }
 }

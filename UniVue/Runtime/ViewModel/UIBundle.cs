@@ -34,9 +34,7 @@ namespace UniVue.ViewModel
             properties.TrimExcess();//清理内存
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, int propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -49,9 +47,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, float propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -64,9 +60,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, string propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -79,9 +73,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, bool propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -94,9 +86,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, Sprite propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -109,9 +99,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, List<int> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -135,9 +123,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, List<float> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -161,8 +147,21 @@ namespace UniVue.ViewModel
             }
         }
 
-        public void UpdateUI<T>(string propertyName, List<T> propertyValue) where T : Enum
+        /// <summary>
+        /// 更新List&lt;Enum&gt;属性类型的UI
+        /// </summary>
+        /// <typeparam name="T">这个泛型必须是枚举类型</typeparam>
+        public void UpdateUI<T>(string propertyName, List<T> propertyValue) 
         {
+            if (!typeof(T).IsEnum)
+            {
+#if UNITY_EDITOR
+                LogUtil.Warning("UIBundle.UpdateUI<T>(string propertyName, List<T> propertyValue)的泛型类型必须是一个枚举类型");
+#endif
+                return;
+            }
+
+
             List<PropertyUI> properties = ProertyUIs;
             int k = 0;
             bool congfig = Vue.Config.WhenListLessUICountThenHideSurplus;
@@ -184,9 +183,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, List<string> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -210,9 +207,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, List<bool> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
@@ -236,9 +231,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI(string propertyName, List<Sprite> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;

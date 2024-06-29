@@ -314,16 +314,19 @@ namespace UniVue.View.Widgets
             return _scrollDir == Direction.Vertical ? Vector2.up : Vector2.zero;
         }
 
-        private void Rebind(RectTransform item, IBindableModel model, int dataIndex)
+        private void Rebind(RectTransform itemViewObject, IBindableModel model, int dataIndex)
         {
-            UIBundle bundle = UIQuerier.Query(item.name, model);
+            UIBundle bundle = UIQuerier.Query(itemViewObject.name, model);
             if (bundle == null)
-                ViewUtil.Patch3Pass(item.gameObject, model);
-            else
-                Vue.Updater.Rebind(item.name, model);
-            model.NotifyAll();
+            {
+                bundle = ViewUtil.Patch3PassButNoBinding(itemViewObject.gameObject, model);
+                Vue.Updater.Table.BindV(itemViewObject.name, bundle);
+            }
 
-            OnRebind?.Invoke(item, dataIndex);
+            bundle.Rebind(model);
+            model.UpdateAll(bundle);
+
+            OnRebind?.Invoke(itemViewObject, dataIndex);
         }
 
         /// <summary>

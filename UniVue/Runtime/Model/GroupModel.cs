@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UniVue.Utils;
+using UniVue.ViewModel;
 
 namespace UniVue.Model
 {
@@ -37,7 +39,7 @@ namespace UniVue.Model
         /// <param name="propertyName">属性名称</param>
         public void RemoveProperty<T>(string propertyName)
         {
-            _properties.RemoveAll(p => ((p as IAtomProperty<T>)?.PropertyName == propertyName));
+            _properties.RemoveAll(p => p.GetPropertyName() == propertyName);
         }
 
         /// <summary>
@@ -47,7 +49,7 @@ namespace UniVue.Model
         /// <param name="propertyName">属性名称</param>
         public T GetPropertyValue<T>(string propertyName)
         {
-            var property = _properties.Find(p => (p as IAtomProperty<T>)?.PropertyName == propertyName) as IAtomProperty<T>;
+            var property = _properties.Find(p => p.GetPropertyName() == propertyName) as IAtomProperty<T>;
             CheckNull(propertyName, property);
             return property.Value;
         }
@@ -60,7 +62,7 @@ namespace UniVue.Model
         /// <param name="propertyValue">属性值</param>
         public void SetPropertyValue<T>(string propertyName, T propertyValue)
         {
-            var property = _properties.Find(p => (p as IAtomProperty<T>)?.PropertyName == propertyName) as IAtomProperty<T>;
+            var property = _properties.Find(p => p.GetPropertyName() == propertyName) as IAtomProperty<T>;
             CheckNull(propertyName, property);
             property.Value = propertyValue;
         }
@@ -102,6 +104,22 @@ namespace UniVue.Model
         void IModelUpdater.UpdateModel(string propertyName, int propertyValue)
         {
             SetPropertyValue(propertyName, propertyValue);
+        }
+
+        void IConsumableModel.UpdateAll(UIBundle bundle)
+        {
+            for (int i = 0; i < _properties.Count; i++)
+            {
+                ModelUtil.UpdateUI(_properties[i].GetPropertyName(), _properties[i].GetPropertyValue(), bundle);
+            }
+        }
+
+        void IConsumableModel.UpdateUI(string propertyName, UIBundle bundle)
+        {
+            INotifiableProperty property = _properties.Find(p => p.GetPropertyName() == propertyName);
+
+            if (property != null)
+                ModelUtil.UpdateUI(property.GetPropertyName(), property.GetPropertyValue(), bundle);
         }
     }
 }

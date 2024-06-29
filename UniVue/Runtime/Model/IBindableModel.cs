@@ -2,7 +2,7 @@
 
 namespace UniVue.Model
 {
-    public interface IBindableModel : IImplementedModel
+    public interface IBindableModel : IImplementedModel, IConsumableModel
     {
         IBindableModel IImplementedModel.Binder => this;
 

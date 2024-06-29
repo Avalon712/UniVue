@@ -42,9 +42,6 @@ namespace UniVue.ViewModel
         }
 
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
         public void UpdateUI<T>(T model, string propertyName, int propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -57,9 +54,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, float propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -72,9 +67,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, string propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -87,9 +80,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, bool propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -102,9 +93,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, Sprite propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -117,9 +106,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, List<int> propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -132,9 +119,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, List<float> propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -147,9 +132,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, List<string> propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -162,9 +145,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, List<bool> propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -177,9 +158,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(T model, string propertyName, List<Sprite> propertyValue) where T : IBindableModel
         {
             VMTable table = Table;
@@ -192,9 +171,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
+
         public void UpdateUI<T>(IBindableModel model, string propertyName, List<T> propertyValue) where T : Enum
         {
             VMTable table = Table;
@@ -207,10 +184,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="viewName">UIBundle的所属的视图名称</param>
+
         public void UpdateUI(string viewName, string propertyName, List<int> propertyValue)
         {
             VMTable table = Table;
@@ -220,10 +194,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="viewName">UIBundle的所属的视图名称</param>
+
         public void UpdateUI(string viewName, string propertyName, List<float> propertyValue)
         {
             VMTable table = Table;
@@ -233,10 +204,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="viewName">UIBundle的所属的视图名称</param>
+
         public void UpdateUI(string viewName, string propertyName, List<string> propertyValue)
         {
             VMTable table = Table;
@@ -246,10 +214,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="viewName">UIBundle的所属的视图名称</param>
+
         public void UpdateUI(string viewName, string propertyName, List<bool> propertyValue)
         {
             VMTable table = Table;
@@ -259,10 +224,7 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="viewName">UIBundle的所属的视图名称</param>
+
         public void UpdateUI(string viewName, string propertyName, List<Sprite> propertyValue)
         {
             VMTable table = Table;
@@ -271,6 +233,31 @@ namespace UniVue.ViewModel
                     _bundles[j].UpdateUI(propertyName, propertyValue);
             Publisher = null;
         }
+
+
+        private void UpdateUI<T>(string propertyName, string viewName, T consumer) where T : IConsumableModel
+        {
+            if(Table.TryGetBundles(viewName, out List<UIBundle> bundles))
+            {
+                for (int i = 0; i < bundles.Count; i++)
+                {
+                    consumer.UpdateUI(propertyName, bundles[i]);
+                }
+            }
+        }
+
+
+        private void UpdateUI<T>(string viewName, T consumer) where T : IConsumableModel
+        {
+            if (Table.TryGetBundles(viewName, out List<UIBundle> bundles))
+            {
+                for (int i = 0; i < bundles.Count; i++)
+                {
+                    consumer.UpdateAll(bundles[i]);
+                }
+            }
+        }
+
 
         /// <summary>
         /// 卸载指定视图的所有UIBundle
