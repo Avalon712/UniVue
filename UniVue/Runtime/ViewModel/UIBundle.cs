@@ -151,7 +151,7 @@ namespace UniVue.ViewModel
         /// 更新List&lt;Enum&gt;属性类型的UI
         /// </summary>
         /// <typeparam name="T">这个泛型必须是枚举类型</typeparam>
-        public void UpdateUI<T>(string propertyName, List<T> propertyValue) 
+        public void UpdateUI<T>(string propertyName, List<T> propertyValue)
         {
             if (!typeof(T).IsEnum)
             {

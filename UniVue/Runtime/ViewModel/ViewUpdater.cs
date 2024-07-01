@@ -237,7 +237,7 @@ namespace UniVue.ViewModel
 
         private void UpdateUI<T>(string propertyName, string viewName, T consumer) where T : IConsumableModel
         {
-            if(Table.TryGetBundles(viewName, out List<UIBundle> bundles))
+            if (Table.TryGetBundles(viewName, out List<UIBundle> bundles))
             {
                 for (int i = 0; i < bundles.Count; i++)
                 {

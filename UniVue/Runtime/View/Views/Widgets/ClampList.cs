@@ -119,7 +119,7 @@ namespace UniVue.View.Widgets
             ListUtil.Copy(_models, data);
 
             CreateItemViews();
-            Refresh(); 
+            Refresh();
         }
 
         /// <summary>

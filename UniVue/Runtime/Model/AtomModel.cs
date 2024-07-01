@@ -87,7 +87,7 @@ namespace UniVue.Model
 
         void IConsumableModel.UpdateUI(string propertyName, UIBundle bundle)
         {
-            if(_property.PropertyName.Equals(propertyName))
+            if (_property.PropertyName.Equals(propertyName))
             {
                 ModelUtil.UpdateUI(propertyName, Value, bundle);
             }
