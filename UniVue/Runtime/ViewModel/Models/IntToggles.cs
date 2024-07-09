@@ -3,9 +3,9 @@ using UnityEngine.UI;
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class IntPropertyToggles : IntPropertyUI<Toggle[]>
+    public sealed class IntToggles : IntUI<Toggle[]>
     {
-        public IntPropertyToggles(Toggle[] ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
+        public IntToggles(Toggle[] ui, string propertyName) : base(ui, propertyName, false)
         {
         }
 

@@ -2,9 +2,9 @@
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class StringPropertyText : StringPropertyUI<TMP_Text>
+    public sealed class StringText : StringUI<TMP_Text>
     {
-        public StringPropertyText(TMP_Text ui, string propertyName) : base(ui, propertyName, false)
+        public StringText(TMP_Text ui, string propertyName) : base(ui, propertyName, false)
         {
         }
 

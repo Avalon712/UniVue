@@ -6,7 +6,7 @@ namespace UniVue.Evt.Evts
     {
         private Button _btn;
 
-        public ButtonEvent(string viewName, string eventName, Button btn) : base(viewName, eventName)
+        public ButtonEvent(string viewName, string eventName, Button btn, EventArg[] eventArgs = null) : base(viewName, eventName, eventArgs)
         {
             _btn = btn;
             btn.onClick.AddListener(Trigger);

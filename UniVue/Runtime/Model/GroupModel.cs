@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UniVue.Utils;
 using UniVue.ViewModel;
 
@@ -49,7 +50,7 @@ namespace UniVue.Model
         /// <param name="propertyName">属性名称</param>
         public T GetPropertyValue<T>(string propertyName)
         {
-            var property = _properties.Find(p => p.GetPropertyName() == propertyName) as IAtomProperty<T>;
+            IAtomProperty<T> property = _properties.Find(p => p.GetPropertyName() == propertyName) as IAtomProperty<T>;
             CheckNull(propertyName, property);
             return property.Value;
         }
@@ -62,7 +63,7 @@ namespace UniVue.Model
         /// <param name="propertyValue">属性值</param>
         public void SetPropertyValue<T>(string propertyName, T propertyValue)
         {
-            var property = _properties.Find(p => p.GetPropertyName() == propertyName) as IAtomProperty<T>;
+            IAtomProperty<T> property = _properties.Find(p => p.GetPropertyName() == propertyName) as IAtomProperty<T>;
             CheckNull(propertyName, property);
             property.Value = propertyValue;
         }
@@ -103,7 +104,16 @@ namespace UniVue.Model
 
         void IModelUpdater.UpdateModel(string propertyName, int propertyValue)
         {
-            SetPropertyValue(propertyName, propertyValue);
+            //如果是枚举类型，通过反射进行赋值
+            INotifiableProperty property = _properties.Find(p => p.GetPropertyName() == propertyName);
+            if (property != null && property.BindType == BindableType.Enum)
+            {
+                FieldInfo enumField = property.GetType().GetField("_value", BindingFlags.Instance | BindingFlags.NonPublic);
+                enumField.SetValue(property, Enum.ToObject(enumField.FieldType, propertyValue));
+                property.NotifyUIUpdate();
+            }
+            else
+                SetPropertyValue(propertyName, propertyValue);
         }
 
         void IConsumableModel.UpdateAll(UIBundle bundle)

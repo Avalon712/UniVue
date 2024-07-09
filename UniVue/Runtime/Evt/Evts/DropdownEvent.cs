@@ -6,7 +6,7 @@ namespace UniVue.Evt.Evts
     {
         private TMP_Dropdown _dropdown;
 
-        public DropdownEvent(string viewName, string eventName, TMP_Dropdown dropdown) : base(viewName, eventName)
+        public DropdownEvent(string viewName, string eventName, TMP_Dropdown dropdown, EventArg[] eventArgs = null) : base(viewName, eventName, eventArgs)
         {
             _dropdown = dropdown;
             dropdown.onValueChanged.AddListener(OnValueChanged);

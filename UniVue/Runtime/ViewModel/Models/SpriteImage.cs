@@ -4,11 +4,11 @@ using UnityEngine.UI;
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class PropertyImage : PropertyUI
+    public sealed class SpriteImage : PropertyUI
     {
         private Image _img;
 
-        public PropertyImage(Image img, string propertyName) : base(propertyName, false)
+        public SpriteImage(Image img, string propertyName) : base(propertyName, false)
         {
             _img = img;
         }

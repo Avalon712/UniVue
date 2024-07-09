@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UniVue.Model;
 using UniVue.ViewModel;
-using UniVue.ViewModel.Models;
 
 namespace UniVue.Utils
 {
@@ -10,7 +10,7 @@ namespace UniVue.Utils
     {
         public static void UpdateUI<T>(string propertyName, T propertyValue, UIBundle bundle)
         {
-            BindableType bindableType = ReflectionUtil.GetBindableType(typeof(T));
+            BindableType bindableType = ReflectionUtil.GetBindableType(propertyValue.GetType());
             switch (bindableType)
             {
                 case BindableType.Enum:
@@ -26,7 +26,7 @@ namespace UniVue.Utils
                     bundle.UpdateUI(propertyName, Convert.ToInt32(propertyValue));
                     break;
                 case BindableType.String:
-                    bundle.UpdateUI(propertyName, propertyValue.ToString());
+                    bundle.UpdateUI(propertyName, propertyValue as string);
                     break;
                 case BindableType.Sprite:
                     bundle.UpdateUI(propertyName, (Sprite)(object)propertyValue);

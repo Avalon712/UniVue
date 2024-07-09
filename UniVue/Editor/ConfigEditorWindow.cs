@@ -41,19 +41,19 @@ namespace UniVue.Editor
             {
                 ViewConfigEdit();
             }
-            else if(_configType == ConfigType.Canvas)
+            else if (_configType == ConfigType.Canvas)
             {
                 CanvasConfigEdit();
             }
-            else if(_configType == ConfigType.Scene)
+            else if (_configType == ConfigType.Scene)
             {
                 SceneConfigEdit();
             }
-            else if(_configType == ConfigType.Vue)
+            else if (_configType == ConfigType.Vue)
             {
                 CreateVueConfigEdit();
             }
-           
+
         }
 
         private void CreateVueConfigEdit()
@@ -92,7 +92,7 @@ namespace UniVue.Editor
 
         private bool CreateViewConfig()
         {
-            if(string.IsNullOrEmpty(_configFileName) || string.IsNullOrWhiteSpace(_configFileName))
+            if (string.IsNullOrEmpty(_configFileName) || string.IsNullOrWhiteSpace(_configFileName))
             {
                 Debug.LogWarning("配置文件的名称不能为空");
                 return false;
@@ -122,14 +122,14 @@ namespace UniVue.Editor
                     break;
             }
 
-            if (_attachToRoot && _root != null && view!=null)
+            if (_attachToRoot && _root != null && view != null)
             {
                 Undo.RegisterCreatedObjectUndo(view, "create view");
                 (view as ScriptableObject).name = _configFileName;
                 AssetDatabase.AddObjectToAsset(view, _root);
                 AssetDatabase.SaveAssets();
             }
-            else if(view != null)
+            else if (view != null)
             {
                 (view as ScriptableObject).name = _configFileName;
                 view.viewName = _configFileName;
@@ -137,7 +137,7 @@ namespace UniVue.Editor
                 AssetDatabase.SaveAssets();
             }
 
-            return view!=null;
+            return view != null;
         }
 
         private bool CreateCanvasConfig()

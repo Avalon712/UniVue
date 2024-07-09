@@ -11,47 +11,47 @@ namespace UniVue.View.Views
         /// 当前视图在同一层视图的排序
         /// </summary>
         /// <remarks>值越大越先被渲染</remarks>
-        int order { get; }
+        int Order { get; }
 
         /// <summary>
         /// 当前视图的级别
         /// </summary>
-        ViewLevel level { get; }
+        ViewLevel Level { get; }
 
         /// <summary>
         /// 当前视图的名称
         /// </summary>
-        string name { get; }
+        string Name { get; }
 
         /// <summary>
         /// 当前视图的状态
         /// </summary>
-        bool state { get; }
+        bool State { get; }
 
         /// <summary>
         /// 获取视图的GameObject对象
         /// </summary>
-        GameObject viewObject { get; }
+        GameObject ViewObject { get; }
 
         /// <summary>
         /// 当前视图是否是属主视图
         /// </summary>
-        bool isMaster { get; }
+        bool IsMaster { get; }
 
         /// <summary>
         /// 获取当前嵌套视图的根视图名称
         /// </summary>
-        string root { get; }
+        string Root { get; }
 
         /// <summary>
         /// 获取当前视图的属主视图的名称
         /// </summary>
-        string master { get; }
+        string Master { get; }
 
         /// <summary>
         /// 当前视图被打开后是否禁止其它视图再打开
         /// </summary>
-        bool forbid { get; }
+        bool Forbid { get; }
 
         /// <summary>
         /// 获取此时图嵌套的所有的视图

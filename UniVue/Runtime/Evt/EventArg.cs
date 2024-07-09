@@ -66,9 +66,9 @@ namespace UniVue.Evt
                     ((TMP_InputField)_argUI).text = s3;
                     break;
                 case UIType.Toggle:
-                    if (argType == SupportableArgType.Bool)
+                    if (argType == SupportableArgType.Bool && (value is bool v || bool.TryParse(value.ToString(), out v)))
                     {
-                        ((Toggle)_argUI).isOn = Convert.ToBoolean(value);
+                        ((Toggle)_argUI).isOn = v;
                     }
                     break;
                 case UIType.Slider:

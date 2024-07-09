@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UniVue.Input;
 using UniVue.Tween;
-using UniVue.Tween.Tweens;
 
 namespace UniVue.View.Widgets
 {

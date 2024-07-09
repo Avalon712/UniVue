@@ -11,6 +11,8 @@ namespace UniVue.Model
         object GetPropertyValue();
 
         void NotifyUIUpdate();
+
+        BindableType BindType { get; }
     }
 
     public interface IAtomProperty<T> : INotifiableProperty
@@ -50,6 +52,8 @@ namespace UniVue.Model
 
         public string PropertyName => _propertyName;
 
+        public BindableType BindType => BindableType.Int;
+
         public string GetPropertyName()
         {
             return PropertyName;
@@ -81,7 +85,7 @@ namespace UniVue.Model
         }
 
         public string PropertyName => _propertyName;
-
+        public BindableType BindType => BindableType.Enum;
         public E Value
         {
             get => _value;
@@ -126,7 +130,7 @@ namespace UniVue.Model
         }
 
         public string PropertyName => _propertyName;
-
+        public BindableType BindType => BindableType.Float;
         public float Value
         {
             get => _value;
@@ -166,7 +170,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.Bool;
         public string PropertyName => _propertyName;
 
         public bool Value
@@ -208,7 +212,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.String;
         public string PropertyName => _propertyName;
 
         public string Value
@@ -250,7 +254,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.Sprite;
         public string PropertyName => _propertyName;
 
         public Sprite Value
@@ -292,7 +296,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.ListInt;
         public string PropertyName => _propertyName;
 
         public List<int> Value
@@ -334,7 +338,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.ListBool;
         public string PropertyName => _propertyName;
 
         public List<bool> Value
@@ -376,7 +380,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.ListFloat;
         public string PropertyName => _propertyName;
         public List<float> Value
         {
@@ -416,7 +420,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.ListString;
         public string PropertyName => _propertyName;
         public List<string> Value
         {
@@ -456,7 +460,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.ListSprite;
         public string PropertyName => _propertyName;
 
         public List<Sprite> Value
@@ -497,7 +501,7 @@ namespace UniVue.Model
             _propertyName = propertyName;
             _value = value;
         }
-
+        public BindableType BindType => BindableType.ListEnum;
         public string PropertyName => _propertyName;
 
         public List<T> Value

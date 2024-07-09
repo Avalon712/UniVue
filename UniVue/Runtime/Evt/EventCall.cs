@@ -136,16 +136,72 @@ namespace UniVue.Evt
                 if (args[j].ArgumentName == argName)
                 {
                     object value = args[j].GetArgumentValue();
-
                     Type valueType = value.GetType();
 
-                    //如果是枚举类型
-                    if (argType == SupportableArgType.Enum && (valueType == typeof(string) || valueType == typeof(int)))
+                    //int转enum
+                    if (argType == SupportableArgType.Enum && valueType == typeof(int))
                     {
-                        if (Enum.TryParse(parameterType, value.ToString(), out _parameters[i]))
+                        try
+                        {
+                            _parameters[i] = Enum.ToObject(parameterType, value);
+                            return;
+                        }
+                        catch (Exception e)
+                        {
+#if UNITY_EDITOR
+                            LogUtil.Warning($"无法将{valueType.Name}转为枚举类型{parameterType.Name}, 异常原因:{e.Message}");
+#endif
+                        }
+                    }
+
+                    //string转enum
+                    if (argType == SupportableArgType.Enum && valueType == typeof(string))
+                    {
+                        if (Enum.TryParse(parameterType, value as string, out _parameters[i]))
                         {
                             return;
                         }
+                    }
+
+                    //string转int、float类型
+                    if (argType == SupportableArgType.Int && valueType == typeof(string))
+                    {
+                        if (int.TryParse(value as string, out int result))
+                        {
+                            _parameters[i] = result;
+                            return;
+                        }
+                    }
+
+                    //string转int、float类型
+                    if (argType == SupportableArgType.Float && valueType == typeof(string))
+                    {
+                        if (float.TryParse(value as string, out float result))
+                        {
+                            _parameters[i] = result;
+                            return;
+                        }
+                    }
+
+                    //int、float转string
+                    if (argType == SupportableArgType.String && (valueType == typeof(int) || valueType == typeof(float)))
+                    {
+                        _parameters[i] = value.ToString();
+                        return;
+                    }
+
+                    //float转int
+                    if (argType == SupportableArgType.Int && valueType == typeof(float))
+                    {
+                        _parameters[i] = (int)(float)value;
+                        return;
+                    }
+
+                    //int转float
+                    if (argType == SupportableArgType.Float && valueType == typeof(int))
+                    {
+                        _parameters[i] = (float)(int)value;
+                        return;
                     }
 
                     if (valueType != parameterType)
@@ -153,7 +209,6 @@ namespace UniVue.Evt
 #if UNITY_EDITOR
                         LogUtil.Warning($"方法[{_call.Name}]: 参数名为{argName}的类型为{parameterType}，与UI返回的事件参数类型{value.GetType()}不一致，无法正确进行赋值!");
 #endif
-                        return;
                     }
                     else
                     {

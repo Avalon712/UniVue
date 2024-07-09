@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UniVue.Evt;
 using UniVue.Model;
 using UniVue.Utils;
 using UniVue.View.Widgets;
@@ -20,46 +19,40 @@ namespace UniVue.View.Views
         /// <summary>
         /// 对于继承自MonoView的视图此属性将是无效的
         /// </summary>
-        public int order => 0;
+        public int Order => 0;
 
-        public ViewLevel level => _level;
+        public ViewLevel Level => _level;
 
-        public bool state => _state;
+        public bool State => _state;
 
-        public virtual GameObject viewObject => gameObject;
+        public virtual GameObject ViewObject => gameObject;
 
-        public virtual bool isMaster => false;
+        public virtual bool IsMaster => false;
 
-        public virtual string root => null;
+        public virtual string Root => null;
 
-        public virtual string master => null;
+        public virtual string Master => null;
 
-        public virtual bool forbid => false;
+        public virtual bool Forbid => false;
 
-        public virtual new string name => gameObject.name;
+        public virtual string Name => gameObject.name;
 
 
         public virtual void OnLoad()
         {
             //初始化运行时数据
             _state = gameObject.activeSelf;
-            ViewUtil.SetActive(viewObject, _state || _level == ViewLevel.Permanent);
+            ViewUtil.SetActive(ViewObject, _state || _level == ViewLevel.Permanent);
             //将当前视图对象交给ViewRouter管理
             Vue.Router.AddView(this);
-            AutoBindEvent();
         }
 
         /// <summary>
         /// 绑定路由事件、创建UIEvent和EventArg对象
         /// </summary>
-        private void AutoBindEvent()
+        protected void BindEvent(params GameObject[] exclued)
         {
-            //获取所有的ui组件
-            var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this);
-            //构建UIEvent
-            UIEventBuilder.Build(name, uis);
-            //处理路由事件
-            Vue.Router.BindRouteEvt(name, uis);
+            ViewUtil.Patch2Pass(ViewObject, this, exclued);
         }
 
         public virtual void OnUnload()
@@ -76,13 +69,13 @@ namespace UniVue.View.Views
 
         public void RebindModel<T>(T newModel, T oldModel) where T : IBindableModel
         {
-            Vue.Updater.Rebind(name, newModel, oldModel);
+            Vue.Updater.Rebind(Name, newModel, oldModel);
         }
 
 
         public void RebindModel<T>(T newModel) where T : IBindableModel
         {
-            Vue.Updater.Rebind(name, newModel);
+            Vue.Updater.Rebind(Name, newModel);
         }
 
         /// <summary>
@@ -108,7 +101,7 @@ namespace UniVue.View.Views
             }
 
             _state = false; //设置为关闭状态
-            viewObject.SetActive(false);
+            ViewObject.SetActive(false);
         }
 
 
@@ -123,7 +116,7 @@ namespace UniVue.View.Views
             }
 
             _state = true; //设置为打开状态
-            viewObject.SetActive(true);
+            ViewObject.SetActive(true);
         }
 
         public virtual T GetWidget<T>() where T : Widget

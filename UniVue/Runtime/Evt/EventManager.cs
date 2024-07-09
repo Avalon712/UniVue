@@ -15,6 +15,8 @@ namespace UniVue.Evt
 
         internal EventManager() { _events = new(18); _calls = new(18); }
 
+        internal List<UIEvent> Events => _events;
+
         /// <summary>
         /// 当前执行的事件回调
         /// </summary>
@@ -142,6 +144,7 @@ namespace UniVue.Evt
         /// <summary>
         /// 为事件参数赋值
         /// </summary>
+        /// <remarks>推荐UIQuerier查询到指定的UIEvent再使用UIEvent.SetEventArg()函数替代</remarks>
         /// <param name="eventName">事件名称</param>
         /// <param name="viewName">哪个视图下的事件</param>
         /// <param name="values">key=参数名,value=参数值</param>
@@ -153,6 +156,61 @@ namespace UniVue.Evt
                 if (@event.EventName == eventName && @event.ViewName == viewName)
                 {
                     @event.SetEventArgs(values);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 为事件参数赋值
+        /// </summary>
+        /// <param name="eventName">事件名称</param>
+        /// <param name="viewName">哪个视图下的事件</param>
+        /// <param name="argName">参数名</param>
+        /// <param name="argValue">参数值</param>
+        public void SetEventArg(string eventName, string viewName, string argName, object argValue)
+        {
+            for (int i = 0; i < _events.Count; i++)
+            {
+                UIEvent @event = _events[i];
+                if (@event.EventName == eventName && @event.ViewName == viewName)
+                {
+                    @event.SetEventArg(argName, argValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 为事件参数赋值
+        /// </summary>
+        /// <remarks>推荐UIQuerier查询到指定的UIEvent再使用UIEvent.SetEventArg()函数替代</remarks>
+        /// <param name="eventName">事件名称</param>
+        /// <param name="values">key=参数名,value=参数值</param>
+        public void SetEventArgs(string eventName, Dictionary<string, object> values)
+        {
+            for (int i = 0; i < _events.Count; i++)
+            {
+                UIEvent @event = _events[i];
+                if (@event.EventName == eventName)
+                {
+                    @event.SetEventArgs(values);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 为事件参数赋值
+        /// </summary>
+        /// <param name="eventName">事件名称</param>
+        /// <param name="argName">参数名</param>
+        /// <param name="argValue">参数值</param>
+        public void SetEventArg(string eventName, string argName, object argValue)
+        {
+            for (int i = 0; i < _events.Count; i++)
+            {
+                UIEvent @event = _events[i];
+                if (@event.EventName == eventName)
+                {
+                    @event.SetEventArg(argName, argValue);
                 }
             }
         }

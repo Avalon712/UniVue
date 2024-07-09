@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 
 namespace UniVue.Utils
 {
@@ -53,6 +54,23 @@ namespace UniVue.Utils
             {
                 source.Add(target[i]);
             }
+        }
+
+        public static T[] GetInternalArray<T>(List<T> list)
+        {
+            FieldInfo[] fieldInfos = list.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+
+            for (int i = 0; i < fieldInfos.Length; i++)
+            {
+                if (fieldInfos[i].FieldType.IsArray)
+                {
+                    return fieldInfos[i].GetValue(list) as T[];
+                }
+            }
+
+            //反射的方式获取失败
+            //return list.ToArray();
+            return null;
         }
     }
 }

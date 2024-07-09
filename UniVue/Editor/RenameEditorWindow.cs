@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UniVue.Rule;
+using UniVue.Utils;
 
 namespace UniVue.Editor
 {
@@ -11,7 +12,7 @@ namespace UniVue.Editor
         private const char SKIP_ALL_DESCENDANT_SEPARATOR = '~';
         private const char SKIP_CURRENT_SEPARATOR = '@';
 
-        public  List<GameObject> _viewObjects;
+        public List<GameObject> _viewObjects;
         private SerializedProperty _serializedObjs;
         private SerializedObject _window;
         private NamingFormat _format = NamingFormat.UnderlineUpper | NamingFormat.UI_Suffix;
@@ -43,7 +44,7 @@ namespace UniVue.Editor
                 "名称前添加特殊字符以此来大幅减少对UI组件的查找次数。命名有\n" +
                 "一定的规则，请勿随意命名导致无法正确处理UI组件行为。名称前\n" +
                 "有字符'~'的GameObject及其后代都不会被进行组件查找；名称前\n" +
-                "有字符'@'的GameObject不会被进行组件查找，但其后代会。如果\n"+
+                "有字符'@'的GameObject不会被进行组件查找，但其后代会。如果\n" +
                 "你想修改这里的设置请打开RenameEditorWindow.cs脚本进行修改。", GUILayout.Height(110));
             EditorGUI.EndDisabledGroup();
             EditorGUILayout.Space();
@@ -59,12 +60,13 @@ namespace UniVue.Editor
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("重命名")){
-                Rename(_format); 
+            if (GUILayout.Button("重命名"))
+            {
+                Rename(_format);
             }
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("清空特殊命名")) 
+            if (GUILayout.Button("清空特殊命名"))
             {
                 for (int i = 0; i < _viewObjects.Count; i++)
                 {
@@ -110,7 +112,7 @@ namespace UniVue.Editor
 
                     //当前GameObject能够标记~的条件是:当前GameObject匹配不成功同时其后代（如果有）都匹配不成功
                     int lastDescendantIdx = j; //从i+1到lastDescendantIdx都是tuple的后代元素
-                    bool allNoMatch = AllDescendantNoMatch(j,ref tuple, result, ref lastDescendantIdx);
+                    bool allNoMatch = AllDescendantNoMatch(j, ref tuple, result, ref lastDescendantIdx);
                     if (!tuple.Item2 && j > 0 && allNoMatch)
                     {
                         tuple.Item1.name = '~' + tuple.Item1.name;
@@ -122,14 +124,14 @@ namespace UniVue.Editor
                     if (!tuple.Item2 && !allNoMatch && !tuple.Item1.name.EndsWith("View")) { tuple.Item1.name = '@' + tuple.Item1.name; }
                 }
             }
-            
+
             Debug.Log("UI组件重命名完成!");
         }
 
         /// <summary>
         /// 子代是否都匹配不成功
         /// </summary>
-        private bool AllDescendantNoMatch(int ancestorIdx,ref ValueTuple<GameObject, bool> ancestor,List<ValueTuple<GameObject, bool>> result,ref int lastDescendantIdx)
+        private bool AllDescendantNoMatch(int ancestorIdx, ref ValueTuple<GameObject, bool> ancestor, List<ValueTuple<GameObject, bool>> result, ref int lastDescendantIdx)
         {
             Transform transform = ancestor.Item1.transform;
 
@@ -152,7 +154,7 @@ namespace UniVue.Editor
             return true;
         }
 
-        private bool IsAncestor(Transform ancestor,Transform descendant)
+        private bool IsAncestor(Transform ancestor, Transform descendant)
         {
             while (descendant != null)
             {
@@ -163,9 +165,9 @@ namespace UniVue.Editor
         }
 
         //bool指示当前GameObject名称是否匹配成功
-        private void DeapthSearch(GameObject root,List<ValueTuple<GameObject,bool>> result,NamingFormat format)
+        private void DeapthSearch(GameObject root, List<ValueTuple<GameObject, bool>> result, NamingFormat format)
         {
-            result.Add(new ValueTuple<GameObject, bool>(root, NamingRuleEngine.FullFuzzyMatch(format, root.name)));
+            result.Add(new ValueTuple<GameObject, bool>(root, FullFuzzyMatch(format, root.name)));
 
             Transform transform = root.transform;
             for (int i = 0; i < transform.childCount; i++)
@@ -174,6 +176,33 @@ namespace UniVue.Editor
             }
         }
 
+        /// <summary>
+        /// 简单的进行命名匹配(简单地判断一个UI的命名是否是特殊命名，这个判断结果可能是错误的)
+        /// 注：想要实现高精度的匹配办法就是使用完全不一样的命名风格，比如：以下划线隔开的可以选驼峰式或空格式这样的命名
+        /// </summary>
+        /// <param name="uiName"></param>
+        /// <returns></returns>
+        public bool FullFuzzyMatch(NamingFormat format, string uiName)
+        {
+            if (UITypeUtil.GetUIType(uiName) == UIType.None) return false;
 
+            int f = (int)format;
+            int t = f > 64 ? f - 64 : f - 32;
+
+            switch (t)
+            {
+                case 1:
+                    return !uiName.Contains('_') && (!uiName.Contains(' ') || uiName.Contains(" & "));
+                case 2:
+                    return uiName.Contains('_') && (!uiName.Contains(' ') || uiName.Contains(" & "));
+                case 4:
+                    return uiName.Contains(' ') && !uiName.Contains('_');
+                case 8:
+                    return uiName.Contains(' ') && !uiName.Contains('_');
+                case 16:
+                    return uiName.Contains('_') && (!uiName.Contains(' ') || uiName.Contains(" & "));
+            }
+            return false;
+        }
     }
 }

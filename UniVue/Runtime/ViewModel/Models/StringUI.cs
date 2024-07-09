@@ -3,14 +3,14 @@ using UnityEngine;
 
 namespace UniVue.ViewModel.Models
 {
-    public abstract class StringPropertyUI<UI> : PropertyUI where UI : Component
+    public abstract class StringUI<UI> : PropertyUI where UI : Component
     {
         /// <summary>
         /// 绑定的UI组件
         /// </summary>
         protected UI _ui;
 
-        protected StringPropertyUI(UI ui, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
+        protected StringUI(UI ui, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _ui = ui;
         }

@@ -4,9 +4,9 @@ using TMPro;
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class EnumPropertyInput : EnumPropertyUI<TMP_InputField>
+    public sealed class EnumInput : EnumUI<TMP_InputField>
     {
-        public EnumPropertyInput(TMP_InputField ui, Array array, string propertyName, bool allowUIUpdateModel) : base(ui, array, propertyName, allowUIUpdateModel)
+        public EnumInput(TMP_InputField ui, Array array, string propertyName, bool allowUIUpdateModel) : base(ui, array, propertyName, allowUIUpdateModel)
         {
             if (allowUIUpdateModel) { ui.onEndEdit.AddListener(UpdateModel); }
         }

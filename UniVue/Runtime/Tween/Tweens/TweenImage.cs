@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace UniVue.Tween.Tweens
+namespace UniVue.Tween
 {
     public sealed class TweenImage : TweenTask
     {

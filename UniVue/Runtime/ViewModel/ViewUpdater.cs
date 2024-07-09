@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
-using UniVue.Utils;
 using UniVue.ViewModel.Models;
 
 namespace UniVue.ViewModel
@@ -21,13 +20,6 @@ namespace UniVue.ViewModel
         internal PropertyUI Publisher { get; set; }
 
         public VMTable Table { get; private set; }
-
-
-        internal void BindViewModel<T>(string viewName, T model, List<ValueTuple<Component, UIType>> uis, string modelName, bool allowUIUpdateModel) where T : IBindableModel
-        {
-            BindViewModel(viewName, UIBundleBuilder.Build(uis, model, modelName, allowUIUpdateModel));
-        }
-
 
         /// <summary>
         /// 添加UIBundle

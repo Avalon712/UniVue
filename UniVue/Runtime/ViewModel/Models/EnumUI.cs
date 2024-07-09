@@ -8,7 +8,7 @@ namespace UniVue.ViewModel.Models
     /// <summary>
     /// 枚举类型可以绑定的UI组件：TMP_Dropdrown、ToggleGroup
     /// </summary>
-    public abstract class EnumPropertyUI<UI> : PropertyUI
+    public abstract class EnumUI<UI> : PropertyUI
     {
         /// <summary>
         /// 绑定的UI组件
@@ -19,7 +19,7 @@ namespace UniVue.ViewModel.Models
         /// </summary>
         protected List<ValueTuple<string, string, int>> _enums;
 
-        protected EnumPropertyUI(UI ui, Array array, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
+        protected EnumUI(UI ui, Array array, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _ui = ui; InitEnumInfos(array);
         }

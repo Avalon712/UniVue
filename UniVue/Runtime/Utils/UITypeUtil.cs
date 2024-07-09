@@ -8,38 +8,40 @@ namespace UniVue.Utils
 
         public static UIType GetUIType(string uiName)
         {
-            if (uiName.StartsWith("Btn", StringComparison.OrdinalIgnoreCase)
-                || uiName.StartsWith("Button", StringComparison.OrdinalIgnoreCase)
-                || uiName.EndsWith("Btn", StringComparison.OrdinalIgnoreCase)
-                || uiName.EndsWith("Button", StringComparison.OrdinalIgnoreCase)
+            StringComparison comparison = StringComparison.OrdinalIgnoreCase;
+
+            if (uiName.StartsWith("Btn", comparison)
+                || uiName.StartsWith("Button", comparison)
+                || uiName.EndsWith("Btn", comparison)
+                || uiName.EndsWith("Button", comparison)
                 ) { return UIType.Button; }
 
-            if (uiName.StartsWith("Img", StringComparison.OrdinalIgnoreCase)
-              || uiName.StartsWith("Image", StringComparison.OrdinalIgnoreCase)
-              || uiName.EndsWith("Img", StringComparison.OrdinalIgnoreCase)
-              || uiName.EndsWith("Image", StringComparison.OrdinalIgnoreCase)
+            if (uiName.StartsWith("Img", comparison)
+              || uiName.StartsWith("Image", comparison)
+              || uiName.EndsWith("Img", comparison)
+              || uiName.EndsWith("Image", comparison)
             ) { return UIType.Image; }
 
-            if (uiName.StartsWith("Toggle", StringComparison.OrdinalIgnoreCase)
-             || uiName.EndsWith("Toggle", StringComparison.OrdinalIgnoreCase)
+            if (uiName.StartsWith("Toggle", comparison)
+             || uiName.EndsWith("Toggle", comparison)
             ) { return UIType.Toggle; }
 
-            if (uiName.StartsWith("Input", StringComparison.OrdinalIgnoreCase)
-             || uiName.EndsWith("Input", StringComparison.OrdinalIgnoreCase)
+            if (uiName.StartsWith("Input", comparison)
+             || uiName.EndsWith("Input", comparison)
              ) { return UIType.TMP_InputField; }
 
-            if (uiName.StartsWith("Txt", StringComparison.OrdinalIgnoreCase)
-             || uiName.StartsWith("Text", StringComparison.OrdinalIgnoreCase)
-             || uiName.EndsWith("Txt", StringComparison.OrdinalIgnoreCase)
-             || uiName.EndsWith("Text", StringComparison.OrdinalIgnoreCase)
+            if (uiName.StartsWith("Txt", comparison)
+             || uiName.StartsWith("Text", comparison)
+             || uiName.EndsWith("Txt", comparison)
+             || uiName.EndsWith("Text", comparison)
              ) { return UIType.TMP_Text; }
 
-            if (uiName.StartsWith("Slider", StringComparison.OrdinalIgnoreCase)
-             || uiName.EndsWith("Slider", StringComparison.OrdinalIgnoreCase)
+            if (uiName.StartsWith("Slider", comparison)
+             || uiName.EndsWith("Slider", comparison)
              ) { return UIType.Slider; }
 
-            if (uiName.StartsWith("Dropdown", StringComparison.OrdinalIgnoreCase)
-             || uiName.EndsWith("Dropdown", StringComparison.OrdinalIgnoreCase)
+            if (uiName.StartsWith("Dropdown", comparison)
+             || uiName.EndsWith("Dropdown", comparison)
            ) { return UIType.TMP_Dropdown; }
 
             return UIType.None;

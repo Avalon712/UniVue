@@ -2,13 +2,9 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UniVue.Tween.Tweens;
 
 namespace UniVue.Tween
 {
-    /// <summary>
-    /// 每个GameObject的动画行为由这个进行关联,这个对象可被重复使用，改变transform或其它关联的动画对象即可
-    /// </summary>
     public sealed class TweenBehavior
     {
         private TweenBehavior() { }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using TMPro;
-using UnityEngine;
 using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Rule;
@@ -11,304 +9,323 @@ using UniVue.ViewModel.Models;
 
 namespace UniVue.ViewModel
 {
-    public sealed class UIBundleBuilder
+    public static class UIBundleBuilder
     {
-        private UIBundleBuilder() { }
-
         /// <summary>
-        /// 为指定的GameObject构建UIBundle
+        /// 构建UIBundle对象
         /// </summary>
-        /// <param name="modelName">模型名称，如果为null将默认为TypeName</param>
-        /// <returns>UIModel</returns>
-        public static UIBundle Build<T>(List<ValueTuple<Component, UIType>> uis, T model, string modelName, bool allowUIUpdateModel) where T : IBindableModel
+        /// <param name="model">模型对象</param>
+        /// <param name="propertyUIComps">object类型是ModelFilterResult类型</param>
+        /// <returns>UIBundle（可能为null）</returns>
+        public static UIBundle Build(IBindableModel model, List<object> propertyUIComps)
         {
-            return CreateUIBundle(model, GetAllUIComponents(uis), modelName, allowUIUpdateModel);
+            List<PropertyUI> propertyUIs = new List<PropertyUI>(propertyUIComps.Count);
+
+            BuildPropertyUI_Int_Toggles(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Int_Text(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Int_Slider(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Int_Input(propertyUIs, propertyUIComps);
+
+            BuildPropertyUI_Float_Text(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Float_Slider(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Float_Input(propertyUIs, propertyUIComps);
+
+            BuildPropertyUI_Enum_ToggleGroup(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Enum_Text(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Enum_Input(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Enum_Dropdown(propertyUIs, propertyUIComps);
+
+            BuildPropertyUI_FlagsEnum_Toggles(propertyUIs, propertyUIComps);
+            BuildPropertyUI_FlagsEnum_Text(propertyUIs, propertyUIComps);
+
+            BuildPropertyUI_String_Input(propertyUIs, propertyUIComps);
+            BuildPropertyUI_String_Text(propertyUIs, propertyUIComps);
+
+            BuildPropertyUI_Bool_Toggle(propertyUIs, propertyUIComps);
+
+            BuildPropertyUI_Sprite_Image(propertyUIs, propertyUIComps);
+
+            return propertyUIs.Count == 0 ? null : new UIBundle(model, propertyUIs);
         }
 
-        private static Dictionary<UIType, List<Component>> GetAllUIComponents(List<ValueTuple<Component, UIType>> uis)
+        #region Int绑定UI
+        private static void BuildPropertyUI_Int_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            Dictionary<UIType, List<Component>> uiComponents = new Dictionary<UIType, List<Component>>();
-
-            for (int i = 0; i < uis.Count; i++)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                var result = uis[i];
-                if (uiComponents.ContainsKey(result.Item2))
-                    uiComponents[result.Item2].Add(result.Item1);
-                else
-                    uiComponents.Add(result.Item2, new List<Component>() { result.Item1 });
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_Text || (result.BindType != BindableType.Int && result.BindType != BindableType.ListInt)) continue;
+                propertyUIs.Add(new IntText(result.Component as TMP_Text, result.PropertyName));
+                ListUtil.TrailDelete(propertyUIComps, i--);
             }
-            return uiComponents;
         }
 
-        private static UIBundle CreateUIBundle<T>(T model, Dictionary<UIType, List<Component>> comps, string modelName, bool allowUIUpdateModel) where T : IBindableModel
+        private static void BuildPropertyUI_Int_Slider(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            Type type = model.GetType();
-            if (modelName == null) { modelName = type.Name; }
-
-            List<PropertyUI> propertyUIs;
-
-            //AtomModel<>类型
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(AtomModel<>))
-                propertyUIs = AtomModelBuild(ref modelName, model, type, comps, allowUIUpdateModel);
-            else if (type == typeof(GroupModel))
-                propertyUIs = GroupModelBuild(ref modelName, model, type, comps, allowUIUpdateModel);
-            //用户自定义类型
-            else
-                propertyUIs = CommonModelBuild(type, modelName, comps, allowUIUpdateModel);
-
-            if (propertyUIs == null || propertyUIs.Count == 0)
-                return null;
-            else
-                return new UIBundle(model, propertyUIs);
-        }
-
-        private static List<PropertyUI> AtomModelBuild<T>(ref string modelName, T model, Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel) where T : IBindableModel
-        {
-            List<PropertyUI> propertyUIs = new();
-            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-            modelName = type.GetField("_modelName", flags).GetValue(model) as string;
-            string propertyName = type.GetProperty("PropertyName", flags).GetValue(model) as string;
-            Type propertyType = type.GetProperty("Value", flags).PropertyType;
-            BindableType bindableType = ReflectionUtil.GetBindableType(propertyType);
-            BuildPropertyUIs(modelName, propertyName, propertyType, ref bindableType, propertyUIs, comps, allowUIUpdateModel);
-            return propertyUIs;
-        }
-
-        private static List<PropertyUI> GroupModelBuild<T>(ref string modelName, T model, Type type, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
-        {
-            List<PropertyUI> propertyUIs = new();
-            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-            modelName = type.GetField("_modelName", flags).GetValue(model) as string;
-            List<INotifiableProperty> properties = type.GetField("_properties", flags).GetValue(model) as List<INotifiableProperty>;
-            //通过反射获取所有的属性类型以及属性名
-            for (int i = 0; i < properties.Count; i++)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                Type pType = properties[i].GetType();
-                string propertyName = pType.GetProperty("PropertyName", flags).GetValue(properties[i]) as string;
-                Type propertyType = pType.GetProperty("Value", flags).PropertyType;
-                BindableType bindableType = ReflectionUtil.GetBindableType(propertyType);
-                BuildPropertyUIs(modelName, propertyName, propertyType, ref bindableType, propertyUIs, comps, allowUIUpdateModel);
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.Slider || (result.BindType != BindableType.Int && result.BindType != BindableType.ListInt)) continue;
+                propertyUIs.Add(new IntSlider(result.Component as Slider, result.PropertyName, result.Property.CanWrite));
+                ListUtil.TrailDelete(propertyUIComps, i--);
             }
-            return propertyUIs;
         }
 
-        private static List<PropertyUI> CommonModelBuild(Type type, string modelName, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
+        private static void BuildPropertyUI_Int_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            List<PropertyUI> propertyUIs = new();
-            PropertyInfo[] properties = type.GetProperties();
-
-            for (int i = 0; i < properties.Length; i++)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                PropertyInfo propertyInfo = properties[i];
-                //不能绑定无法读取属性值的属性
-                if (!propertyInfo.CanRead) continue;
-
-                BuildPropertyUIs(propertyUIs, modelName, propertyInfo, comps, allowUIUpdateModel);
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.Int) continue;
+                propertyUIs.Add(new IntInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite));
+                ListUtil.TrailDelete(propertyUIComps, i--);
             }
-            return propertyUIs;
         }
 
-        private static void BuildPropertyUIs(List<PropertyUI> propertyUIs, string modelName, PropertyInfo propertyInfo, Dictionary<UIType, List<Component>> comps, bool allowUIUpdateModel)
+        private static void BuildPropertyUI_Int_Toggles(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            var bindableType = ReflectionUtil.GetBindableType(propertyInfo.PropertyType);
+            if (propertyUIComps.Count == 0) return;
 
-            if (bindableType == BindableType.None) return;
+            List<Toggle> toggles = new List<Toggle>();
 
-            //允许通过UI更改属性值的条件
-            bool allow = allowUIUpdateModel && propertyInfo.CanWrite;
-
-            BuildPropertyUIs(modelName, propertyInfo.Name, propertyInfo.PropertyType, ref bindableType, propertyUIs, comps, allow);
-        }
-
-        private static void BuildPropertyUIs(string modelName, string propertyName, Type propertyType, ref BindableType bindableType, List<PropertyUI> propertyUIs, Dictionary<UIType, List<Component>> comps, bool allow)
-        {
-            foreach (UIType uiType in comps.Keys)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                List<Component> components = comps[uiType];
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.Toggle || result.BindType != BindableType.Int) continue;
 
-                //设置PropertyUI
-                switch (uiType)
+                //获取当前属性的所有Toggle组件
+                for (int j = i; j < propertyUIComps.Count; j++)
                 {
-                    case UIType.TMP_Dropdown:
-                        TMP_Dropdowns(modelName, propertyName, propertyType, components, ref bindableType, propertyUIs, allow);
-                        break;
-
-                    case UIType.TMP_Text:
-                        TMP_Texts(modelName, propertyName, propertyType, components, ref bindableType, propertyUIs);
-                        break;
-
-                    case UIType.TMP_InputField:
-                        TMP_InputFields(modelName, propertyName, propertyType, components, ref bindableType, propertyUIs, allow);
-                        break;
-
-                    case UIType.Toggle:
-                        Toggles(modelName, propertyName, propertyType, components, ref bindableType, propertyUIs, allow);
-                        break;
-
-                    case UIType.Slider:
-                        Sliders(modelName, propertyName, propertyType, components, ref bindableType, propertyUIs, allow);
-                        break;
-
-                    case UIType.ToggleGroup:
-                        ToggleGroups(modelName, propertyName, propertyType, components, ref bindableType, propertyUIs, allow);
-                        break;
-
-                    case UIType.Image:
-                        Images(modelName, propertyName, propertyType, components, ref bindableType, propertyUIs);
-                        break;
+                    ModelFilterResult temp = (ModelFilterResult)propertyUIComps[j];
+                    if (temp.UIType != UIType.Toggle || temp.BindType != BindableType.Int || temp.PropertyName != result.PropertyName) continue;
+                    toggles.Add(temp.Component as Toggle);
+                    propertyUIComps.RemoveAt(j--); //不能采用尾删
                 }
+
+                propertyUIs.Add(new IntToggles(toggles.ToArray(), result.PropertyName));
+                i--; //当前位置被删除了，因此减一
+                toggles.Clear();
             }
         }
 
+        #endregion
 
-        private static void TMP_Dropdowns(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs, bool allow)
+        #region String绑定UI
+        private static void BuildPropertyUI_String_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            for (int j = 0; j < components.Count; j++)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
-                {
-                    PropertyUI propertyUI = PropertyUIBuilder.DoBuildDropdown(propertyName, type, (TMP_Dropdown)components[j], allow);
-                    if (propertyUI != null) { propertyUIs.Add(propertyUI); }
-                }
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.String) continue;
+                propertyUIs.Add(new StringInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite));
+                ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void TMP_Texts(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs)
+        private static void BuildPropertyUI_String_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            for (int j = 0; j < components.Count; j++)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
-                {
-                    PropertyUI propertyUI = PropertyUIBuilder.DoBuildText(propertyName, type, bindableType, (TMP_Text)components[j]);
-                    if (propertyUI != null) { propertyUIs.Add(propertyUI); }
-                }
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_Text || (result.BindType != BindableType.String && result.BindType != BindableType.ListString)) continue;
+                propertyUIs.Add(new StringText(result.Component as TMP_Text, result.PropertyName));
+                ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void TMP_InputFields(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs, bool allow)
+        #endregion
+
+        #region Float绑定UI
+        private static void BuildPropertyUI_Float_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            for (int j = 0; j < components.Count; j++)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
-                {
-                    PropertyUI uiUpdater = PropertyUIBuilder.DoBuildInput(propertyName, type, bindableType, (TMP_InputField)components[j], allow);
-                    if (uiUpdater != null) { propertyUIs.Add(uiUpdater); }
-                }
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_Text || (result.BindType != BindableType.Float && result.BindType != BindableType.ListFloat)) continue;
+                propertyUIs.Add(new FloatText(result.Component as TMP_Text, result.PropertyName));
+                ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void Toggles(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs, bool allow)
+        private static void BuildPropertyUI_Float_Slider(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            List<Toggle> multiChoice = null;//多选
-            List<Toggle> intToToggles = null; //int类型的值绑定Toggles
-
-            if (bindableType == BindableType.Bool || bindableType == BindableType.ListBool)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                for (int j = 0; j < components.Count; j++)
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.Slider || (result.BindType != BindableType.Float && result.BindType != BindableType.ListFloat)) continue;
+                propertyUIs.Add(new FloatSlider(result.Component as Slider, result.PropertyName, result.Property.CanWrite));
+                ListUtil.TrailDelete(propertyUIComps, i--);
+            }
+        }
+
+        private static void BuildPropertyUI_Float_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        {
+            for (int i = 0; i < propertyUIComps.Count; i++)
+            {
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.Float) continue;
+                propertyUIs.Add(new FloatInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite));
+                ListUtil.TrailDelete(propertyUIComps, i--);
+            }
+        }
+        #endregion
+
+        #region Bool绑定UI
+        private static void BuildPropertyUI_Bool_Toggle(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        {
+            for (int i = 0; i < propertyUIComps.Count; i++)
+            {
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.Toggle || (result.BindType != BindableType.Bool && result.BindType != BindableType.ListBool)) continue;
+                propertyUIs.Add(new BoolToggle(result.Component as Toggle, result.PropertyName, result.Property.CanWrite));
+                ListUtil.TrailDelete(propertyUIComps, i--);
+            }
+        }
+
+        #endregion
+
+        #region Enum绑定UI
+
+        private static void BuildPropertyUI_Enum_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        {
+            for (int i = 0; i < propertyUIComps.Count; i++)
+            {
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_Text || (result.BindType != BindableType.Enum && result.BindType != BindableType.ListEnum) || ReflectionUtil.HasFlags(result.Property.PropertyType)) continue;
+                propertyUIs.Add(new EnumText(result.Component as TMP_Text, Enum.GetValues(result.Property.PropertyType), result.PropertyName));
+                ListUtil.TrailDelete(propertyUIComps, i--);
+            }
+        }
+
+        private static void BuildPropertyUI_Enum_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        {
+            for (int i = 0; i < propertyUIComps.Count; i++)
+            {
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.Enum || ReflectionUtil.HasFlags(result.Property.PropertyType)) continue;
+                propertyUIs.Add(new EnumInput(result.Component as TMP_InputField, Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite));
+                ListUtil.TrailDelete(propertyUIComps, i--);
+            }
+        }
+
+        private static void BuildPropertyUI_Enum_Dropdown(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        {
+            for (int i = 0; i < propertyUIComps.Count; i++)
+            {
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_Dropdown || result.BindType != BindableType.Enum || ReflectionUtil.HasFlags(result.Property.PropertyType)) continue;
+                propertyUIs.Add(new EnumDropdown(result.Component as TMP_Dropdown, Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite));
+                ListUtil.TrailDelete(propertyUIComps, i--);
+            }
+        }
+
+        private static void BuildPropertyUI_Enum_ToggleGroup(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        {
+            if (propertyUIComps.Count == 0) return;
+
+            List<ValueTuple<Toggle, string>> toggles = new List<ValueTuple<Toggle, string>>();
+
+            for (int i = 0; i < propertyUIComps.Count; i++)
+            {
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.ToggleGroup || result.BindType != BindableType.Enum || ReflectionUtil.HasFlags(result.Property.PropertyType)) continue;
+
+                //获取当前属性的所有Toggle组件
+                for (int j = i; j < propertyUIComps.Count; j++)
                 {
-                    if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
+                    ModelFilterResult temp = (ModelFilterResult)propertyUIComps[j];
+                    if (temp.UIType != UIType.ToggleGroup || temp.BindType != BindableType.Enum || temp.PropertyName != result.PropertyName) continue;
+
+                    Toggle toggle = temp.Component as Toggle;
+                    string enumStr = toggle.GetComponentInChildren<TMP_Text>()?.text;
+
+                    if (string.IsNullOrEmpty(enumStr))
                     {
-                        PropertyUI propertyUI = PropertyUIBuilder.DoBuildToggle(propertyName, (Toggle)components[j], allow);
-                        if (propertyUI != null) { propertyUIs.Add(propertyUI); }
+#if UNITY_EDITOR
+                        LogUtil.Warning($"未能在Toggle[name={toggle.name}]组件的子物体中获取到此组件对应的枚举值,你应该在此Toggle组件的子物体中添加一个TMP_Text组件用来存储此Toggle的对应的枚举值");
+#endif
+                        continue;
                     }
-                }
-            }
-            else if (bindableType == BindableType.Enum) //多选
-            {
-                for (int j = 0; j < components.Count; j++)
-                {
-                    if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
-                    {
-                        if (multiChoice == null) { multiChoice = new List<Toggle>(); }
-                        multiChoice.Add((Toggle)components[j]);
-                    }
-                }
-            }
-            else if (bindableType == BindableType.Int)
-            {
-                for (int j = 0; j < components.Count; j++)
-                {
-                    if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
-                    {
-                        if (intToToggles == null) { intToToggles = new List<Toggle>(); }
-                        intToToggles.Add((Toggle)components[j]);
-                    }
-                }
-            }
 
-            //多选
-            bool isFlags = ReflectionUtil.HasFlags(type);
-            if (multiChoice != null && bindableType == BindableType.Enum && multiChoice.Count > 1 && isFlags)
-            {
-                PropertyUI propertyUI = PropertyUIBuilder.DoBuildMultiChoiceToggles(propertyName, type, multiChoice, allow);
-                if (propertyUI != null) { propertyUIs.Add(propertyUI); }
-                multiChoice.Clear();
-            }
+                    toggles.Add((toggle, enumStr));
+                    propertyUIComps.RemoveAt(j--); //不能采用尾删
+                }
 
-            //int绑定Toogle
-            if (intToToggles != null && intToToggles.Count > 1 && bindableType == BindableType.Int)
-            {
-                PropertyUI uiUpdater = new IntPropertyToggles(intToToggles.ToArray(), propertyName, allow);
-                propertyUIs.Add(uiUpdater);
-                intToToggles.Clear();
+                propertyUIs.Add(new EnumToggleGroup(toggles.ToArray(), Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite));
+                i--; //当前位置被删除了，因此减一
+                toggles.Clear();
             }
         }
 
-        private static void Sliders(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs, bool allow)
+        #endregion
+
+        #region FlagsEnum绑定UI
+
+        private static void BuildPropertyUI_FlagsEnum_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            for (int j = 0; j < components.Count; j++)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
-                {
-                    PropertyUI propertyUI = PropertyUIBuilder.DoBuildSlider(propertyName, bindableType, (Slider)components[j], allow);
-                    if (propertyUI != null) { propertyUIs.Add(propertyUI); }
-                }
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.TMP_Text || result.BindType != BindableType.Enum || !ReflectionUtil.HasFlags(result.Property.PropertyType)) continue;
+                propertyUIs.Add(new FlagsEnumText(result.Component as TMP_Text, Enum.GetValues(result.Property.PropertyType), result.PropertyName));
+                ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void ToggleGroups(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs, bool allow)
+        private static void BuildPropertyUI_FlagsEnum_Toggles(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            if (bindableType == BindableType.Enum || bindableType == BindableType.ListEnum)
+            if (propertyUIComps.Count == 0) return;
+
+            List<ValueTuple<Toggle, string>> toggles = new List<ValueTuple<Toggle, string>>();
+
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                List<Toggle> singleChoice = null;//单选
-                for (int j = 0; j < components.Count; j++)
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.Toggle || result.BindType != BindableType.Enum || !ReflectionUtil.HasFlags(result.Property.PropertyType)) continue;
+
+                //获取当前属性的所有Toggle组件
+                for (int j = i; j < propertyUIComps.Count; j++)
                 {
-                    if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
+                    ModelFilterResult temp = (ModelFilterResult)propertyUIComps[j];
+                    if (temp.UIType != UIType.Toggle || temp.BindType != BindableType.Enum || temp.PropertyName != result.PropertyName) continue;
+
+                    Toggle toggle = temp.Component as Toggle;
+                    string enumStr = toggle.GetComponentInChildren<TMP_Text>()?.text;
+
+                    if (string.IsNullOrEmpty(enumStr))
                     {
-                        Toggle toggle = (Toggle)components[j];
-
-                        if (singleChoice == null)
-                            singleChoice = new List<Toggle>();
-
-                        if (singleChoice.Count > 0 && singleChoice[0].group == toggle.group)
-                            singleChoice.Add(toggle);
-                        else if (singleChoice.Count == 0)
-                            singleChoice.Add(toggle);
+#if UNITY_EDITOR
+                        LogUtil.Warning($"未能在Toggle[name={toggle.name}]组件的子物体中获取到此组件对应的枚举值,你应该在此Toggle组件的子物体中添加一个TMP_Text组件用来存储此Toggle的对应的枚举值");
+#endif
+                        continue;
                     }
+
+                    toggles.Add((toggle, enumStr));
+                    propertyUIComps.RemoveAt(j--); //不能采用尾删
                 }
 
-                //单选
-                if (singleChoice != null && bindableType == BindableType.Enum && singleChoice.Count > 1)
-                {
-                    PropertyUI propertyUI = PropertyUIBuilder.DoBuildSingleChoiceToggles(propertyName, type, singleChoice, allow);
-                    if (propertyUI != null) { propertyUIs.Add(propertyUI); }
-                    singleChoice.Clear();
-                }
+                propertyUIs.Add(new FlagsEnumToggles(toggles.ToArray(), Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite));
+                i--; //当前位置被删除了，因此减一
+                toggles.Clear();
             }
         }
 
-        private static void Images(string modelName, string propertyName, Type type, List<Component> components, ref BindableType bindableType, List<PropertyUI> propertyUIs)
+
+        #endregion
+
+        #region Sprite绑定UI
+
+        private static void BuildPropertyUI_Sprite_Image(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
         {
-            if (bindableType == BindableType.Sprite || bindableType == BindableType.ListSprite)
+            for (int i = 0; i < propertyUIComps.Count; i++)
             {
-                for (int j = 0; j < components.Count; j++)
-                {
-                    if (NamingRuleEngine.CheckDataBindMatch(components[j].name, modelName, propertyName))
-                    {
-                        propertyUIs.Add(new PropertyImage((Image)components[j], propertyName));
-                    }
-                }
+                ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
+                if (result.UIType != UIType.Image || (result.BindType != BindableType.Sprite && result.BindType != BindableType.ListSprite)) continue;
+                propertyUIs.Add(new SpriteImage(result.Component as Image, result.PropertyName));
+                ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
+
+        #endregion
     }
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace UniVue.Tween.Tweens
+namespace UniVue.Tween
 {
     public sealed class TweenRotation : TweenTask
     {

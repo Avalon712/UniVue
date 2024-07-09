@@ -3,9 +3,9 @@ using TMPro;
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class IntPropertyText : IntPropertyUI<TMP_Text>
+    public sealed class IntText : IntUI<TMP_Text>
     {
-        public IntPropertyText(TMP_Text ui, string propertyName) : base(ui, propertyName, false)
+        public IntText(TMP_Text ui, string propertyName) : base(ui, propertyName, false)
         {
         }
 

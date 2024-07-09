@@ -1,5 +1,4 @@
-﻿
-namespace UniVue.ViewModel.Models
+﻿namespace UniVue.Model
 {
     public enum BindableType
     {

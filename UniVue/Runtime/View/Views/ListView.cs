@@ -22,7 +22,7 @@ namespace UniVue.View.Views
 
         public override void OnLoad()
         {
-            ScrollRect scrollRect = ComponentFindUtil.BreadthFind<ScrollRect>(viewObject);
+            ScrollRect scrollRect = ComponentFindUtil.BreadthFind<ScrollRect>(ViewObject);
 
             if (scrollRect == null)
             {

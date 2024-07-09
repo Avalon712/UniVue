@@ -3,9 +3,9 @@ using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class FloatPropertyInput : FloatPropertyUI<TMP_InputField>
+    public sealed class FloatInput : FloatUI<TMP_InputField>
     {
-        public FloatPropertyInput(TMP_InputField ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
+        public FloatInput(TMP_InputField ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
         {
 #if UNITY_EDITOR
             if (ui.contentType != TMP_InputField.ContentType.DecimalNumber)

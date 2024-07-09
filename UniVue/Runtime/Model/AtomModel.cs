@@ -1,4 +1,6 @@
-﻿using UniVue.Utils;
+﻿using System;
+using System.Reflection;
+using UniVue.Utils;
 using UniVue.ViewModel;
 
 namespace UniVue.Model
@@ -59,30 +61,44 @@ namespace UniVue.Model
 
         void IModelUpdater.UpdateModel(string propertyName, bool propertyValue)
         {
-            var p = _property as BoolProperty;
-            if (p != null)
+            if (_property.BindType == BindableType.Bool)
+            {
+                BoolProperty p = _property as BoolProperty;
                 p.Value = propertyValue;
+            }
         }
 
         void IModelUpdater.UpdateModel(string propertyName, string propertyValue)
         {
-            var p = _property as StringProperty;
-            if (p != null)
+            if (_property.BindType == BindableType.String)
+            {
+                StringProperty p = _property as StringProperty;
                 p.Value = propertyValue;
+            }
         }
 
         void IModelUpdater.UpdateModel(string propertyName, float propertyValue)
         {
-            var p = _property as FloatProperty;
-            if (p != null)
+            if (_property.BindType == BindableType.Float)
+            {
+                FloatProperty p = _property as FloatProperty;
                 p.Value = propertyValue;
+            }
         }
 
         void IModelUpdater.UpdateModel(string propertyName, int propertyValue)
         {
-            var p = _property as IntProperty;
-            if (p != null)
+            if (_property.BindType == BindableType.Enum)
+            {
+                FieldInfo enumField = _property.GetType().GetField("_value", BindingFlags.Instance | BindingFlags.NonPublic);
+                enumField.SetValue(_property, Enum.ToObject(enumField.FieldType, propertyValue));
+                _property.NotifyUIUpdate();
+            }
+            else if (_property.BindType == BindableType.Int)
+            {
+                IntProperty p = _property as IntProperty;
                 p.Value = propertyValue;
+            }
         }
 
         void IConsumableModel.UpdateUI(string propertyName, UIBundle bundle)

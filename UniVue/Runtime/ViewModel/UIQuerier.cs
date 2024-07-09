@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UniVue.Evt.Evts;
 using UniVue.Model;
 using UniVue.Utils;
 using UniVue.ViewModel.Models;
@@ -150,5 +151,40 @@ namespace UniVue.ViewModel
             }
         }
 
+        /// <summary>
+        /// 查询指定视图下指定事件的UIEvent
+        /// </summary>
+        /// <param name="eventName">事件名称</param>
+        /// <param name="viewName">视图名称</param>
+        /// <returns>UIEvent</returns>
+        public static UIEvent Query(string eventName, string viewName)
+        {
+            List<UIEvent> events = Vue.Event.Events;
+            for (int i = 0; i < events.Count; i++)
+            {
+                if (events[i].EventName == eventName && events[i].ViewName == viewName)
+                {
+                    return events[i];
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 查询指定名称的事件的所有UIEvent
+        /// </summary>
+        /// <param name="eventName">事件名称</param>
+        /// <returns>IEnumerable<UIEvent>/returns>
+        public static IEnumerable<UIEvent> Query(string eventName)
+        {
+            List<UIEvent> events = Vue.Event.Events;
+            for (int i = 0; i < events.Count; i++)
+            {
+                if (events[i].EventName == eventName)
+                {
+                    yield return events[i];
+                }
+            }
+        }
     }
 }

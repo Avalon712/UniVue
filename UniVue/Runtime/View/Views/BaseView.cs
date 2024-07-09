@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UniVue.Evt;
 using UniVue.Input;
 using UniVue.Model;
 using UniVue.Tween;
@@ -14,25 +13,25 @@ namespace UniVue.View.Views
         private bool _isClosing;
         private bool _isOpening;
 
-        public int order { get; set; }
+        public int Order { get; set; }
 
-        public ViewLevel level { get; private set; }
+        public ViewLevel Level { get; private set; }
 
-        public string name { get; private set; }
+        public string Name { get; private set; }
 
-        public bool state { get; protected set; }
+        public bool State { get; protected set; }
 
-        public GameObject viewObject { get; private set; }
+        public GameObject ViewObject { get; private set; }
 
-        public bool isMaster { get; set; }
+        public bool IsMaster { get; set; }
 
-        public string root { get; set; }
+        public string Root { get; set; }
 
-        public string master { get; set; }
+        public string Master { get; set; }
 
-        public bool forbid { get; set; }
+        public bool Forbid { get; set; }
 
-        public IView[] nestedViews { get; internal set; }
+        public IView[] nestedViews { get; set; }
 
         /// <summary>
         /// ViewLevel.Transient视图显示时间
@@ -62,12 +61,12 @@ namespace UniVue.View.Views
 
         public BaseView(GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common)
         {
-            this.viewObject = viewObject;
+            this.ViewObject = viewObject;
             if (viewName == null) { viewName = viewObject.name; }
-            name = viewName;
-            this.level = level;
-            state = viewObject.activeSelf || level == ViewLevel.Permanent;
-            ViewUtil.SetActive(viewObject, state);
+            Name = viewName;
+            this.Level = level;
+            State = viewObject.activeSelf || level == ViewLevel.Permanent;
+            ViewUtil.SetActive(viewObject, State);
 
             //将当前视图对象交给ViewRouter管理
             Vue.Router.AddView(this);
@@ -78,17 +77,12 @@ namespace UniVue.View.Views
         /// </summary>
         public virtual void OnLoad()
         {
-            BindEvent(null);
+            BindEvent();
         }
 
         protected void BindEvent(params GameObject[] exclued)
         {
-            //获取所有的ui组件
-            var uis = ComponentFindUtil.FindAllSpecialUIComponents(viewObject, this, exclued);
-            //构建UIEvent
-            UIEventBuilder.Build(name, uis);
-            //处理路由事件
-            Vue.Router.BindRouteEvt(name, uis);
+            ViewUtil.Patch2Pass(ViewObject, this, exclued);
         }
 
         public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel
@@ -99,12 +93,12 @@ namespace UniVue.View.Views
 
         public void RebindModel<T>(T newModel, T oldModel) where T : IBindableModel
         {
-            Vue.Updater.Rebind(name, newModel, oldModel);
+            Vue.Updater.Rebind(Name, newModel, oldModel);
         }
 
         public void RebindModel<T>(T newModel) where T : IBindableModel
         {
-            Vue.Updater.Rebind(name, newModel);
+            Vue.Updater.Rebind(Name, newModel);
         }
 
         public IEnumerable<IView> GetNestedViews()
@@ -125,12 +119,12 @@ namespace UniVue.View.Views
         /// <param name="configs">拖拽配置信息</param>
         public void SetDraggable(params DragInputConfig[] configs)
         {
-            ViewUtil.SetDraggable(viewObject, configs);
+            ViewUtil.SetDraggable(ViewObject, configs);
         }
 
         public virtual void OnUnload()
         {
-            viewObject = null;
+            ViewObject = null;
         }
 
 
@@ -149,22 +143,22 @@ namespace UniVue.View.Views
 
             if (_isOpening || _isClosing) { return; }
 
-            state = true; //设置为打开状态
+            State = true; //设置为打开状态
 
             if (openTween == DefaultTween.None)
             {
-                viewObject.SetActive(true);
+                ViewObject.SetActive(true);
             }
             else
             {
                 _isOpening = true;
-                DefaultViewTweens.ExecuteTween(viewObject.transform, openTween, openDuration)
+                DefaultViewTweens.ExecuteTween(ViewObject.transform, openTween, openDuration)
                     .Call(() => { _isOpening = false; }); //动画完成后才设置为开状态
             }
 
-            if (level == ViewLevel.Transient)
+            if (Level == ViewLevel.Transient)
             {
-                TweenBehavior.Timer(() => Vue.Router.Close(name)).Delay(transientTime);
+                TweenBehavior.Timer(() => Vue.Router.Close(Name)).Delay(transientTime);
             }
         }
 
@@ -183,16 +177,16 @@ namespace UniVue.View.Views
 
             if (_isClosing || _isOpening) { return; }
 
-            state = false;
+            State = false;
 
             if (closeTween == DefaultTween.None)
             {
-                viewObject.SetActive(false);
+                ViewObject.SetActive(false);
             }
             else
             {
                 _isClosing = true;
-                DefaultViewTweens.ExecuteTween(viewObject.transform, closeTween, closeDuration)
+                DefaultViewTweens.ExecuteTween(ViewObject.transform, closeTween, closeDuration)
                     .Call(() => { _isClosing = false; }); //动画完成后才设置为关状态
             }
         }

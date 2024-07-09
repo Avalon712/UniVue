@@ -8,14 +8,14 @@ namespace UniVue.ViewModel.Models
     /// 布尔类型的数据绑定到UI或UI显示布尔类型的数据
     /// bool类型绑定的UI只能为Toggle
     /// </summary>
-    public sealed class BoolPropertyToggle : PropertyUI
+    public sealed class BoolToggle : PropertyUI
     {
         /// <summary>
         /// 绑定的UI组件
         /// </summary>
         private Toggle _toggle;
 
-        public BoolPropertyToggle(Toggle toggle, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
+        public BoolToggle(Toggle toggle, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _toggle = toggle;
             if (allowUIUpdateModel)

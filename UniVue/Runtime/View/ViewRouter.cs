@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using UniVue.Rule;
+﻿using System.Collections.Generic;
 using UniVue.Utils;
 using UniVue.View.Views;
 
@@ -69,20 +65,20 @@ namespace UniVue.View
 
         internal void AddView(IView view)
         {
-            if (_views.ContainsKey(view.name))
+            if (_views.ContainsKey(view.Name))
             {
 #if UNITY_EDITOR
-                LogUtil.Warning($"当前场景下的视图名称{view.name}存在重复!");
+                LogUtil.Warning($"当前场景下的视图名称{view.Name}存在重复!");
 #endif
                 return;
             }
 
-            _views.Add(view.name, view);
+            _views.Add(view.Name, view);
 
             //如果当前视图的初始状态处于打开状态
-            if (view.state && view.level != ViewLevel.Permanent)
+            if (view.State && view.Level != ViewLevel.Permanent)
             {
-                ListUtil.AddButNoOutOfCapacity(_histories, view.name);
+                ListUtil.AddButNoOutOfCapacity(_histories, view.Name);
             }
         }
 
@@ -117,7 +113,6 @@ namespace UniVue.View
         public void Open(string viewName, bool top = true)
         {
             IView opening = GetView(viewName);
-
             if (opening == null)
             {
 #if UNITY_EDITOR
@@ -128,34 +123,34 @@ namespace UniVue.View
 
             //1.检查当前视图是否以及处于打开状态
             //2.检查是否为Permanent级别
-            if (opening.state || opening.level == ViewLevel.Permanent) { return; }
+            if (opening.State || opening.Level == ViewLevel.Permanent) { return; }
 
             //3.检验当前是否有一个ForbidOpenOther的视图被打开 
             IView opened = GetView(CurrentOpenedView()); //当前被打开的视图
-            if (opened != null && opened.forbid)
+            if (opened != null && opened.Forbid)
             {
 #if UNITY_EDITOR
-                LogUtil.Warning($"当前被打开的视图viewName={opened.name}禁止打开viewName={viewName}的视图，无法再打开其它视图，除非关闭它");
+                LogUtil.Warning($"当前被打开的视图viewName={opened.Name}禁止打开viewName={viewName}的视图，无法再打开其它视图，除非关闭它");
 #endif
                 return;
             }
 
             //4.检验是否被关联 是则看关联主体是否被打开->否则拒绝打开
-            if (!string.IsNullOrEmpty(opening.master))
+            if (!string.IsNullOrEmpty(opening.Master))
             {
-                string masterViewName = opening.master;
-                if (!GetView(masterViewName).state)
+                string masterViewName = opening.Master;
+                if (!GetView(masterViewName).State)
                 {
 #if UNITY_EDITOR
-                    LogUtil.Warning($"名称为{viewName}的视图已被关联到一个{masterViewName}的视图，而它没有被打开，因此无法打开{opening.name}视图!");
+                    LogUtil.Warning($"名称为{viewName}的视图已被关联到一个{masterViewName}的视图，而它没有被打开，因此无法打开{opening.Name}视图!");
 #endif
                     return;
                 }
             }
 
             //5.检查根视图是否被打开（如果存在的话），是则要看根视图是否被打开->否则拒绝打开
-            string rootViewName = opening.root;
-            if (!string.IsNullOrEmpty(rootViewName) && !GetView(rootViewName).state)
+            string rootViewName = opening.Root;
+            if (!string.IsNullOrEmpty(rootViewName) && !GetView(rootViewName).State)
             {
 #if UNITY_EDITOR
                 LogUtil.Warning($"当前打开的视图与名称为{rootViewName}的视图存在父子关系，而此视图的父视图没有被打开，因此无法打开{viewName}视图!");
@@ -164,17 +159,17 @@ namespace UniVue.View
             }
 
             //6.System级别视图的打开逻辑
-            if (opening.level == ViewLevel.System)
+            if (opening.Level == ViewLevel.System)
             {
                 //6.1如果当前打开的系统级别的视图有根视图，则只能关闭相同根视图的系统级别视图
-                if (!string.IsNullOrEmpty(opening.root))
+                if (!string.IsNullOrEmpty(opening.Root))
                 {
                     for (int i = 0; i < _histories.Count; i++)
                     {
                         IView view = GetView(_histories[i]);
-                        if (view.state && view.level == ViewLevel.System && view.root == opening.root)
+                        if (view.State && view.Level == ViewLevel.System && view.Root == opening.Root)
                         {
-                            Close(view.name);
+                            Close(view.Name);
                         }
                     }
                 }
@@ -185,18 +180,18 @@ namespace UniVue.View
                     for (int i = 0; i < _histories.Count; i++)
                     {
                         IView view = GetView(_histories[i]);
-                        if (view.state && view.level == ViewLevel.System && string.IsNullOrEmpty(view.root))
+                        if (view.State && view.Level == ViewLevel.System && string.IsNullOrEmpty(view.Root))
                         {
-                            Close(view.name);
+                            Close(view.Name);
                         }
                     }
                 }
             }
 
-            //7.将其设置为最后一个子物体，保证被打开的视图能被显示
-            if (top)
+            //7.将其设置为最后一个子物体，保证被打开的视图能被显示，只对根视图有效
+            if (top && string.IsNullOrEmpty(opening.Root))
             {
-                opening.viewObject.transform.SetAsLastSibling();
+                opening.ViewObject.transform.SetAsLastSibling();
             }
 
             //8.播放音效
@@ -212,7 +207,7 @@ namespace UniVue.View
             _audioEffectCtr?.AfterOpen(viewName);
 
             //12.加入历史记录中，只有不为瞬态的视图才加入
-            if (opening.level != ViewLevel.Transient)
+            if (opening.Level != ViewLevel.Transient)
             {
                 //如果当前历史记录里面已经有过其记录，则先移除再添加
                 if (_histories.Contains(viewName)) { _histories.Remove(viewName); }
@@ -241,40 +236,40 @@ namespace UniVue.View
 
             //1.检查当前视图是否以及处于关闭状态
             //2.检查是否为Permanent级别
-            if (!closing.state) { return; }
+            if (!closing.State) { return; }
 
             //2.视图级别检查
-            if (closing.level == ViewLevel.Permanent)
+            if (closing.Level == ViewLevel.Permanent)
             {
 #if UNITY_EDITOR
-                LogUtil.Warning($"不能关闭一个视图级别为{closing.level}的视图!");
+                LogUtil.Warning($"不能关闭一个视图级别为{closing.Level}的视图!");
 #endif
                 return;
             }
 
             //3.检查是否被关联
-            if (!string.IsNullOrEmpty(closing.master))
+            if (!string.IsNullOrEmpty(closing.Master))
             {
-                IView master = GetView(closing.master);
-                if (!master.state)
+                IView master = GetView(closing.Master);
+                if (!master.State)
                 {
 #if UNITY_EDITOR
-                    LogUtil.Warning($"当前视图{closing.name}已被{master.name}所关联，而{master.name}未被打开，因此无法进行关闭操作");
+                    LogUtil.Warning($"当前视图{closing.Name}已被{master.Name}所关联，而{master.Name}未被打开，因此无法进行关闭操作");
 #endif
                     return;
                 }
             }
 
             //4.当前关闭的视图是否被其它视图关联，是==> 如果该视图是master，则关闭所有关联了它的视图
-            if (closing.isMaster)
+            if (closing.IsMaster)
             {
                 using (var view = GetAllView().GetEnumerator())
                 {
                     while (view.MoveNext())
                     {
-                        if (view.Current.master == closing.name)
+                        if (view.Current.Master == closing.Name)
                         {
-                            Close(view.Current.name);
+                            Close(view.Current.Name);
                         }
                     }
                 }
@@ -293,6 +288,8 @@ namespace UniVue.View
             IsRouterCtrl = false;
         }
 
+        #endregion
+
         /// <summary>
         /// 获取当前最新被打开的视图
         /// </summary>
@@ -303,7 +300,7 @@ namespace UniVue.View
             {
                 for (int i = _histories.Count - 1; i >= 0; i--)
                 {
-                    if (GetView(_histories[i]).state) { return _histories[i]; }
+                    if (GetView(_histories[i]).State) { return _histories[i]; }
                 }
             }
             return null;
@@ -319,13 +316,11 @@ namespace UniVue.View
             {
                 for (int i = _histories.Count - 1; i >= 0; i--)
                 {
-                    if (!GetView(_histories[i]).state) { return _histories[i]; }
+                    if (!GetView(_histories[i]).State) { return _histories[i]; }
                 }
             }
             return null;
         }
-
-        #endregion
 
         /// <summary>
         /// 注册UI音效控制器
@@ -347,60 +342,6 @@ namespace UniVue.View
             }
             _views.Clear();
             _histories.Clear();
-        }
-
-        /// <summary>
-        /// 绑定路由事件
-        /// </summary>
-        internal void BindRouteEvt(string currentViewName, List<ValueTuple<Component, UIType>> uis)
-        {
-            for (int i = 0; i < uis.Count; i++)
-            {
-                if (uis[i].Item2 == UIType.Button)
-                {
-                    Button btn = uis[i].Item1 as Button;
-                    string btnName = btn.name;
-                    string viewName;
-                    if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouteEvent.Close, out viewName))
-                    {
-                        btn.onClick.AddListener(() => Close(viewName));
-                    }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouteEvent.Open, out viewName))
-                    {
-                        btn.onClick.AddListener(() => Open(viewName));
-                    }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouteEvent.Return, out viewName))
-                    {
-                        btn.onClick.AddListener(Return);
-                    }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(btnName, RouteEvent.Skip, out viewName))
-                    {
-                        btn.onClick.AddListener(() => Skip(currentViewName, viewName));
-                    }
-                }
-                else if (uis[i].Item2 == UIType.Toggle || uis[i].Item2 == UIType.ToggleGroup)
-                {
-                    Toggle toggle = uis[i].Item1 as Toggle;
-                    string toggleName = toggle.name;
-                    string viewName;
-                    if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Close, out viewName))
-                    {
-                        toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Close(viewName); } });
-                    }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Open, out viewName))
-                    {
-                        toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Open(viewName); } });
-                    }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Return, out viewName))
-                    {
-                        toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Return(); } });
-                    }
-                    else if (NamingRuleEngine.CheckRouterEventMatch(toggleName, RouteEvent.Skip, out viewName))
-                    {
-                        toggle.onValueChanged.AddListener((isOn) => { if (isOn) { Skip(currentViewName, viewName); } });
-                    }
-                }
-            }
         }
 
     }

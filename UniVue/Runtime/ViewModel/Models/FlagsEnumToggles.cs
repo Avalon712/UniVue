@@ -8,9 +8,9 @@ namespace UniVue.ViewModel.Models
     /// 多选
     /// 获取Toggle孩子身上的Text或TMP_Text组件中的值
     /// </summary>
-    public sealed class FlagsEnumPropertyToggles : EnumPropertyUI<ValueTuple<Toggle, string>[]>
+    public sealed class FlagsEnumToggles : EnumUI<ValueTuple<Toggle, string>[]>
     {
-        public FlagsEnumPropertyToggles(ValueTuple<Toggle, string>[] ui, Array array, string propertyName, bool allowUIUpdateModel)
+        public FlagsEnumToggles(ValueTuple<Toggle, string>[] ui, Array array, string propertyName, bool allowUIUpdateModel)
             : base(ui, array, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel)

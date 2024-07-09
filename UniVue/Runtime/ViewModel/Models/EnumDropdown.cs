@@ -4,9 +4,9 @@ using TMPro;
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class EnumPropertyDropdown : EnumPropertyUI<TMP_Dropdown>
+    public sealed class EnumDropdown : EnumUI<TMP_Dropdown>
     {
-        public EnumPropertyDropdown(TMP_Dropdown ui, Array array, string propertyName, bool allowUIUpdateModel)
+        public EnumDropdown(TMP_Dropdown ui, Array array, string propertyName, bool allowUIUpdateModel)
             : base(ui, array, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel) { ui.onValueChanged.AddListener(UpdateModel); }

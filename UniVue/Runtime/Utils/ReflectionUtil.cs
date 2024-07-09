@@ -4,8 +4,8 @@ using System.Reflection;
 using UnityEngine;
 using UniVue.Evt;
 using UniVue.Evt.Attr;
+using UniVue.Model;
 using UniVue.ViewModel;
-using UniVue.ViewModel.Models;
 
 namespace UniVue.Utils
 {
@@ -13,62 +13,64 @@ namespace UniVue.Utils
     {
         private ReflectionUtil() { }
 
-        /// <summary>
-        /// 判断一个Type是否为可绑定的类型
-        /// </summary>
         public static BindableType GetBindableType(Type type)
         {
-            if (type.IsEnum)
+            if (!type.IsGenericType)
             {
-                return BindableType.Enum;
-            }
-            else if (type == typeof(string))
-            {
-                return BindableType.String;
-            }
-            else if (type == typeof(float))
-            {
-                return BindableType.Float;
-            }
-            else if (type == typeof(int))
-            {
-                return BindableType.Int;
-            }
-            else if (type == typeof(bool))
-            {
-                return BindableType.Bool;
-            }
-            else if (type == typeof(Sprite))
-            {
-                return BindableType.Sprite;
-            }
-            else if (type == typeof(List<Sprite>))
-            {
-                return BindableType.ListSprite;
-            }
-            else if (type == typeof(List<int>))
-            {
-                return BindableType.ListInt;
-            }
-            else if (type == typeof(List<float>))
-            {
-                return BindableType.ListFloat;
-            }
-            else if (type == typeof(List<string>))
-            {
-                return BindableType.ListString;
-            }
-            else if (type == typeof(List<bool>))
-            {
-                return BindableType.ListBool;
-            }
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                Type[] types = type.GenericTypeArguments;
-                if (types != null && types.Length == 1)
+                if (type.IsEnum)
                 {
-                    if (types[0].IsEnum) { return BindableType.ListEnum; }
+                    return BindableType.Enum;
+                }
+                else if (type == typeof(string))
+                {
+                    return BindableType.String;
+                }
+                else if (type == typeof(float))
+                {
+                    return BindableType.Float;
+                }
+                else if (type == typeof(int))
+                {
+                    return BindableType.Int;
+                }
+                else if (type == typeof(bool))
+                {
+                    return BindableType.Bool;
+                }
+                else if (type == typeof(Sprite))
+                {
+                    return BindableType.Sprite;
+                }
+            }
+            else
+            {
+                if (type == typeof(List<Sprite>))
+                {
+                    return BindableType.ListSprite;
+                }
+                else if (type == typeof(List<int>))
+                {
+                    return BindableType.ListInt;
+                }
+                else if (type == typeof(List<float>))
+                {
+                    return BindableType.ListFloat;
+                }
+                else if (type == typeof(List<string>))
+                {
+                    return BindableType.ListString;
+                }
+                else if (type == typeof(List<bool>))
+                {
+                    return BindableType.ListBool;
+                }
+                else if (type.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    Type[] types = type.GenericTypeArguments;
+                    if (types != null && types.Length == 1)
+                    {
+                        if (types[0].IsEnum) { return BindableType.ListEnum; }
+                    }
                 }
             }
 
@@ -199,7 +201,7 @@ namespace UniVue.Utils
             {
                 string name = assemblies[i].GetName().Name;
                 //排除内置的程序集
-                if (IsBuiltInAssembly(name)) { continue; }
+                if (IsBuiltinAssembly(name)) { continue; }
 
                 for (int j = 0; j < names.Length; j++)
                 {
@@ -214,7 +216,7 @@ namespace UniVue.Utils
         /// <summary>
         /// 判断是否是一个内置的程序集
         /// </summary>
-        private static bool IsBuiltInAssembly(string assemblyName)
+        private static bool IsBuiltinAssembly(string assemblyName)
         {
             return assemblyName.StartsWith("Unity")
                 || assemblyName.StartsWith("System")

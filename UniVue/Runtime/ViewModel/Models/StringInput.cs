@@ -2,9 +2,9 @@
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class StringPropertyInput : StringPropertyUI<TMP_InputField>
+    public sealed class StringInput : StringUI<TMP_InputField>
     {
-        public StringPropertyInput(TMP_InputField ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
+        public StringInput(TMP_InputField ui, string propertyName, bool allowUIUpdateModel) : base(ui, propertyName, allowUIUpdateModel)
         {
             if (_allowUIUpdateModel) { ui.onEndEdit.AddListener(UpdateModel); }
         }

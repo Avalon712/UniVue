@@ -6,14 +6,14 @@ namespace UniVue.ViewModel.Models
     /// <summary>
     /// 单精度浮点型的属性绑定UI
     /// </summary>
-    public abstract class FloatPropertyUI<UI> : PropertyUI where UI : Component
+    public abstract class FloatUI<UI> : PropertyUI where UI : Component
     {
         /// <summary>
         /// 绑定的UI组件
         /// </summary>
         protected UI _ui;
 
-        protected FloatPropertyUI(UI ui, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
+        protected FloatUI(UI ui, string propertyName, bool allowUIUpdateModel) : base(propertyName, allowUIUpdateModel)
         {
             _ui = ui;
         }

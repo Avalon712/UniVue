@@ -1,5 +1,6 @@
 ﻿using System;
 using UniVue.Evt;
+using UniVue.Rule;
 using UniVue.Utils;
 using UniVue.View;
 using UniVue.View.Config;
@@ -18,6 +19,7 @@ namespace UniVue
         private static ViewRouter _router;
         private static ViewUpdater _updater;
         private static EventManager _event;
+        private static RuleEngine _rule;
 
         /// <summary>
         /// Vue的全局渲染配置
@@ -40,6 +42,11 @@ namespace UniVue
         public static ViewUpdater Updater => _updater;
 
         /// <summary>
+        /// 规则引擎
+        /// </summary>
+        public static RuleEngine Rule => _rule;
+
+        /// <summary>
         /// 初始化Vue
         /// </summary>
         /// <param name="config">Vue的渲染配置文件</param>
@@ -48,6 +55,7 @@ namespace UniVue
             if (!_initialized)
             {
                 _config = config;
+                _rule = new RuleEngine();
                 _event = new EventManager();
                 _router = new ViewRouter();
                 _updater = new ViewUpdater();
@@ -154,12 +162,13 @@ namespace UniVue
         /// <remarks>Help GC</remarks>
         private static void Dispose()
         {
-            CheckInitialize();
+            if (!_initialized) return;
 
             _router.UnloadAllViews();
             _updater.ClearBundles();
             _event.SignoutAll();
             _event.UnregisterAllUIEvents();
+            _rule = null;
             _router = null;
             _updater = null;
             _event = null;

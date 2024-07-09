@@ -4,9 +4,9 @@ using UniVue.Utils;
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class IntPropertyInput : IntPropertyUI<TMP_InputField>
+    public sealed class IntInput : IntUI<TMP_InputField>
     {
-        public IntPropertyInput(TMP_InputField input, string propertyName, bool allowUIUpdateModel) : base(input, propertyName, allowUIUpdateModel)
+        public IntInput(TMP_InputField input, string propertyName, bool allowUIUpdateModel) : base(input, propertyName, allowUIUpdateModel)
         {
 #if UNITY_EDITOR
             if (input.contentType != TMP_InputField.ContentType.IntegerNumber)

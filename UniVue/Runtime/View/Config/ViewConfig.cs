@@ -75,12 +75,12 @@ namespace UniVue.View.Config
         protected void BaseSettings<T>(T view) where T : BaseView
         {
             //视图序号设置
-            view.order = order;
+            view.Order = order;
             //视图打开关闭模块
-            view.isMaster = isMaster;
-            view.root = root;
-            view.master = master;
-            view.forbid = forbid;
+            view.IsMaster = isMaster;
+            view.Root = root;
+            view.Master = master;
+            view.Forbid = forbid;
             view.transientTime = transientTime;
             //动画模块设置
             view.openTween = openTween;

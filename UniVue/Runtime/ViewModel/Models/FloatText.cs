@@ -2,9 +2,9 @@
 
 namespace UniVue.ViewModel.Models
 {
-    public sealed class FloatPropertyText : FloatPropertyUI<TMP_Text>
+    public sealed class FloatText : FloatUI<TMP_Text>
     {
-        public FloatPropertyText(TMP_Text ui, string propertyName) : base(ui, propertyName, false)
+        public FloatText(TMP_Text ui, string propertyName) : base(ui, propertyName, false)
         {
         }
 

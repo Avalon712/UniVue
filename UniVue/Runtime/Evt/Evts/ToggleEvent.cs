@@ -6,7 +6,7 @@ namespace UniVue.Evt.Evts
     {
         private Toggle _toggle;
 
-        public ToggleEvent(string viewName, string eventName, Toggle toggle) : base(viewName, eventName)
+        public ToggleEvent(string viewName, string eventName, Toggle toggle, EventArg[] eventArgs = null) : base(viewName, eventName, eventArgs)
         {
             _toggle = toggle;
             toggle.onValueChanged.AddListener(OnValueChanged);

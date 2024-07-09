@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UniVue.Tween.Tweens
+namespace UniVue.Tween
 {
     public abstract class TweenTask : ITweenTask
     {

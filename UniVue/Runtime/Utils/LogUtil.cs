@@ -2,10 +2,8 @@
 
 namespace UniVue.Utils
 {
-    public sealed class LogUtil
+    public static class LogUtil
     {
-        private LogUtil() { }
-
         public static void Info(string message)
         {
             Log(1, message);
