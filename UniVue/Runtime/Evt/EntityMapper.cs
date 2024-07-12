@@ -12,16 +12,11 @@ namespace UniVue.Evt
         private EntityMapper() { }
 
         /// <summary>
-        /// 将事件参数映射为一个对象类型
+        /// 通过反射创建实体对象
         /// </summary>
-        /// <param name="type">对象类型</param>
-        /// <param name="args">参数</param>
-        /// <returns>映射对象</returns>
-        public static object Map(Type type, EventArg[] args)
+        public static object CreateEntity(Type type)
         {
-            object instance = Activator.CreateInstance(type);
-            SetValues(instance, args);
-            return instance;
+            return Activator.CreateInstance(type);
         }
 
         /// <summary>

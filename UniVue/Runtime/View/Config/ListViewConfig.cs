@@ -45,7 +45,7 @@ namespace UniVue.View.Config
                 PlayScrollEffectOnRefresh = _playScrollEffectOnRefresh
             };
 
-            ListView view = new ListView(listComp, viewObject, viewName, level);
+            ListView view = new ListView(listComp, viewObject, level);
             BaseSettings(view);
             return view;
         }

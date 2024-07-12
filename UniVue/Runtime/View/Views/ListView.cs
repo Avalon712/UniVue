@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Utils;
 using UniVue.View.Widgets;
@@ -14,22 +13,9 @@ namespace UniVue.View.Views
 
         public bool Loop { get => _listComp.Loop; set => _listComp.Loop = value; }
 
-        public ListView(LoopList listComp, GameObject viewObject, string viewName = null,
-            ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
+        public ListView(LoopList listComp, GameObject viewObject, ViewLevel level = ViewLevel.Common) : base(viewObject, level)
         {
             _listComp = listComp;
-        }
-
-        public override void OnLoad()
-        {
-            ScrollRect scrollRect = ComponentFindUtil.BreadthFind<ScrollRect>(ViewObject);
-
-            if (scrollRect == null)
-            {
-                throw new Exception("viewObject身上未包含一个ScrollRect组件，该功能依赖该组件！");
-            }
-
-            BindEvent(scrollRect.content.gameObject);
         }
 
         public override void OnUnload()
@@ -38,8 +24,6 @@ namespace UniVue.View.Views
             _listComp = null;
             base.OnUnload();
         }
-
-
 
         /// <summary>
         /// 绑定集合

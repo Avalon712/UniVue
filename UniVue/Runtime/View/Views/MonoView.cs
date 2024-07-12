@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UniVue.Model;
 using UniVue.Utils;
 using UniVue.View.Widgets;
@@ -16,29 +15,17 @@ namespace UniVue.View.Views
 
         private bool _state;
 
-        /// <summary>
-        /// 对于继承自MonoView的视图此属性将是无效的
-        /// </summary>
-        public int Order => 0;
-
         public ViewLevel Level => _level;
 
         public bool State => _state;
 
-        public virtual GameObject ViewObject => gameObject;
+        public string Name => gameObject.name;
 
-        public virtual bool IsMaster => false;
+        public GameObject ViewObject => gameObject;
 
-        public virtual string Root => null;
+        public string Parent { get; set; }
 
-        public virtual string Master => null;
-
-        public virtual bool Forbid => false;
-
-        public virtual string Name => gameObject.name;
-
-
-        public virtual void OnLoad()
+        private void Start()
         {
             //初始化运行时数据
             _state = gameObject.activeSelf;
@@ -47,12 +34,9 @@ namespace UniVue.View.Views
             Vue.Router.AddView(this);
         }
 
-        /// <summary>
-        /// 绑定路由事件、创建UIEvent和EventArg对象
-        /// </summary>
-        protected void BindEvent(params GameObject[] exclued)
+        public virtual void OnLoad()
         {
-            ViewUtil.Patch2Pass(ViewObject, this, exclued);
+            ViewUtil.Patch2Pass(ViewObject);
         }
 
         public virtual void OnUnload()
@@ -60,43 +44,29 @@ namespace UniVue.View.Views
 
         }
 
-        public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel
+        public IView BindModel(IBindableModel model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false)
         {
             ViewUtil.BindModel(this, model, allowUIUpdateModel, modelName, forceRebind);
             return this;
         }
 
 
-        public void RebindModel<T>(T newModel, T oldModel) where T : IBindableModel
+        public void RebindModel(IBindableModel newModel, IBindableModel oldModel)
         {
             Vue.Updater.Rebind(Name, newModel, oldModel);
         }
 
 
-        public void RebindModel<T>(T newModel) where T : IBindableModel
+        public void RebindModel(IBindableModel newModel)
         {
             Vue.Updater.Rebind(Name, newModel);
         }
-
-        /// <summary>
-        /// 获取此时图嵌套的所有的视图
-        /// </summary>
-        /// <remarks>如果此视图含有嵌套视图，务必重写此函数，否则可能会导致路由事件重复绑定、重复构建UIEvent等问题</remarks>
-        /// <typeparam name="T">实现IView</typeparam>
-        /// <returns>此视图包含的所有嵌套视图</returns>
-        public virtual IEnumerable<IView> GetNestedViews()
-        {
-            yield return null;
-        }
-
 
         public virtual void Close()
         {
             if (!Vue.Router.IsRouterCtrl)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning("所有视图的打开关闭必须通过ViewRouter对象来控制!");
-#endif
+                Vue.Router.Close(Name);
                 return;
             }
 
@@ -109,9 +79,7 @@ namespace UniVue.View.Views
         {
             if (!Vue.Router.IsRouterCtrl)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning("所有视图的打开关闭必须通过ViewRouter对象来控制!");
-#endif
+                Vue.Router.Open(Name);
                 return;
             }
 

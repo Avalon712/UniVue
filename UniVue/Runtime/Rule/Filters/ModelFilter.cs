@@ -20,7 +20,9 @@ namespace UniVue.Rule
     /// </summary>
     public sealed class ModelFilter : IRuleFilter
     {
-        private readonly int _typeFlag;
+        private int _typeFlag;
+        private bool _allowUIUpdateModel;
+
         public string ModelName { get; private set; }
 
         public IBindableModel Model { get; private set; }
@@ -29,15 +31,14 @@ namespace UniVue.Rule
 
         public UIBundle Bundle { get; private set; }
 
-        public ModelFilter(IBindableModel model, string modelName = null)
+        public ModelFilter(IBindableModel model, bool allowUIUpdateModel = true, string modelName = null)
         {
             _typeFlag = -1;
             Model = model;
             ModelType = model.GetType();
-            ModelName = modelName;
-            Bundle = null;
             _typeFlag = GetTypeFlag();
             ModelName = GetModelName();
+            _allowUIUpdateModel = allowUIUpdateModel;
         }
 
         public bool Check(ref (Component, UIType) component, List<object> results)
@@ -54,7 +55,7 @@ namespace UniVue.Rule
         public void OnComplete(List<object> results)
         {
             if (results.Count > 0)
-                Bundle = UIBundleBuilder.Build(Model, results);
+                Bundle = UIBundleBuilder.Build(Model, results, _allowUIUpdateModel);
         }
 
 

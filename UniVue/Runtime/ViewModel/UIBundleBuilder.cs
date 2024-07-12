@@ -17,39 +17,39 @@ namespace UniVue.ViewModel
         /// <param name="model">模型对象</param>
         /// <param name="propertyUIComps">object类型是ModelFilterResult类型</param>
         /// <returns>UIBundle（可能为null）</returns>
-        public static UIBundle Build(IBindableModel model, List<object> propertyUIComps)
+        public static UIBundle Build(IBindableModel model, List<object> propertyUIComps, bool allowUIUpdateModel = true)
         {
             List<PropertyUI> propertyUIs = new List<PropertyUI>(propertyUIComps.Count);
 
-            BuildPropertyUI_Int_Toggles(propertyUIs, propertyUIComps);
-            BuildPropertyUI_Int_Text(propertyUIs, propertyUIComps);
-            BuildPropertyUI_Int_Slider(propertyUIs, propertyUIComps);
-            BuildPropertyUI_Int_Input(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Int_Toggles(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_Int_Text(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_Int_Slider(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_Int_Input(propertyUIs, propertyUIComps, allowUIUpdateModel);
 
-            BuildPropertyUI_Float_Text(propertyUIs, propertyUIComps);
-            BuildPropertyUI_Float_Slider(propertyUIs, propertyUIComps);
-            BuildPropertyUI_Float_Input(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Float_Text(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_Float_Slider(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_Float_Input(propertyUIs, propertyUIComps, allowUIUpdateModel);
 
-            BuildPropertyUI_Enum_ToggleGroup(propertyUIs, propertyUIComps);
-            BuildPropertyUI_Enum_Text(propertyUIs, propertyUIComps);
-            BuildPropertyUI_Enum_Input(propertyUIs, propertyUIComps);
-            BuildPropertyUI_Enum_Dropdown(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Enum_ToggleGroup(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_Enum_Text(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_Enum_Input(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_Enum_Dropdown(propertyUIs, propertyUIComps, allowUIUpdateModel);
 
-            BuildPropertyUI_FlagsEnum_Toggles(propertyUIs, propertyUIComps);
-            BuildPropertyUI_FlagsEnum_Text(propertyUIs, propertyUIComps);
+            BuildPropertyUI_FlagsEnum_Toggles(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_FlagsEnum_Text(propertyUIs, propertyUIComps, allowUIUpdateModel);
 
-            BuildPropertyUI_String_Input(propertyUIs, propertyUIComps);
-            BuildPropertyUI_String_Text(propertyUIs, propertyUIComps);
+            BuildPropertyUI_String_Input(propertyUIs, propertyUIComps, allowUIUpdateModel);
+            BuildPropertyUI_String_Text(propertyUIs, propertyUIComps, allowUIUpdateModel);
 
-            BuildPropertyUI_Bool_Toggle(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Bool_Toggle(propertyUIs, propertyUIComps, allowUIUpdateModel);
 
-            BuildPropertyUI_Sprite_Image(propertyUIs, propertyUIComps);
+            BuildPropertyUI_Sprite_Image(propertyUIs, propertyUIComps, allowUIUpdateModel);
 
             return propertyUIs.Count == 0 ? null : new UIBundle(model, propertyUIs);
         }
 
         #region Int绑定UI
-        private static void BuildPropertyUI_Int_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Int_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
@@ -60,29 +60,29 @@ namespace UniVue.ViewModel
             }
         }
 
-        private static void BuildPropertyUI_Int_Slider(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Int_Slider(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
                 ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
                 if (result.UIType != UIType.Slider || (result.BindType != BindableType.Int && result.BindType != BindableType.ListInt)) continue;
-                propertyUIs.Add(new IntSlider(result.Component as Slider, result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new IntSlider(result.Component as Slider, result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void BuildPropertyUI_Int_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Int_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
                 ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
                 if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.Int) continue;
-                propertyUIs.Add(new IntInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new IntInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void BuildPropertyUI_Int_Toggles(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Int_Toggles(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             if (propertyUIComps.Count == 0) return;
 
@@ -111,18 +111,18 @@ namespace UniVue.ViewModel
         #endregion
 
         #region String绑定UI
-        private static void BuildPropertyUI_String_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_String_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
                 ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
                 if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.String) continue;
-                propertyUIs.Add(new StringInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new StringInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void BuildPropertyUI_String_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_String_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
@@ -136,7 +136,7 @@ namespace UniVue.ViewModel
         #endregion
 
         #region Float绑定UI
-        private static void BuildPropertyUI_Float_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Float_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
@@ -147,37 +147,37 @@ namespace UniVue.ViewModel
             }
         }
 
-        private static void BuildPropertyUI_Float_Slider(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Float_Slider(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
                 ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
                 if (result.UIType != UIType.Slider || (result.BindType != BindableType.Float && result.BindType != BindableType.ListFloat)) continue;
-                propertyUIs.Add(new FloatSlider(result.Component as Slider, result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new FloatSlider(result.Component as Slider, result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void BuildPropertyUI_Float_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Float_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
                 ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
                 if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.Float) continue;
-                propertyUIs.Add(new FloatInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new FloatInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
         #endregion
 
         #region Bool绑定UI
-        private static void BuildPropertyUI_Bool_Toggle(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Bool_Toggle(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
                 ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
                 if (result.UIType != UIType.Toggle || (result.BindType != BindableType.Bool && result.BindType != BindableType.ListBool)) continue;
-                propertyUIs.Add(new BoolToggle(result.Component as Toggle, result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new BoolToggle(result.Component as Toggle, result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
@@ -186,7 +186,7 @@ namespace UniVue.ViewModel
 
         #region Enum绑定UI
 
-        private static void BuildPropertyUI_Enum_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Enum_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
@@ -197,29 +197,29 @@ namespace UniVue.ViewModel
             }
         }
 
-        private static void BuildPropertyUI_Enum_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Enum_Input(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
                 ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
                 if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.Enum || ReflectionUtil.HasFlags(result.Property.PropertyType)) continue;
-                propertyUIs.Add(new EnumInput(result.Component as TMP_InputField, Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new EnumInput(result.Component as TMP_InputField, Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void BuildPropertyUI_Enum_Dropdown(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Enum_Dropdown(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
                 ModelFilterResult result = (ModelFilterResult)propertyUIComps[i];
                 if (result.UIType != UIType.TMP_Dropdown || result.BindType != BindableType.Enum || ReflectionUtil.HasFlags(result.Property.PropertyType)) continue;
-                propertyUIs.Add(new EnumDropdown(result.Component as TMP_Dropdown, Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new EnumDropdown(result.Component as TMP_Dropdown, Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 ListUtil.TrailDelete(propertyUIComps, i--);
             }
         }
 
-        private static void BuildPropertyUI_Enum_ToggleGroup(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Enum_ToggleGroup(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             if (propertyUIComps.Count == 0) return;
 
@@ -251,7 +251,7 @@ namespace UniVue.ViewModel
                     propertyUIComps.RemoveAt(j--); //不能采用尾删
                 }
 
-                propertyUIs.Add(new EnumToggleGroup(toggles.ToArray(), Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new EnumToggleGroup(toggles.ToArray(), Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 i--; //当前位置被删除了，因此减一
                 toggles.Clear();
             }
@@ -261,7 +261,7 @@ namespace UniVue.ViewModel
 
         #region FlagsEnum绑定UI
 
-        private static void BuildPropertyUI_FlagsEnum_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_FlagsEnum_Text(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {
@@ -272,7 +272,7 @@ namespace UniVue.ViewModel
             }
         }
 
-        private static void BuildPropertyUI_FlagsEnum_Toggles(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_FlagsEnum_Toggles(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             if (propertyUIComps.Count == 0) return;
 
@@ -304,7 +304,7 @@ namespace UniVue.ViewModel
                     propertyUIComps.RemoveAt(j--); //不能采用尾删
                 }
 
-                propertyUIs.Add(new FlagsEnumToggles(toggles.ToArray(), Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite));
+                propertyUIs.Add(new FlagsEnumToggles(toggles.ToArray(), Enum.GetValues(result.Property.PropertyType), result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
                 i--; //当前位置被删除了，因此减一
                 toggles.Clear();
             }
@@ -315,7 +315,7 @@ namespace UniVue.ViewModel
 
         #region Sprite绑定UI
 
-        private static void BuildPropertyUI_Sprite_Image(List<PropertyUI> propertyUIs, List<object> propertyUIComps)
+        private static void BuildPropertyUI_Sprite_Image(List<PropertyUI> propertyUIs, List<object> propertyUIComps, bool allowUIUpdateModel)
         {
             for (int i = 0; i < propertyUIComps.Count; i++)
             {

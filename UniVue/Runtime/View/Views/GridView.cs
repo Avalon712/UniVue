@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UniVue.Model;
 using UniVue.Utils;
 using UniVue.View.Widgets;
@@ -12,24 +11,10 @@ namespace UniVue.View.Views
     {
         private LoopGrid _gridComp;
 
-        public GridView(LoopGrid gridComp, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
+        public GridView(LoopGrid gridComp, GameObject viewObject, ViewLevel level = ViewLevel.Common) : base(viewObject, level)
         {
             _gridComp = gridComp;
         }
-
-        public override void OnLoad()
-        {
-            var scrollRect = ComponentFindUtil.BreadthFind<ScrollRect>(ViewObject);
-
-            if (scrollRect == null)
-            {
-                throw new Exception("viewObject身上未包含一个ScrollRect组件，该功能依赖该组件！");
-            }
-
-            //在进行查找UI组件时要排除content下面的物体（因为这下面的每个Item会作为一个单独的FlexibleView存在）
-            BindEvent(scrollRect.content.gameObject);
-        }
-
 
         public override void OnUnload()
         {

@@ -43,7 +43,7 @@ namespace UniVue.View.Config
                 PlayScrollEffectOnRefresh = _playScrollEffectOnRefresh
             };
 
-            GridView view = new(gridComp, viewObject, viewName, level);
+            GridView view = new(gridComp, viewObject, level);
             BaseSettings(view);
             return view;
         }

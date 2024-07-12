@@ -227,7 +227,7 @@ namespace UniVue.ViewModel
         }
 
 
-        private void UpdateUI<T>(string propertyName, string viewName, T consumer) where T : IConsumableModel
+        private void UpdateUI(string propertyName, string viewName, IConsumableModel consumer)
         {
             if (Table.TryGetBundles(viewName, out List<UIBundle> bundles))
             {
@@ -239,7 +239,7 @@ namespace UniVue.ViewModel
         }
 
 
-        private void UpdateUI<T>(string viewName, T consumer) where T : IConsumableModel
+        private void UpdateUI(string viewName, IConsumableModel consumer)
         {
             if (Table.TryGetBundles(viewName, out List<UIBundle> bundles))
             {
@@ -266,7 +266,7 @@ namespace UniVue.ViewModel
         /// <param name="viewName">需要重新绑定模型的视图名称</param>
         /// <param name="newModel">新模型</param>
         /// <param name="oldModel">旧模型</param>
-        public void Rebind<T>(string viewName, T newModel, T oldModel) where T : IBindableModel
+        public void Rebind(string viewName, IBindableModel newModel, IBindableModel oldModel)
         {
             Table.Rebind(viewName, oldModel, newModel);
         }
@@ -276,7 +276,7 @@ namespace UniVue.ViewModel
         /// </summary>
         /// <param name="viewName">需要重新绑定模型的视图名称</param>
         /// <param name="newModel">新模型</param>
-        public void Rebind<T>(string viewName, T newModel) where T : IBindableModel
+        public void Rebind(string viewName, IBindableModel newModel)
         {
             Table.Rebind(viewName, newModel);
         }
@@ -286,9 +286,8 @@ namespace UniVue.ViewModel
         ///  解除此模型与所有它绑定的视图的关系
         /// </summary>
         /// <remarks>实际上不会销毁已经创建的UIBundle对象，只是将其设置为失活状态。处于失活状态时无法进行UI更新以及通过UI更新模型</remarks>
-        /// <typeparam name="T"></typeparam>
         /// <param name="model">要解绑的模型</param>
-        public void Unbind<T>(T model) where T : IBindableModel
+        public void Unbind(IBindableModel model)
         {
             Table.Unbind(model);
         }

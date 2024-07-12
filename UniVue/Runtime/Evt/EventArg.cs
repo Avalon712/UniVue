@@ -33,7 +33,7 @@ namespace UniVue.Evt
 
         public void SetArgumentValue(object value)
         {
-            SupportableArgType argType = EventUtil.GetSupportableArgType(value.GetType());
+            SupportableArgType argType = ReflectionUtil.GetSupportableArgType(value.GetType());
 
             if (argType == SupportableArgType.None || ((int)argType) > 6)
             {

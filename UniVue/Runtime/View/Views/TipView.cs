@@ -7,7 +7,7 @@ namespace UniVue.View.Views
     {
         private Tip _tipComp;
 
-        public TipView(Tip tipComp, GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common) : base(viewObject, viewName, level)
+        public TipView(Tip tipComp, GameObject viewObject, ViewLevel level = ViewLevel.Common) : base(viewObject, level)
         {
             _tipComp = tipComp;
         }

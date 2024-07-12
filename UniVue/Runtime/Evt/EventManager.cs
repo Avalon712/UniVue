@@ -12,8 +12,13 @@ namespace UniVue.Evt
         private List<UIEvent> _events;
         private List<EventCall> _calls;
         private List<AutowireInfo> _autowires;
+        private List<IEntityMapper> _mappers;
 
-        internal EventManager() { _events = new(18); _calls = new(18); }
+        internal EventManager()
+        {
+            _events = new List<UIEvent>(20);
+            _calls = new List<EventCall>(10);
+        }
 
         internal List<UIEvent> Events => _events;
 
@@ -39,6 +44,27 @@ namespace UniVue.Evt
                     _calls.Add(call);
                 }
             }
+        }
+
+        /// <summary>
+        /// 注册实体映射，将EventArg[]映射为自定义对象
+        /// </summary>
+        public void RegisterMapper(IEntityMapper mapper)
+        {
+            if (_mappers == null)
+                _mappers = new List<IEntityMapper>();
+            _mappers.Add(mapper);
+        }
+
+        public IEntityMapper GetEntityMapper(Type entityType)
+        {
+            if (_mappers == null) return null;
+            for (int i = 0; i < _mappers.Count; i++)
+            {
+                if (_mappers[i].EntityType == entityType)
+                    return _mappers[i];
+            }
+            return null;
         }
 
         /// <summary>

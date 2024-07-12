@@ -86,27 +86,31 @@ namespace UniVue.Evt
                     ParameterInfo parameter = parameters[i];
                     string argName = parameter.Name;
 
-                    SupportableArgType argType = EventUtil.GetSupportableArgType(parameter.ParameterType);
+                    SupportableArgType argType = ReflectionUtil.GetSupportableArgType(parameter.ParameterType);
 
                     if (argType == SupportableArgType.None) { continue; }
 
                     if ((int)argType < 7)
                     {
-                        SetArgMatchValue(argName, parameter.ParameterType, ref i, ref argType, ref args);
+                        SetArgMatchValue(argName, parameter.ParameterType, i, argType, args);
                     }
                     else
                     {
                         switch (argType)
                         {
                             case SupportableArgType.Custom:
-                                //重用之前创建的对象实例
-                                if (_parameters[i] != null)
+                                IEntityMapper mapper = Vue.Event.GetEntityMapper(parameter.ParameterType);
+                                if (mapper != null)
                                 {
-                                    EntityMapper.SetValues(_parameters[i], args);
+                                    if (_parameters[i] == null)
+                                        _parameters[i] = mapper.CreateEntity();
+                                    mapper.SetValues(_parameters[i], args);
                                 }
                                 else
                                 {
-                                    _parameters[i] = EntityMapper.Map(parameter.ParameterType, args);
+                                    if (_parameters[i] == null)
+                                        _parameters[i] = EntityMapper.CreateEntity(parameter.ParameterType);
+                                    EntityMapper.SetValues(_parameters[i], args);
                                 }
                                 break;
 
@@ -128,7 +132,7 @@ namespace UniVue.Evt
             }
         }
 
-        private void SetArgMatchValue(string argName, Type parameterType, ref int i, ref SupportableArgType argType, ref EventArg[] args)
+        private void SetArgMatchValue(string argName, Type parameterType, int i, SupportableArgType argType, EventArg[] args)
         {
             //除开以上类型，以下这些类型将进行参数名与类型都匹配成功才能设置
             for (int j = 0; j < args.Length; j++)
@@ -204,17 +208,16 @@ namespace UniVue.Evt
                         return;
                     }
 
-                    if (valueType != parameterType)
-                    {
-#if UNITY_EDITOR
-                        LogUtil.Warning($"方法[{_call.Name}]: 参数名为{argName}的类型为{parameterType}，与UI返回的事件参数类型{value.GetType()}不一致，无法正确进行赋值!");
-#endif
-                    }
-                    else
+                    if (valueType == parameterType)
                     {
                         _parameters[i] = value;
                     }
-
+#if UNITY_EDITOR
+                    else
+                    {
+                        LogUtil.Warning($"方法[{_call.Name}]: 参数名为{argName}的类型为{parameterType}，与UI返回的事件参数类型{value.GetType()}不一致，无法正确进行赋值!");
+                    }
+#endif
                     return;
                 }
             }

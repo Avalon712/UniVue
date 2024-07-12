@@ -114,6 +114,7 @@ namespace UniVue.View.Widgets
             scrollRect.movementType = loop ? MovementType.Unrestricted : MovementType.Elastic;
             scrollRect.horizontal = scrollDir == Direction.Horizontal;
             scrollRect.vertical = scrollDir == Direction.Vertical;
+            scrollRect.content.name = Vue.Config.SkipDescendantNodeSeparator + scrollRect.content.name;
         }
 
         /// <summary>

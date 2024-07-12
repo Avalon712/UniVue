@@ -18,28 +18,7 @@ namespace UniVue.Rule
 
         public void Filter(GameObject gameObject, IRuleFilter filter)
         {
-            Filter(gameObject, filter, null, null);
-        }
-
-        public void BatchFilter(GameObject gameObject, IRuleFilter[] filters)
-        {
-            for (int i = 0; i < filters.Length; i++)
-            {
-                Filter(gameObject, filters[i]);
-            }
-        }
-
-        public void Filter(GameObject gameObject, IRuleFilter[] filters, IView view, params GameObject[] exclude)
-        {
-            for (int i = 0; i < filters.Length; i++)
-            {
-                Filter(gameObject, filters[i], view, exclude);
-            }
-        }
-
-        public void Filter(GameObject gameObject, IRuleFilter filter, IView view, params GameObject[] exclude)
-        {
-            using (var it = GlobalRule.Filter(gameObject, view, exclude).GetEnumerator())
+            using (var it = GlobalRule.Filter(gameObject).GetEnumerator())
             {
                 while (it.MoveNext())
                 {
@@ -51,6 +30,13 @@ namespace UniVue.Rule
             _results.Clear();
         }
 
+        public void Filter(GameObject gameObject, IRuleFilter[] filters, bool parallel = true)
+        {
+            if (parallel)
+                ParallelFilter(gameObject, filters);
+            else
+                SequenceFilter(gameObject, filters);
+        }
 
         /// <summary>
         /// 对当前场景下视图的所有UI组件进行过滤
@@ -62,12 +48,45 @@ namespace UniVue.Rule
                 while (it.MoveNext())
                 {
                     IView view = it.Current;
-                    //只对根视图进行过滤即可
-                    if (string.IsNullOrEmpty(view.Root))
-                        Filter(view.ViewObject, filter);
+                    Filter(view.ViewObject, filter);
                 }
             }
         }
 
+
+        private void SequenceFilter(GameObject gameObject, IRuleFilter[] filters)
+        {
+            for (int i = 0; i < filters.Length; i++)
+            {
+                Filter(gameObject, filters[i]);
+            }
+        }
+
+        private void ParallelFilter(GameObject gameObject, IRuleFilter[] filters)
+        {
+            List<object>[] results = new List<object>[filters.Length];
+            for (int i = 0; i < filters.Length; i++)
+            {
+                results[i] = new List<object>();
+            }
+
+            using (var it = GlobalRule.Filter(gameObject).GetEnumerator())
+            {
+                while (it.MoveNext())
+                {
+                    ValueTuple<Component, UIType> comp = it.Current;
+                    for (int i = 0; i < filters.Length; i++)
+                    {
+                        filters[i].Check(ref comp, results[i]);
+                    }
+                }
+            }
+
+            for (int i = 0; i < filters.Length; i++)
+            {
+                filters[i].OnComplete(results[i]);
+                results[i].Clear();
+            }
+        }
     }
 }

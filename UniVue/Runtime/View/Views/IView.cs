@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UniVue.Model;
 using UniVue.View.Widgets;
 
@@ -7,12 +6,6 @@ namespace UniVue.View.Views
 {
     public interface IView
     {
-        /// <summary>
-        /// 当前视图在同一层视图的排序
-        /// </summary>
-        /// <remarks>值越大越先被渲染</remarks>
-        int Order { get; }
-
         /// <summary>
         /// 当前视图的级别
         /// </summary>
@@ -34,31 +27,9 @@ namespace UniVue.View.Views
         GameObject ViewObject { get; }
 
         /// <summary>
-        /// 当前视图是否是属主视图
+        /// 当前视图的父视图的视图名称
         /// </summary>
-        bool IsMaster { get; }
-
-        /// <summary>
-        /// 获取当前嵌套视图的根视图名称
-        /// </summary>
-        string Root { get; }
-
-        /// <summary>
-        /// 获取当前视图的属主视图的名称
-        /// </summary>
-        string Master { get; }
-
-        /// <summary>
-        /// 当前视图被打开后是否禁止其它视图再打开
-        /// </summary>
-        bool Forbid { get; }
-
-        /// <summary>
-        /// 获取此时图嵌套的所有的视图
-        /// </summary>
-        /// <typeparam name="T">实现IView</typeparam>
-        /// <returns>此视图包含的所有嵌套视图</returns>
-        IEnumerable<IView> GetNestedViews();
+        string Parent { get; }
 
         /// <summary>
         /// 视图加载时调用
@@ -79,7 +50,7 @@ namespace UniVue.View.Views
         /// <param name="modelName">模型名称，若为null则默认为该类型的TypeName</param>
         /// <param name="forceRebind">当已经绑定了数据时是否指示进行强制重新绑定</param>
         /// <returns>IView</returns>
-        IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel;
+        IView BindModel(IBindableModel model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false);
 
         /// <summary>
         /// 打开视图
@@ -97,7 +68,7 @@ namespace UniVue.View.Views
         /// </summary>
         /// <param name="newModel">新模型</param>
         /// <param name="oldModel">旧模型</param>
-        void RebindModel<T>(T newModel, T oldModel) where T : IBindableModel;
+        void RebindModel(IBindableModel newModel, IBindableModel oldModel);
 
         /// <summary>
         /// 重新绑定模型数据
@@ -105,7 +76,7 @@ namespace UniVue.View.Views
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="newModel"></param>
-        void RebindModel<T>(T newModel) where T : IBindableModel;
+        void RebindModel(IBindableModel newModel);
 
         /// <summary>
         /// 获取视图身上挂载的组件

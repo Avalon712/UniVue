@@ -60,7 +60,7 @@ namespace UniVue.View.Config
             }
 
             EnsureTip comp = new(name, cancelBtn, sureBtn, message, title);
-            EnsureTipView view = new(comp, viewObject, viewName, level);
+            EnsureTipView view = new(comp, viewObject, level);
             BaseSettings(view);
             return view;
         }

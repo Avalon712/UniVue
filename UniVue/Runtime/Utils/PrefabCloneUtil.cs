@@ -2,10 +2,8 @@
 
 namespace UniVue.Utils
 {
-    public sealed class PrefabCloneUtil
+    public static class PrefabCloneUtil
     {
-        private PrefabCloneUtil() { }
-
         public static GameObject RectTransformClone(GameObject prefab, Transform parent)
         {
             GameObject clone = GameObject.Instantiate(prefab, parent);

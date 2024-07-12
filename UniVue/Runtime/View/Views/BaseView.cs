@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UniVue.Input;
 using UniVue.Model;
 using UniVue.Tween;
@@ -13,8 +12,6 @@ namespace UniVue.View.Views
         private bool _isClosing;
         private bool _isOpening;
 
-        public int Order { get; set; }
-
         public ViewLevel Level { get; private set; }
 
         public string Name { get; private set; }
@@ -23,15 +20,7 @@ namespace UniVue.View.Views
 
         public GameObject ViewObject { get; private set; }
 
-        public bool IsMaster { get; set; }
-
-        public string Root { get; set; }
-
-        public string Master { get; set; }
-
-        public bool Forbid { get; set; }
-
-        public IView[] nestedViews { get; set; }
+        public string Parent { get; set; }
 
         /// <summary>
         /// ViewLevel.Transient视图显示时间
@@ -59,11 +48,10 @@ namespace UniVue.View.Views
         public float closeDuration { get; set; } = -1;
 
 
-        public BaseView(GameObject viewObject, string viewName = null, ViewLevel level = ViewLevel.Common)
+        public BaseView(GameObject viewObject, ViewLevel level = ViewLevel.Common)
         {
             this.ViewObject = viewObject;
-            if (viewName == null) { viewName = viewObject.name; }
-            Name = viewName;
+            Name = viewObject.name;
             this.Level = level;
             State = viewObject.activeSelf || level == ViewLevel.Permanent;
             ViewUtil.SetActive(viewObject, State);
@@ -77,40 +65,23 @@ namespace UniVue.View.Views
         /// </summary>
         public virtual void OnLoad()
         {
-            BindEvent();
+            ViewUtil.Patch2Pass(ViewObject);
         }
 
-        protected void BindEvent(params GameObject[] exclued)
-        {
-            ViewUtil.Patch2Pass(ViewObject, this, exclued);
-        }
-
-        public IView BindModel<T>(T model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false) where T : IBindableModel
+        public IView BindModel(IBindableModel model, bool allowUIUpdateModel = true, string modelName = null, bool forceRebind = false)
         {
             ViewUtil.BindModel(this, model, allowUIUpdateModel, modelName, forceRebind);
             return this;
         }
 
-        public void RebindModel<T>(T newModel, T oldModel) where T : IBindableModel
+        public void RebindModel(IBindableModel newModel, IBindableModel oldModel)
         {
             Vue.Updater.Rebind(Name, newModel, oldModel);
         }
 
-        public void RebindModel<T>(T newModel) where T : IBindableModel
+        public void RebindModel(IBindableModel newModel)
         {
             Vue.Updater.Rebind(Name, newModel);
-        }
-
-        public IEnumerable<IView> GetNestedViews()
-        {
-            IView[] views = nestedViews;
-            if (views != null)
-            {
-                for (int i = 0; i < views.Length; i++)
-                {
-                    if (views[i] != null) { yield return views[i]; }
-                }
-            }
         }
 
         /// <summary>
@@ -135,9 +106,7 @@ namespace UniVue.View.Views
         {
             if (!Vue.Router.IsRouterCtrl)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning("所有视图的打开关闭必须通过ViewRouter对象来控制!");
-#endif
+                Vue.Router.Open(Name);
                 return;
             }
 
@@ -169,9 +138,7 @@ namespace UniVue.View.Views
         {
             if (!Vue.Router.IsRouterCtrl)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning("所有视图的打开关闭必须通过ViewRouter对象来控制!");
-#endif
+                Vue.Router.Close(Name);
                 return;
             }
 

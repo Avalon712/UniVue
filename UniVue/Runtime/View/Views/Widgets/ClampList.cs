@@ -46,6 +46,7 @@ namespace UniVue.View.Widgets
 #endif
 
             _content = content;
+            content.name = Vue.Config.SkipDescendantNodeSeparator + content.name;
         }
 
         /// <summary>

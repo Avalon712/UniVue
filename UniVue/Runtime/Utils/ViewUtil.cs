@@ -54,8 +54,8 @@ namespace UniVue.Utils
             //当前尚未为此模型生成任何UIBundle对象
             if (bundle == null)
             {
-                ModelFilter filter = new ModelFilter(model, modelName);
-                Vue.Rule.Filter(view.ViewObject, filter, view);
+                ModelFilter filter = new ModelFilter(model, allowUIUpdateModel, modelName);
+                Vue.Rule.Filter(view.ViewObject, filter);
                 bundle = filter.Bundle;
                 Vue.Updater.BindViewModel(view.Name, bundle);
                 model.UpdateAll(bundle);
@@ -80,7 +80,7 @@ namespace UniVue.Utils
             //当前尚未为此模型生成任何UIBundle对象
             if (bundle == null)
             {
-                ModelFilter filter = new ModelFilter(model, modelName);
+                ModelFilter filter = new ModelFilter(model, allowUIUpdateModel, modelName);
                 Vue.Rule.Filter(viewObject, filter);
                 bundle = filter.Bundle;
                 Vue.Updater.BindViewModel(viewObject.name, bundle);
@@ -106,30 +106,7 @@ namespace UniVue.Utils
         /// <param name="viewObject"></param>
         /// <param name="model">要绑定的模型</param>
         /// <param name="exclued">要排除的GameObject</param>
-        public static void Patch3Pass(GameObject viewObject, IBindableModel model, params GameObject[] exclued)
-        {
-            Patch3Pass(viewObject, model, null, exclued);
-        }
-
-
-        /// <summary>
-        /// 同时完成两个处理流程：构建UIEvent、绑定路由事件
-        /// </summary>
-        /// <param name="viewObject">GameObject</param>
-        /// <param name="exclued">要排除的GameObject</param>
-        public static void Patch2Pass(GameObject viewObject, params GameObject[] exclued)
-        {
-            Patch2Pass(viewObject, null, exclued);
-        }
-
-        /// <summary>
-        /// 同时完成三个处理流程：构建UIEvent、绑定路由事件、绑定模型
-        /// </summary>
-        /// <remarks>这种方式无需创建视图对象(BaseView)</remarks>
-        /// <param name="viewObject"></param>
-        /// <param name="model">要绑定的模型</param>
-        /// <param name="exclued">要排除的GameObject</param>
-        public static void Patch3Pass(GameObject viewObject, IBindableModel model, IView view, params GameObject[] exclued)
+        public static void Patch3Pass(GameObject viewObject, IBindableModel model)
         {
 #if UNITY_EDITOR
             if (Vue.Updater.Table.ContainsViewName(viewObject.name))
@@ -139,10 +116,10 @@ namespace UniVue.Utils
 #endif
 
             ModelFilter modelFilter = new ModelFilter(model);
-            EventFilter eventFilter = new EventFilter(view == null ? viewObject.name : view.Name);
-            RouteFilter routeFilter = new RouteFilter(view == null ? viewObject.name : view.Name);
+            EventFilter eventFilter = new EventFilter(viewObject.name);
+            RouteFilter routeFilter = new RouteFilter(viewObject.name);
 
-            Vue.Rule.Filter(viewObject, new IRuleFilter[3] { modelFilter, eventFilter, routeFilter }, view, exclued);
+            Vue.Rule.Filter(viewObject, new IRuleFilter[3] { modelFilter, eventFilter, routeFilter });
 
             UIBundle bundle = modelFilter.Bundle;
             Vue.Updater.BindViewModel(viewObject.name, bundle);
@@ -154,8 +131,7 @@ namespace UniVue.Utils
         /// 同时完成两个处理流程：构建UIEvent、绑定路由事件
         /// </summary>
         /// <param name="viewObject">GameObject</param>
-        /// <param name="exclued">要排除的GameObject</param>
-        public static void Patch2Pass(GameObject viewObject, IView view, params GameObject[] exclued)
+        public static void Patch2Pass(GameObject viewObject)
         {
 #if UNITY_EDITOR
             if (Vue.Updater.Table.ContainsViewName(viewObject.name))
@@ -163,10 +139,10 @@ namespace UniVue.Utils
                 LogUtil.Warning($"表中已经存在了一个相同名称{viewObject.name}的ViewObject,这可能将导致错误的结果,你应该确保viewName的唯一性");
             }
 #endif
-            EventFilter eventFilter = new EventFilter(view == null ? viewObject.name : view.Name);
-            RouteFilter routeFilter = new RouteFilter(view == null ? viewObject.name : view.Name);
+            EventFilter eventFilter = new EventFilter(viewObject.name);
+            RouteFilter routeFilter = new RouteFilter(viewObject.name);
 
-            Vue.Rule.Filter(viewObject, new IRuleFilter[2] { eventFilter, routeFilter }, view, exclued);
+            Vue.Rule.Filter(viewObject, new IRuleFilter[2] { eventFilter, routeFilter });
         }
 
 
@@ -191,7 +167,7 @@ namespace UniVue.Utils
             EventFilter eventFilter = new EventFilter(viewObject.name);
             RouteFilter routeFilter = new RouteFilter(viewObject.name);
 
-            Vue.Rule.Filter(viewObject, new IRuleFilter[3] { modelFilter, eventFilter, routeFilter }, null, exclued);
+            Vue.Rule.Filter(viewObject, new IRuleFilter[3] { modelFilter, eventFilter, routeFilter });
 
             return modelFilter.Bundle;
         }
@@ -200,9 +176,9 @@ namespace UniVue.Utils
         /// 构建UI事件
         /// </summary>
         /// <param name="exclued">要排除的GameObject</param>
-        public static void BuildUIEvents(GameObject viewObject, params GameObject[] exclued)
+        public static void BuildUIEvents(GameObject viewObject)
         {
-            Vue.Rule.Filter(viewObject, new EventFilter(viewObject.name), null, exclued);
+            Vue.Rule.Filter(viewObject, new EventFilter(viewObject.name));
         }
 
 
@@ -210,9 +186,9 @@ namespace UniVue.Utils
         /// 构建路由事件
         /// </summary>
         /// <param name="exclued">要排除的GameObject</param>
-        public static void BuildRoutEvents(GameObject viewObject, params GameObject[] exclued)
+        public static void BuildRoutEvents(GameObject viewObject)
         {
-            Vue.Rule.Filter(viewObject, new RouteFilter(viewObject.name), null, exclued);
+            Vue.Rule.Filter(viewObject, new RouteFilter(viewObject.name));
         }
     }
 }

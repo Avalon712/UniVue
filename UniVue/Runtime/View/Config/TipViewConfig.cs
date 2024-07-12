@@ -23,7 +23,7 @@ namespace UniVue.View.Config
             }
             Tip tipComp = new(viewName, contentTxt);
 
-            TipView view = new(tipComp, viewObject, viewName, level);
+            TipView view = new(tipComp, viewObject, level);
             BaseSettings(view);
             return view;
         }

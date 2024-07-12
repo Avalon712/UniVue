@@ -14,7 +14,7 @@ namespace UniVue.View.Config
         {
             var content = GameObjectFindUtil.BreadthFind(_content, viewObject)?.transform;
             ClampList comp = new(content);
-            ClampListView view = new(comp, viewObject, viewName, level);
+            ClampListView view = new(comp, viewObject, level);
             BaseSettings(view);
             return view;
         }

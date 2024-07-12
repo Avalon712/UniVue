@@ -10,10 +10,8 @@ namespace UniVue.View
     /// <summary>
     /// 视图构建器
     /// </summary>
-    public sealed class ViewBuilder
+    public static class ViewBuilder
     {
-        private ViewBuilder() { }
-
         public static void Build(SceneConfig config)
         {
             Build(config.canvasConfigs);
@@ -30,7 +28,7 @@ namespace UniVue.View
             }
         }
 
-        private static void Build(CanvasConfig canvasConfig)
+        public static void Build(CanvasConfig canvasConfig)
         {
             GameObject canvas = GameObject.Find(canvasConfig.canvasName);
 
@@ -60,21 +58,14 @@ namespace UniVue.View
             FindNestedViewObject(roots, 0);
 
             //2.按嵌套层级从深往浅进行加载视图
-            List<IView> views = new List<IView>(roots.Count);
             roots.Sort((r1, r2) => r2.Item3 - r1.Item3); //降序排序
             for (int i = 0; i < roots.Count; i++)
             {
-                views.Add(roots[i].Item1.CreateView(roots[i].Item2));
+                IView view = roots[i].Item1.CreateView(roots[i].Item2);
+                view.OnLoad();
             }
 
-            //3. 维持配置的嵌套视图的关系
-            for (int i = 0; i < viewConfigs.Length; i++)
-            {
-                ViewConfig config = viewConfigs[i];
-                KeepNested(config);
-            }
-
-            //4. 按order层级进行排序 : 只对根视图执行排序操作
+            //3. 按order层级进行排序 : 只对根视图执行排序操作
             roots.Sort((r1, r2) => r1.Item1.order - r2.Item1.order); //升序排序，因为order值越大越先被渲染
             for (int i = 0; i < roots.Count; i++)
             {
@@ -83,31 +74,8 @@ namespace UniVue.View
                     roots[i].Item2.transform.SetAsLastSibling();
                 }
             }
-
-            //5.调用OnLoad()函数
-            for (int i = 0; i < views.Count; i++)
-            {
-                views[i].OnLoad();
-            }
         }
 
-        /// <summary>
-        /// 维护配置的视图的嵌套关系
-        /// </summary>
-        private static void KeepNested(ViewConfig viewConfig)
-        {
-            ViewConfig[] nestedViews = viewConfig?.nestedViews;
-            if (viewConfig == null || nestedViews == null || nestedViews.Length == 0)
-                return;
-
-            BaseView view = Vue.Router.GetView(viewConfig.viewName) as BaseView;
-            view.nestedViews = new IView[nestedViews.Length];
-            for (int i = 0; i < nestedViews.Length; i++)
-            {
-                view.nestedViews[i] = Vue.Router.GetView(nestedViews[i].viewName);
-                KeepNested(nestedViews[i]);
-            }
-        }
 
         /// <summary>
         /// 加载指定层级的嵌套视图的ViewObject

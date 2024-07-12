@@ -14,12 +14,18 @@ namespace UniVue.View
         Common,
 
         /// <summary>
-        /// 系统级，只允许存在一个System级的视图被打开
+        /// 系统级，同级视图中只允许存在一个System级的视图被打开
         /// </summary>
+        /// <remarks>同级指拥有相同父视图的视图(所有根视图属于同一级)</remarks>
         System,
 
         /// <summary>
-        /// 持久级，不会被关闭的ViewPanel
+        /// 模态级，不关闭此视图无法打开任何视图
+        /// </summary>
+        Modal,
+
+        /// <summary>
+        /// 持久级，不会被"关闭"的视图
         /// </summary>
         Permanent,
 

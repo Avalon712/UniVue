@@ -5,7 +5,7 @@ using UniVue.View.Views;
 namespace UniVue.View
 {
     /// <summary>
-    /// 管理ViewPanel的行为
+    /// 管理所有视图的打开、关闭逻辑
     /// </summary>
     public sealed class ViewRouter
     {
@@ -41,9 +41,8 @@ namespace UniVue.View
 
         public T GetView<T>(string viewName) where T : IView
         {
-            if (string.IsNullOrEmpty(viewName)) { return default; }
-            if (_views.ContainsKey(viewName)) { return (T)_views[viewName]; }
-            return default;
+            IView view = GetView(viewName);
+            return view != null ? (T)view : default;
         }
 
         public void UnloadView(string viewName)
@@ -125,88 +124,59 @@ namespace UniVue.View
             //2.检查是否为Permanent级别
             if (opening.State || opening.Level == ViewLevel.Permanent) { return; }
 
-            //3.检验当前是否有一个ForbidOpenOther的视图被打开 
+            //3.检验当前是否有一个Modal视图被打开 
             IView opened = GetView(CurrentOpenedView()); //当前被打开的视图
-            if (opened != null && opened.Forbid)
+            if (opened != null && opened.Level == ViewLevel.Modal)
             {
 #if UNITY_EDITOR
-                LogUtil.Warning($"当前被打开的视图viewName={opened.Name}禁止打开viewName={viewName}的视图，无法再打开其它视图，除非关闭它");
+                LogUtil.Warning($"当前有一个模态Modal视图被打开[viewName={opened.Name}],无法对视图viewName={opening.Name}执行打开操作，无法再打开其它视图，除非关闭它");
 #endif
                 return;
             }
 
-            //4.检验是否被关联 是则看关联主体是否被打开->否则拒绝打开
-            if (!string.IsNullOrEmpty(opening.Master))
-            {
-                string masterViewName = opening.Master;
-                if (!GetView(masterViewName).State)
-                {
-#if UNITY_EDITOR
-                    LogUtil.Warning($"名称为{viewName}的视图已被关联到一个{masterViewName}的视图，而它没有被打开，因此无法打开{opening.Name}视图!");
-#endif
-                    return;
-                }
-            }
-
-            //5.检查根视图是否被打开（如果存在的话），是则要看根视图是否被打开->否则拒绝打开
-            string rootViewName = opening.Root;
-            if (!string.IsNullOrEmpty(rootViewName) && !GetView(rootViewName).State)
+            //4.检查其父视图是否被打开
+            IView parent = GetView(opening.Parent);
+            if (parent != null && !parent.State)
             {
 #if UNITY_EDITOR
-                LogUtil.Warning($"当前打开的视图与名称为{rootViewName}的视图存在父子关系，而此视图的父视图没有被打开，因此无法打开{viewName}视图!");
+                LogUtil.Warning($"当前正在执行打开操作的视图{viewName}的父视图{parent.Name}尚未被打开，只有先打开其父视图才允许其被打开！");
 #endif
                 return;
             }
 
-            //6.System级别视图的打开逻辑
+            //5. System级别的视图打开逻辑：同级互斥，关闭上一个与当前正在打开的视图同一级的已经打开了的System级的视图
             if (opening.Level == ViewLevel.System)
             {
-                //6.1如果当前打开的系统级别的视图有根视图，则只能关闭相同根视图的系统级别视图
-                if (!string.IsNullOrEmpty(opening.Root))
+                for (int i = 0; i < _histories.Count; i++)
                 {
-                    for (int i = 0; i < _histories.Count; i++)
+                    IView view = GetView(_histories[i]);
+                    if (view.State && view.Level == ViewLevel.System && view.Parent == opening.Parent)
                     {
-                        IView view = GetView(_histories[i]);
-                        if (view.State && view.Level == ViewLevel.System && view.Root == opening.Root)
-                        {
-                            Close(view.Name);
-                        }
-                    }
-                }
-
-                //6.2如果当前打开的系统级别的视图没有有根视图，则只能关闭上一个打开的同样没有根视图的系统级别视图
-                else
-                {
-                    for (int i = 0; i < _histories.Count; i++)
-                    {
-                        IView view = GetView(_histories[i]);
-                        if (view.State && view.Level == ViewLevel.System && string.IsNullOrEmpty(view.Root))
-                        {
-                            Close(view.Name);
-                        }
+                        Close(view.Name);
+                        break; //跳出的原因：同级中永远只有一个System级的视图被打开
                     }
                 }
             }
 
-            //7.将其设置为最后一个子物体，保证被打开的视图能被显示，只对根视图有效
-            if (top && string.IsNullOrEmpty(opening.Root))
+            //6.将其设置为最后一个子物体，保证被打开的视图能被显示，只对根视图有效
+            if (top && string.IsNullOrEmpty(opening.Parent))
             {
                 opening.ViewObject.transform.SetAsLastSibling();
             }
 
-            //8.播放音效
+            //7.播放音效
             _audioEffectCtr?.PlayAudioEffect(viewName);
 
-            //9.设置状态
+            //8.设置状态
             IsRouterCtrl = true;
 
-            //10.打开视图
+            //9.打开视图
             opening.Open();
 
-            //11.执行回调
+            //10.执行回调
             _audioEffectCtr?.AfterOpen(viewName);
 
-            //12.加入历史记录中，只有不为瞬态的视图才加入
+            //11.加入历史记录中，只有不为瞬态的视图才加入
             if (opening.Level != ViewLevel.Transient)
             {
                 //如果当前历史记录里面已经有过其记录，则先移除再添加
@@ -214,7 +184,7 @@ namespace UniVue.View
                 ListUtil.AddButNoOutOfCapacity(_histories, viewName);
             }
 
-            //13.设置状态
+            //12.设置状态
             IsRouterCtrl = false;
         }
 
@@ -235,10 +205,9 @@ namespace UniVue.View
             }
 
             //1.检查当前视图是否以及处于关闭状态
-            //2.检查是否为Permanent级别
             if (!closing.State) { return; }
 
-            //2.视图级别检查
+            //2.检查是否为Permanent级别
             if (closing.Level == ViewLevel.Permanent)
             {
 #if UNITY_EDITOR
@@ -247,44 +216,16 @@ namespace UniVue.View
                 return;
             }
 
-            //3.检查是否被关联
-            if (!string.IsNullOrEmpty(closing.Master))
-            {
-                IView master = GetView(closing.Master);
-                if (!master.State)
-                {
-#if UNITY_EDITOR
-                    LogUtil.Warning($"当前视图{closing.Name}已被{master.Name}所关联，而{master.Name}未被打开，因此无法进行关闭操作");
-#endif
-                    return;
-                }
-            }
-
-            //4.当前关闭的视图是否被其它视图关联，是==> 如果该视图是master，则关闭所有关联了它的视图
-            if (closing.IsMaster)
-            {
-                using (var view = GetAllView().GetEnumerator())
-                {
-                    while (view.MoveNext())
-                    {
-                        if (view.Current.Master == closing.Name)
-                        {
-                            Close(view.Current.Name);
-                        }
-                    }
-                }
-            }
-
-            //5.设置状态
+            //3.设置状态
             IsRouterCtrl = true;
 
-            //6.关闭视图
+            //4.关闭视图
             closing.Close();
 
-            //7.执行回调
+            //5.执行回调
             _audioEffectCtr?.AfterClose(viewName);
 
-            //8.设置状态
+            //6.设置状态
             IsRouterCtrl = false;
         }
 
@@ -294,7 +235,7 @@ namespace UniVue.View
         /// 获取当前最新被打开的视图
         /// </summary>
         /// <returns>最新被打开的视图名称</returns>
-        public string CurrentOpenedView()
+        private string CurrentOpenedView()
         {
             if (_histories.Count > 0)
             {
@@ -309,8 +250,8 @@ namespace UniVue.View
         /// <summary>
         /// 当前最新被关闭的视图
         /// </summary>
-        /// <returns></returns>
-        public string CurrentClosedView()
+        /// <returns>最新被关闭的视图</returns>
+        private string CurrentClosedView()
         {
             if (_histories.Count > 0)
             {
