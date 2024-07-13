@@ -12,6 +12,7 @@ namespace UniVue.Evt
 
         public IEventRegister Register { get; private set; }
 
+        public MethodInfo Method => _call;
 
         public EventCallAttribute CallInfo { get; private set; }
 

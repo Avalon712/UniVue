@@ -9,7 +9,7 @@ namespace UniVue.Evt
     /// <summary>
     /// 事件参数封装对象
     /// </summary>
-    public struct EventArg
+    public sealed class EventArg
     {
         /// <summary>
         /// 获取参数值的UI
@@ -20,6 +20,8 @@ namespace UniVue.Evt
         /// UI类型
         /// </summary>
         private UIType _type;
+
+        public UIType UIType => _type;
 
         /// <summary>
         /// 事件参数名称（如果是自定义的实体对象，这将是属性名称）

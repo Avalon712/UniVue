@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
@@ -151,9 +152,11 @@ namespace UniVue.ViewModel
         /// 更新List&lt;Enum&gt;属性类型的UI
         /// </summary>
         /// <typeparam name="T">这个泛型必须是枚举类型</typeparam>
-        public void UpdateUI<T>(string propertyName, List<T> propertyValue)
+        public void UpdateUI(string propertyName, IList propertyValue)
         {
-            if (!typeof(T).IsEnum)
+            object value = propertyValue.Count > 0 ? propertyValue[0] : null;
+            if (value == null) return;
+            if (!value.GetType().IsEnum)
             {
 #if UNITY_EDITOR
                 LogUtil.Warning("UIBundle.UpdateUI<T>(string propertyName, List<T> propertyValue)的泛型类型必须是一个枚举类型");

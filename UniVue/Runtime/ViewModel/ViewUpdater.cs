@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
@@ -163,8 +163,10 @@ namespace UniVue.ViewModel
             Publisher = null;
         }
 
-
-        public void UpdateUI<T>(IBindableModel model, string propertyName, List<T> propertyValue) where T : Enum
+        /// <summary>
+        /// 更新List&lt;Enum&gt;
+        /// </summary>
+        public void UpdateUI(IBindableModel model, string propertyName, IList propertyValue)
         {
             VMTable table = Table;
             if (table.TryGetViews(model, out List<string> views))

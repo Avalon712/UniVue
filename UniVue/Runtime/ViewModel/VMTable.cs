@@ -18,7 +18,10 @@ namespace UniVue.ViewModel
         /// <remarks>适用经常Rebind()使用</remarks>
         private Dictionary<string, List<UIBundle>> _views;
 
-        public int ModelCount => _models.Count;
+        /// <summary>
+        /// 模型的更新生成的缓存数量
+        /// </summary>
+        public int UpdateCacheModelCount => _models.Count;
 
         public int BundleCount { get; private set; }
 

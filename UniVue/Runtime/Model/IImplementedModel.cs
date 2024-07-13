@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UniVue.Model
@@ -63,7 +64,7 @@ namespace UniVue.Model
             Vue.Updater.UpdateUI(Binder, propertyName, propertyValue);
         }
 
-        void IUINotifier.NotifyUIUpdate<T>(string propertyName, List<T> propertyValue)
+        void IUINotifier.NotifyUIUpdate(string propertyName, IList propertyValue)
         {
             Vue.Updater.UpdateUI(Binder, propertyName, propertyValue);
         }
