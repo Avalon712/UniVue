@@ -32,17 +32,20 @@ namespace UniVue.ViewModel
             _value = propertyValue;
             string separator = Vue.Config.FlagsEnumSeparator;
             StringBuilder builder = new StringBuilder();
-            //for (int i = 0; i < _enums.Count; i++)
-            //{
-            //    if ((_enums[i].Item3 & propertyValue) == _enums[i].Item3)
-            //    {
-            //        if (builder.Length > 0)
-            //        {
-            //            builder.Append(separator);
-            //        }
-            //        builder.Append(_enums[i].Item2);
-            //    }
-            //}
+            int count = EnumCount;
+            for (int i = 0; i < count; i++)
+            {
+                string alias = GetAliasByIndex(i);
+                int value = GetValue(alias);
+                if ((value & propertyValue) == value)
+                {
+                    if (builder.Length > 0)
+                    {
+                        builder.Append(separator);
+                    }
+                    builder.Append(alias);
+                }
+            }
             string str = builder.ToString();
             SetActive(!string.IsNullOrEmpty(str) || !Vue.Config.WhenValueIsNullThenHide);
             _text.text = str;
