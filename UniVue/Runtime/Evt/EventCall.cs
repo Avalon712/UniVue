@@ -28,7 +28,10 @@ namespace UniVue.Evt
 
         public EventCall(EventCallAttribute callInfo, MethodInfo call, IEventRegister register)
         {
-            CallInfo = callInfo; _call = call; _triggerEvt = null; Register = register;
+            CallInfo = callInfo;
+            _call = call;
+            _triggerEvt = null;
+            Register = register;
             ParameterInfo[] parameters = _call.GetParameters();
             if (parameters != null && parameters.Length > 0)
             {

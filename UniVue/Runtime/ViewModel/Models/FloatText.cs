@@ -1,6 +1,6 @@
 ﻿using TMPro;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     public sealed class FloatText : FloatUI<TMP_Text>
     {

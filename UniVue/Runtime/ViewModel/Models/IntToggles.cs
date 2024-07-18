@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine.UI;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     public sealed class IntToggles : IntUI<Toggle[]>
     {

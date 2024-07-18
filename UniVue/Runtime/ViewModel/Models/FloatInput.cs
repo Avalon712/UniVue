@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UniVue.Utils;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     public sealed class FloatInput : FloatUI<TMP_InputField>
     {
@@ -26,7 +26,7 @@ namespace UniVue.ViewModel.Models
             if (float.TryParse(value, out float f))
             {
                 Vue.Updater.Publisher = this;
-                _notifier?.NotifyModelUpdate(_propertyName, f);
+                _notifier?.NotifyModelUpdate(PropertyName, f);
             }
         }
 

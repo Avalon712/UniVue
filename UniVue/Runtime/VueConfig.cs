@@ -7,23 +7,83 @@ namespace UniVue
 {
     public sealed class VueConfig : ScriptableObject
     {
-        [SerializeField] private NamingFormat _format = NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper;
-        [SerializeField] private bool _whenValueIsNullThenHide = true;
-        [SerializeField] private bool _whenListLessUICountThenHideSurplus = true;
-        [SerializeField] private int _maxHistoryRecord = 10;
-        [SerializeField] private string _flagsEnumSeparator = " | ";
-        [SerializeField] private char _skipDescendantNodeSeparator = '~';
-        [SerializeField] private char _skipCurrentNodeSeparator = '@';
-        [SerializeField] private int _floatKeepBit = 2;
-        [SerializeField] private float _perItemScrollTime = 0.1f;
-        [SerializeField] private bool _renderModelOnScroll;
-        [SerializeField] private int _tableSize = 20;
+#if UNITY_EDITOR
+        [Header("命名格式(必须指定UI的后缀或前缀)")]
+        [SerializeField]
+#endif
+        private NamingFormat _format = NamingFormat.UI_Suffix | NamingFormat.UnderlineUpper;
 
-        public static VueConfig Create()
-        {
-            return ScriptableObject.CreateInstance<VueConfig>();
-        }
+#if UNITY_EDITOR
+        [Header("默认语言")]
+        [SerializeField]
+#endif
+        private string _defaultLanguageTag;
 
+#if UNITY_EDITOR
+        [Header("更新到UI上的值为null或Empty时隐藏UI的显示")]
+        [SerializeField]
+#endif
+        private bool _whenValueIsNullThenHide = true;
+
+
+#if UNITY_EDITOR
+        [Header("更新List到UI上时,对多余的UI进行隐藏")]
+        [SerializeField]
+#endif
+        private bool _whenListLessUICountThenHideSurplus = true;
+
+
+#if UNITY_EDITOR
+        [Header("视图打开/关闭的最大历史记录")]
+        [SerializeField]
+#endif
+        private int _maxHistoryRecord = 10;
+
+#if UNITY_EDITOR
+        [Header("显示[Flags]枚举时指定两个枚举值之间的分隔符")]
+        [SerializeField]
+#endif
+        private string _flagsEnumSeparator = " | ";
+
+#if UNITY_EDITOR
+        [Header("树形减枝符")]
+        [SerializeField]
+#endif
+        private char _skipDescendantNodeSeparator = '~';
+
+#if UNITY_EDITOR
+        [Header("树形跳跃符")]
+        [SerializeField]
+#endif
+        private char _skipCurrentNodeSeparator = '@';
+
+#if UNITY_EDITOR
+        [Header("显示Float数据时指定显示的位数")]
+        [SerializeField]
+#endif
+        private int _floatKeepBit = 2;
+
+#if UNITY_EDITOR
+        [Header("指定滚动一个Item的距离使用的时间")]
+        [SerializeField]
+#endif
+        private float _perItemScrollTime = 0.1f;
+
+#if UNITY_EDITOR
+        [Header("滚动时是否渲染模型")]
+        [SerializeField]
+#endif
+        private bool _renderModelOnScroll;
+
+#if UNITY_EDITOR
+        [Header("初始时VM表的大小")]
+        [SerializeField]
+#endif
+        private int _tableSize = 20;
+
+        public static VueConfig Default => ScriptableObject.CreateInstance<VueConfig>();
+
+        #region 属性
         /// <summary>
         /// 命名风格
         /// </summary>
@@ -40,6 +100,11 @@ namespace UniVue
                 _format = value;
             }
         }
+
+        /// <summary>
+        /// 游戏默认使用的语言标识
+        /// </summary>
+        public string DefaultLanguageTag { get { return _defaultLanguageTag; } }
 
         /// <summary>
         /// 当更新Sprite、string类型时，如果Sprite的值为null类型则隐藏图片的显示，即: gameObject.SetActive(false);
@@ -94,5 +159,6 @@ namespace UniVue
         /// 渲染表的大小，这个值根据项目的大小来填写，这个值主要是放在集合的多次扩容
         /// </summary>
         public int TabelSize { get => _tableSize; set => _tableSize = value; }
+        #endregion
     }
 }

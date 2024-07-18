@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
-using UniVue.ViewModel.Models;
 
 namespace UniVue.ViewModel
 {
@@ -229,7 +228,7 @@ namespace UniVue.ViewModel
         }
 
 
-        private void UpdateUI(string propertyName, string viewName, IConsumableModel consumer)
+        public void UpdateUI(string propertyName, string viewName, IConsumableModel consumer)
         {
             if (Table.TryGetBundles(viewName, out List<UIBundle> bundles))
             {
@@ -241,13 +240,39 @@ namespace UniVue.ViewModel
         }
 
 
-        private void UpdateUI(string viewName, IConsumableModel consumer)
+        public void UpdateUI(string viewName, IConsumableModel consumer)
         {
             if (Table.TryGetBundles(viewName, out List<UIBundle> bundles))
             {
                 for (int i = 0; i < bundles.Count; i++)
                 {
                     consumer.UpdateAll(bundles[i]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新所有的枚举UI的值
+        /// </summary>
+        /// <remarks>当切换语言时调用</remarks>
+        internal void UpdateEnumUI()
+        {
+            using (var it = Table.GetAllUIBundles().GetEnumerator())
+            {
+                while (it.MoveNext())
+                {
+                    List<UIBundle> bundles = it.Current;
+                    for (int i = 0; i < bundles.Count; i++)
+                    {
+                        List<PropertyUI> propertyUIs = bundles[i].ProertyUIs;
+                        for (int j = 0; j < propertyUIs.Count; j++)
+                        {
+                            if (propertyUIs[j] is EnumUI enumUI)
+                            {
+                                enumUI.UpdateUI();
+                            }
+                        }
+                    }
                 }
             }
         }

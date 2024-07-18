@@ -6,28 +6,11 @@ using UniVue.Evt;
 using UniVue.Evt.Attr;
 using UniVue.Evt.Evts;
 using UniVue.Model;
-using UniVue.ViewModel;
 
 namespace UniVue.Utils
 {
     public static class ReflectionUtil
     {
-        public static bool IsEnumOrListEnum(BindableType bindType, Type type, out bool isFlagsEnum)
-        {
-            isFlagsEnum = false;
-            if (bindType == BindableType.Enum)
-            {
-                isFlagsEnum = HasFlags(type);
-                return true;
-            }
-            else if (bindType == BindableType.ListEnum)
-            {
-                isFlagsEnum = HasFlags(type.GetGenericArguments()[0]);
-                return true;
-            }
-            return false;
-        }
-
         public static SupportableArgType GetSupportableArgType(Type type)
         {
             if (type == typeof(string)) { return SupportableArgType.String; }
@@ -105,26 +88,6 @@ namespace UniVue.Utils
             }
 
             return BindableType.None;
-        }
-
-        /// <summary>
-        /// 获取一个枚举类上是否有[Flags]特性
-        /// </summary>
-        public static bool HasFlags(Type type)
-        {
-            return type.GetCustomAttribute<FlagsAttribute>(false) != null;
-        }
-
-        /// <summary>
-        /// 获取枚举值的别名
-        /// </summary>
-        /// <param name="enumType">枚举类型</param>
-        /// <param name="enumValueStr">枚举值的字符串</param>
-        /// <returns>如果有别名则返回别名，没有则返回enumValueStr</returns>
-        public static string GetEnumAlias(Type enumType, string enumValueStr)
-        {
-            FieldInfo fieldInfo = enumType.GetField(enumValueStr);
-            return fieldInfo?.GetCustomAttribute<EnumAliasAttribute>()?.Alias ?? enumValueStr;
         }
 
         /// <summary>

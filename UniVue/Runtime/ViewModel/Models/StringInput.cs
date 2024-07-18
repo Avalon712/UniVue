@@ -1,6 +1,6 @@
 ﻿using TMPro;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     public sealed class StringInput : StringUI<TMP_InputField>
     {
@@ -12,7 +12,7 @@ namespace UniVue.ViewModel.Models
         private void UpdateModel(string value)
         {
             Vue.Updater.Publisher = this;
-            _notifier?.NotifyModelUpdate(_propertyName, value);
+            _notifier?.NotifyModelUpdate(PropertyName, value);
         }
 
         public override void Unbind()

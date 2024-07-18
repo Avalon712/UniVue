@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine.UI;
+using UniVue.Utils;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     /// <summary>
     /// Toggle绑定枚举时获取枚举值的方式: 
     /// 获取Toggle孩子身上的Text或TMP_Text组件中的值
     /// 单选效果
     /// </summary>
-    public sealed class EnumToggleGroup : EnumUI<ValueTuple<Toggle, string>[]>
+    public sealed class EnumToggleGroup : EnumUI
     {
-        public EnumToggleGroup(ValueTuple<Toggle, string>[] ui, Array array, string propertyName, bool allowUIUpdateModel)
-            : base(ui, array, propertyName, allowUIUpdateModel)
+        //Item2 : 当前枚举值的别名
+        private ValueTuple<Toggle, string>[] _uis;
+
+        public EnumToggleGroup(ValueTuple<Toggle, string>[] ui, Type enumType, string propertyName, bool allowUIUpdateModel)
+            : base(enumType, propertyName, allowUIUpdateModel)
         {
+            _uis = ui;
             if (_allowUIUpdateModel)
             {
                 for (int i = 0; i < ui.Length; i++)
@@ -23,8 +29,13 @@ namespace UniVue.ViewModel.Models
             }
         }
 
-        //空实现
-        public override void SetActive(bool active) { }
+        public override void SetActive(bool active)
+        {
+            for (int i = 0; i < _uis.Length; i++)
+            {
+                ViewUtil.SetActive(_uis[i].Item1.gameObject, active);
+            }
+        }
 
         private void UpdateModel(bool isOn)
         {
@@ -32,26 +43,39 @@ namespace UniVue.ViewModel.Models
             {
                 Vue.Updater.Publisher = this;
                 ValueTuple<Toggle, string> toggle = GetActiveToggle();
-                _notifier?.NotifyModelUpdate(_propertyName, GetValue(toggle.Item2));
+                _notifier?.NotifyModelUpdate(PropertyName, GetValue(toggle.Item2));
             }
         }
 
         public override void UpdateUI(int propertyValue)
         {
+            _value = propertyValue;
             if (!IsPublisher())
             {
-                string v = GetAlias(propertyValue);
-                SetIsOn(v, GetName(propertyValue), true);
+                string v = GetAliasByValue(propertyValue);
+                SetIsOn(v, true);
             }
         }
 
-        private void SetIsOn(string value, string name, bool isOn)
+        internal override void UpdateUI()
         {
-            for (int i = 0; i < _ui.Length; i++)
+            for (int i = 0; i < _uis.Length; i++)
             {
-                if (value.Equals(_ui[i].Item2) || name.Equals(_ui[i].Item2))
+                ValueTuple<Toggle, string> ui = _uis[i];
+                ui.Item2 = GetNewAlias(ui.Item2);
+                ui.Item1.GetComponent<TMP_Text>().text = ui.Item2;
+                _uis[i] = ui;
+            }
+            UpdateUI(_value);
+        }
+
+        private void SetIsOn(string alias, bool isOn)
+        {
+            for (int i = 0; i < _uis.Length; i++)
+            {
+                if (alias.Equals(_uis[i].Item2))
                 {
-                    _ui[i].Item1.isOn = isOn;
+                    _uis[i].Item1.isOn = isOn;
                     break;
                 }
             }
@@ -59,9 +83,9 @@ namespace UniVue.ViewModel.Models
 
         private ValueTuple<Toggle, string> GetActiveToggle()
         {
-            for (int i = 0; i < _ui.Length; i++)
+            for (int i = 0; i < _uis.Length; i++)
             {
-                if (_ui[i].Item1.isOn) { return _ui[i]; }
+                if (_uis[i].Item1.isOn) { return _uis[i]; }
             }
             return default;
         }
@@ -70,9 +94,9 @@ namespace UniVue.ViewModel.Models
         {
             if (_allowUIUpdateModel)
             {
-                for (int i = 0; i < _ui.Length; i++)
+                for (int i = 0; i < _uis.Length; i++)
                 {
-                    _ui[i].Item1.onValueChanged.RemoveListener(UpdateModel);
+                    _uis[i].Item1.onValueChanged.RemoveListener(UpdateModel);
                 }
             }
 
@@ -81,11 +105,11 @@ namespace UniVue.ViewModel.Models
 
         public override IEnumerable<T> GetUI<T>()
         {
-            if (_ui[0].Item1 is T)
+            if (_uis[0].Item1 is T)
             {
-                for (int i = 0; i < _ui.Length; i++)
+                for (int i = 0; i < _uis.Length; i++)
                 {
-                    yield return _ui[i].Item1 as T;
+                    yield return _uis[i].Item1 as T;
                 }
             }
         }

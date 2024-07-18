@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
-    public abstract class StringUI<UI> : PropertyUI where UI : Component
+    public abstract class StringUI<UI> : SingleValuePropertyUI where UI : Component
     {
         /// <summary>
         /// 绑定的UI组件
@@ -28,7 +28,7 @@ namespace UniVue.ViewModel.Models
             yield return _ui as T;
         }
 
-        public override void Unbind() { _notifier = null; _propertyName = null; _ui = default; }
+        public override void Unbind() { _notifier = null; _ui = default; }
 
         public sealed override void UpdateUI(int propertyValue) { }
 

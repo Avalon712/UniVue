@@ -1,5 +1,6 @@
 ﻿using System;
 using UniVue.Evt;
+using UniVue.i18n;
 using UniVue.Rule;
 using UniVue.Utils;
 using UniVue.View;
@@ -47,6 +48,11 @@ namespace UniVue
         public static RuleEngine Rule => _rule;
 
         /// <summary>
+        /// 当前游戏中使用的语言标识
+        /// </summary>
+        public static string LanguageTag { get; private set; }
+
+        /// <summary>
         /// 初始化Vue
         /// </summary>
         /// <param name="config">Vue的渲染配置文件</param>
@@ -55,12 +61,13 @@ namespace UniVue
             if (!_initialized)
             {
                 _config = config;
+                LanguageTag = config.DefaultLanguageTag;
                 _rule = new RuleEngine();
                 _event = new EventManager();
                 _router = new ViewRouter();
                 _updater = new ViewUpdater();
                 _initialized = true;
-
+                #region 编辑器模式
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.playModeStateChanged += (mode) =>
                 {
@@ -70,6 +77,7 @@ namespace UniVue
                     }
                 };
 #endif
+                #endregion
             }
         }
 
@@ -149,12 +157,30 @@ namespace UniVue
             _event.UnregisterUIEvents(viewName);
         }
 
+        /// <summary>
+        /// 切换语言
+        /// </summary>
+        /// <param name="language">游戏中要显示的语言</param>
+        /// <param name="parser">I18n文件解析器，可使用内置的属性文件解析方法PropertyFileParser</param>
+        /// <param name="loader">游戏中与多语言相关资产（精灵图片、字体）加载器（如果切换语言时不更换字体同时没有图片精灵的更换时传递null）</param>
+        public static void SwitchLanguage(Language language, II18nResourceLoader loader)
+        {
+            CheckInitialize();
+            LanguageTag = language.Tag;
+            new I18n(language, loader).Switch(OnSwitchLanguageComplete);
+        }
+
+        private static void OnSwitchLanguageComplete()
+        {
+            Updater.UpdateEnumUI();
+        }
+
         private static void CheckInitialize()
         {
             if (!_initialized) { throw new Exception("Vue尚未进行初始化操作!"); }
         }
 
-
+        #region 编辑器模式
 #if UNITY_EDITOR
         /// <summary>
         /// 仅在Editor模式下执行
@@ -175,6 +201,7 @@ namespace UniVue
             _initialized = false;
         }
 #endif
+        #endregion
 
     }
 }

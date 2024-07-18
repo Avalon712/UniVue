@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     /// <summary>
     /// 单精度浮点型的属性绑定UI
     /// </summary>
-    public abstract class FloatUI<UI> : PropertyUI where UI : Component
+    public abstract class FloatUI<UI> : SingleValuePropertyUI where UI : Component
     {
         /// <summary>
         /// 绑定的UI组件
@@ -34,7 +34,11 @@ namespace UniVue.ViewModel.Models
 
         public sealed override void UpdateUI(Sprite propertyValue) { }
 
-        public override void Unbind() { _notifier = null; _propertyName = null; _ui = default; }
+        public override void Unbind()
+        {
+            _notifier = null;
+            _ui = default;
+        }
 
         public override IEnumerable<T> GetUI<T>()
         {

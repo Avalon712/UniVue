@@ -2,7 +2,7 @@
 using TMPro;
 using UniVue.Utils;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     public sealed class IntInput : IntUI<TMP_InputField>
     {
@@ -28,7 +28,7 @@ namespace UniVue.ViewModel.Models
             Vue.Updater.Publisher = this;
             if (int.TryParse(value, out int f))
             {
-                _notifier?.NotifyModelUpdate(_propertyName, f);
+                _notifier?.NotifyModelUpdate(PropertyName, f);
             }
         }
 

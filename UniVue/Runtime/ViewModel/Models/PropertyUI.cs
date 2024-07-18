@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     /// <summary>
     /// 模型的最小单元所对应的
@@ -10,23 +11,18 @@ namespace UniVue.ViewModel.Models
     public abstract class PropertyUI : IUIUpdater
     {
         /// <summary>
-        /// 是否允许UI更新模型数据
-        /// </summary>
-        protected bool _allowUIUpdateModel;
-        /// <summary>
         /// 该属性UI所属UI模块
         /// </summary>
         protected IModelNotifier _notifier;
+
         /// <summary>
-        /// 属性名
+        /// 获取当前属性UI绑定的属性的属性名称
         /// </summary>
-        protected string _propertyName;
+        public string PropertyName { get; }
 
-
-        public PropertyUI(string propertyName, bool allowUIUpdateModel)
+        protected PropertyUI(string propertyName)
         {
-            _propertyName = propertyName;
-            _allowUIUpdateModel = allowUIUpdateModel;
+            PropertyName = propertyName;
         }
 
         /// <summary>
@@ -54,12 +50,6 @@ namespace UniVue.ViewModel.Models
         public abstract IEnumerable<T> GetUI<T>() where T : Component;
 
         /// <summary>
-        /// 获取当前属性UI绑定的属性的属性名称
-        /// </summary>
-        /// <returns></returns>
-        public string PropertyName => _propertyName;
-
-        /// <summary>
         /// 当前UI是否是发布UI更新消息的发布者
         /// </summary>
         /// <returns>true:是</returns>
@@ -70,6 +60,12 @@ namespace UniVue.ViewModel.Models
         public abstract void UpdateUI(string propertyValue);
         public abstract void UpdateUI(Sprite propertyValue);
         public abstract void UpdateUI(bool propertyValue);
+        public abstract void UpdateUI(List<int> propertyValue);
+        public abstract void UpdateUI(List<float> propertyValue);
+        public abstract void UpdateUI(IList propertyValue);
+        public abstract void UpdateUI(List<string> propertyValue);
+        public abstract void UpdateUI(List<bool> propertyValue);
+        public abstract void UpdateUI(List<Sprite> propertyValue);
     }
 
 }

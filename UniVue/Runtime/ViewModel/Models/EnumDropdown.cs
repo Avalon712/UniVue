@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using TMPro;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
-    public sealed class EnumDropdown : EnumUI<TMP_Dropdown>
+    public sealed class EnumDropdown : EnumUI
     {
-        public EnumDropdown(TMP_Dropdown ui, Array array, string propertyName, bool allowUIUpdateModel)
-            : base(ui, array, propertyName, allowUIUpdateModel)
+        private TMP_Dropdown _ui;
+
+        public EnumDropdown(TMP_Dropdown ui, Type enumType, string propertyName, bool allowUIUpdateModel)
+            : base(enumType, propertyName, allowUIUpdateModel)
         {
+            _ui = ui;
             if (_allowUIUpdateModel) { ui.onValueChanged.AddListener(UpdateModel); }
+            ShowAllAlias();
         }
 
         public override void SetActive(bool active)
@@ -23,8 +27,8 @@ namespace UniVue.ViewModel.Models
         private void UpdateModel(int optionIdx)
         {
             Vue.Updater.Publisher = this;
-            string enumStr = _ui.options[optionIdx].text;
-            _notifier?.NotifyModelUpdate(_propertyName, GetValue(enumStr));
+            string alias = _ui.options[optionIdx].text;
+            _notifier?.NotifyModelUpdate(PropertyName, GetValue(alias));
         }
 
         public override void Unbind()
@@ -35,23 +39,36 @@ namespace UniVue.ViewModel.Models
 
         public override void UpdateUI(int propertyValue)
         {
+            _value = propertyValue;
             if (IsPublisher()) { return; }
-
-            List<TMP_Dropdown.OptionData> optionDatas = _ui.options;
-            string str = GetAlias(propertyValue);
-            for (int i = 0; i < optionDatas.Count; i++)
-            {
-                if (optionDatas[i].text == str)
-                {
-                    _ui.value = i; //会触发OnValueChanged
-                    break;
-                }
-            }
+            _ui.captionText.text = GetAliasByValue(propertyValue);
         }
 
         public override IEnumerable<T> GetUI<T>()
         {
             yield return _ui as T;
+        }
+
+        internal override void UpdateUI()
+        {
+            ShowAllAlias();
+            UpdateUI(_value);
+        }
+
+        private void ShowAllAlias()
+        {
+            int count = EnumCount;
+            for (int i = 0; i < count; i++)
+            {
+                if (i >= _ui.options.Count)
+                    _ui.options.Add(new TMP_Dropdown.OptionData(GetAliasByIndex(i)));
+                else
+                    _ui.options[i].text = GetAliasByIndex(i);
+            }
+            if (_ui.options.Count > count)
+            {
+                _ui.options.RemoveRange(count, _ui.options.Count - count);
+            }
         }
     }
 }

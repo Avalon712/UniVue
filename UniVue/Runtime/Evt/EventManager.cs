@@ -56,6 +56,11 @@ namespace UniVue.Evt
             _mappers.Add(mapper);
         }
 
+        /// <summary>
+        /// 获取指定实体类型的映射器
+        /// </summary>
+        /// <param name="entityType">实体类型</param>
+        /// <returns>IEntityMapper</returns>
         public IEntityMapper GetEntityMapper(Type entityType)
         {
             if (_mappers == null) return null;

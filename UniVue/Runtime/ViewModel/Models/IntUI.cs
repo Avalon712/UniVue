@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
-    public abstract class IntUI<UI> : PropertyUI where UI : class
+    public abstract class IntUI<UI> : SingleValuePropertyUI where UI : class
     {
         /// <summary>
         /// 绑定的UI组件
@@ -23,7 +23,8 @@ namespace UniVue.ViewModel.Models
 
         public override void Unbind()
         {
-            _notifier = null; _propertyName = null; _ui = default;
+            _notifier = null;
+            _ui = default;
         }
 
         public sealed override void UpdateUI(float propertyValue) { }

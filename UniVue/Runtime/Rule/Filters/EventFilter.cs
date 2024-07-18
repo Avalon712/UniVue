@@ -35,26 +35,44 @@ namespace UniVue.Rule
             if (component.Item2 == UIType.None) return false;
             int count = results.Count;
             string uiName = component.Item1.name;
+            bool evtAndArg = true, evt = true, arg = true;
 
-            Match match = Regex.Match(uiName, GetEventAndArgRule(out int eventNameIdx, out int argNameIdx));
-            if (match.Success)
+            while (evtAndArg || evt || arg)
             {
-                uiName = uiName.Replace(match.Value, string.Empty);
-                results.Add(new EventFilterResult(UIEventFlag.ArgAndEvent, match.Groups[eventNameIdx].Value, match.Groups[argNameIdx].Value, component.Item1, component.Item2));
+                if (evtAndArg)
+                {
+                    Match match = Regex.Match(uiName, GetEventAndArgRule(out int eventNameIdx, out int argNameIdx));
+                    evtAndArg = match.Success;
+                    if (match.Success)
+                    {
+                        uiName = uiName.Replace(match.Value, string.Empty);
+                        results.Add(new EventFilterResult(UIEventFlag.ArgAndEvent, match.Groups[eventNameIdx].Value, match.Groups[argNameIdx].Value, component.Item1, component.Item2));
+                    }
+                }
+
+                if (arg)
+                {
+                    Match match = Regex.Match(uiName, GetArgRule(out int eventNameIdx, out int argNameIdx));
+                    arg = match.Success;
+                    if (match.Success)
+                    {
+                        uiName = uiName.Replace(match.Value, string.Empty);
+                        results.Add(new EventFilterResult(UIEventFlag.OnlyArg, match.Groups[eventNameIdx].Value, match.Groups[argNameIdx].Value, component.Item1, component.Item2));
+                    }
+                }
+
+                if (evt)
+                {
+                    Match match = Regex.Match(uiName, GetEventRule(out int eventNameIdx));
+                    evt = match.Success;
+                    if (match.Success)
+                    {
+                        uiName = uiName.Replace(match.Value, string.Empty);
+                        results.Add(new EventFilterResult(UIEventFlag.OnlyEvent, match.Groups[eventNameIdx].Value, null, component.Item1, component.Item2));
+                    }
+                }
             }
 
-            match = Regex.Match(uiName, GetArgRule(out eventNameIdx, out argNameIdx));
-            if (match.Success)
-            {
-                uiName = uiName.Replace(match.Value, string.Empty);
-                results.Add(new EventFilterResult(UIEventFlag.OnlyArg, match.Groups[eventNameIdx].Value, match.Groups[argNameIdx].Value, component.Item1, component.Item2));
-            }
-
-            match = Regex.Match(uiName, GetEventRule(out eventNameIdx));
-            if (match.Success)
-            {
-                results.Add(new EventFilterResult(UIEventFlag.OnlyEvent, match.Groups[eventNameIdx].Value, null, component.Item1, component.Item2));
-            }
 
             return results.Count - count >= 1;
         }

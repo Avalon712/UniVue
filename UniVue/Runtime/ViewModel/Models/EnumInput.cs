@@ -2,50 +2,55 @@
 using System.Collections.Generic;
 using TMPro;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
-    public sealed class EnumInput : EnumUI<TMP_InputField>
+    public sealed class EnumInput : EnumUI
     {
-        public EnumInput(TMP_InputField ui, Array array, string propertyName, bool allowUIUpdateModel) : base(ui, array, propertyName, allowUIUpdateModel)
+        private TMP_InputField _input;
+
+        public EnumInput(TMP_InputField ui, Type enumType, string propertyName, bool allowUIUpdateModel) : base(enumType, propertyName, allowUIUpdateModel)
         {
+            _input = ui;
             if (allowUIUpdateModel) { ui.onEndEdit.AddListener(UpdateModel); }
         }
 
         public override void SetActive(bool active)
         {
-            if (active != _ui.gameObject.activeSelf)
+            if (active != _input.gameObject.activeSelf)
             {
-                _ui.gameObject.SetActive(active);
+                _input.gameObject.SetActive(active);
             }
         }
 
-        private void UpdateModel(string str)
+        private void UpdateModel(string alias)
         {
             Vue.Updater.Publisher = this;
-            _notifier?.NotifyModelUpdate(_propertyName, GetValue(str));
+            _notifier?.NotifyModelUpdate(PropertyName, GetValue(alias));
         }
 
         public override void Unbind()
         {
-            if (_allowUIUpdateModel) { _ui.onEndEdit.RemoveListener(UpdateModel); }
+            if (_allowUIUpdateModel) { _input.onEndEdit.RemoveListener(UpdateModel); }
             base.Unbind();
         }
 
 
         public override void UpdateUI(int propertyValue)
         {
+            _value = propertyValue;
             if (!IsPublisher())
             {
-                string v = GetAlias(propertyValue);
+                string v = GetAliasByValue(propertyValue);
                 SetActive(!string.IsNullOrEmpty(v) || !Vue.Config.WhenValueIsNullThenHide);
-                _ui.text = v;
+                _input.text = v;
             }
         }
 
         public override IEnumerable<T> GetUI<T>()
         {
-            yield return _ui as T;
+            yield return _input as T;
         }
+
     }
 
 }

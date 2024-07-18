@@ -2,9 +2,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
-    public sealed class SpriteImage : PropertyUI
+    public sealed class SpriteImage : SingleValuePropertyUI
     {
         private Image _img;
 
@@ -23,7 +23,8 @@ namespace UniVue.ViewModel.Models
 
         public override void Unbind()
         {
-            _img = null; _propertyName = null; _notifier = null;
+            _img = null;
+            _notifier = null;
         }
 
         public override IEnumerable<T> GetUI<T>()

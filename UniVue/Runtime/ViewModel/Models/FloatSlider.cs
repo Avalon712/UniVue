@@ -1,6 +1,6 @@
 ﻿using UnityEngine.UI;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     public sealed class FloatSlider : FloatUI<Slider>
     {
@@ -12,7 +12,7 @@ namespace UniVue.ViewModel.Models
         private void UpdateModel(float value)
         {
             Vue.Updater.Publisher = this;
-            _notifier?.NotifyModelUpdate(_propertyName, value);
+            _notifier?.NotifyModelUpdate(PropertyName, value);
         }
 
         public override void Unbind()

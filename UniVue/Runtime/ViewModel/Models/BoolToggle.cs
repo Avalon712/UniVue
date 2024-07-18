@@ -2,13 +2,13 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     /// <summary>
     /// 布尔类型的数据绑定到UI或UI显示布尔类型的数据
     /// bool类型绑定的UI只能为Toggle
     /// </summary>
-    public sealed class BoolToggle : PropertyUI
+    public sealed class BoolToggle : SingleValuePropertyUI
     {
         /// <summary>
         /// 绑定的UI组件
@@ -36,12 +36,13 @@ namespace UniVue.ViewModel.Models
         private void UpdateModel(bool value)
         {
             Vue.Updater.Publisher = this;
-            _notifier?.NotifyModelUpdate(_propertyName, value);
+            _notifier?.NotifyModelUpdate(PropertyName, value);
         }
         public override void Unbind()
         {
             if (_allowUIUpdateModel) { _toggle.onValueChanged.RemoveListener(UpdateModel); }
-            _notifier = null; _propertyName = null; _toggle = null;
+            _notifier = null;
+            _toggle = null;
         }
 
         public override void UpdateUI(int propertyValue) { }

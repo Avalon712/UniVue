@@ -49,12 +49,12 @@ namespace UniVue.Editor
             {
                 SceneConfigEdit();
             }
-            else if (_configType == ConfigType.Vue)
+            else if (_configType == ConfigType.VueConfig)
             {
                 CreateVueConfigEdit();
             }
-
         }
+
 
         private void CreateVueConfigEdit()
         {
@@ -231,7 +231,7 @@ namespace UniVue.Editor
 
     public enum ConfigType
     {
-        Vue,
+        VueConfig,
         Scene,
         Canvas,
         View
@@ -251,6 +251,7 @@ namespace UniVue.Editor
     internal sealed class ConfigBuilderInEditor
     {
         private ConfigBuilderInEditor() { }
+
 
         public static void CreateSceneConfig(string fileName, string sceneName, string directory)
         {

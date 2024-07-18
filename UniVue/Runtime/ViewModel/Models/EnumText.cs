@@ -2,34 +2,39 @@
 using System.Collections.Generic;
 using TMPro;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
-    public sealed class EnumText : EnumUI<TMP_Text>
+    public sealed class EnumText : EnumUI
     {
-        public EnumText(TMP_Text ui, Array array, string propertyName) : base(ui, array, propertyName, false)
+        private TMP_Text _text;
+
+        public EnumText(TMP_Text ui, Type enumType, string propertyName) : base(enumType, propertyName, false)
         {
+            _text = ui;
         }
 
         public override IEnumerable<T> GetUI<T>()
         {
-            yield return _ui as T;
+            yield return _text as T;
         }
 
         public override void SetActive(bool active)
         {
-            if (active != _ui.gameObject.activeSelf)
+            if (active != _text.gameObject.activeSelf)
             {
-                _ui.gameObject.SetActive(active);
+                _text.gameObject.SetActive(active);
             }
         }
 
+
         public override void UpdateUI(int propertyValue)
         {
-            string v = GetAlias(propertyValue);
+            _value = propertyValue;
+            string v = GetAliasByValue(propertyValue);
 
             SetActive(!string.IsNullOrEmpty(v) || !Vue.Config.WhenValueIsNullThenHide);
 
-            _ui.text = v;
+            _text.text = v;
         }
 
     }

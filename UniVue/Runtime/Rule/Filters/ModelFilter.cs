@@ -37,7 +37,7 @@ namespace UniVue.Rule
             Model = model;
             ModelType = model.GetType();
             _typeFlag = GetTypeFlag();
-            ModelName = GetModelName();
+            ModelName = string.IsNullOrEmpty(modelName) ? GetModelName() : modelName;
             _allowUIUpdateModel = allowUIUpdateModel;
         }
 

@@ -105,7 +105,6 @@ namespace UniVue.Utils
         /// <remarks>这种方式无需创建视图对象(BaseView)</remarks>
         /// <param name="viewObject"></param>
         /// <param name="model">要绑定的模型</param>
-        /// <param name="exclued">要排除的GameObject</param>
         public static void Patch3Pass(GameObject viewObject, IBindableModel model)
         {
 #if UNITY_EDITOR
@@ -152,9 +151,8 @@ namespace UniVue.Utils
         /// <remarks>这种方式无需创建视图对象(BaseView)</remarks>
         /// <param name="viewObject"></param>
         /// <param name="model">用于创建UIBundle的模型</param>
-        /// <param name="exclued">要排除的GameObject</param>
         /// <returns>UIBundle</returns> 
-        public static UIBundle Patch3PassButNoBinding(GameObject viewObject, IBindableModel model, params GameObject[] exclued)
+        public static UIBundle Patch3PassButNoBinding(GameObject viewObject, IBindableModel model)
         {
 #if UNITY_EDITOR
             if (Vue.Updater.Table.ContainsViewName(viewObject.name))
@@ -175,7 +173,6 @@ namespace UniVue.Utils
         /// <summary>
         /// 构建UI事件
         /// </summary>
-        /// <param name="exclued">要排除的GameObject</param>
         public static void BuildUIEvents(GameObject viewObject)
         {
             Vue.Rule.Filter(viewObject, new EventFilter(viewObject.name));
@@ -185,7 +182,6 @@ namespace UniVue.Utils
         /// <summary>
         /// 构建路由事件
         /// </summary>
-        /// <param name="exclued">要排除的GameObject</param>
         public static void BuildRoutEvents(GameObject viewObject)
         {
             Vue.Rule.Filter(viewObject, new RouteFilter(viewObject.name));

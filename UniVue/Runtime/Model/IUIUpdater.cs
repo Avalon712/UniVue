@@ -1,37 +1,35 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace UniVue.Model
 {
     public interface IUIUpdater
     {
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="propertyValue">属性值</param>
         public void UpdateUI(int propertyValue);
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="propertyValue">属性值</param>
         public void UpdateUI(float propertyValue);
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="propertyValue">属性值</param>
         public void UpdateUI(string propertyValue);
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="propertyValue">属性值</param>
         public void UpdateUI(Sprite propertyValue);
 
-        /// <summary>
-        /// 更新UI
-        /// </summary>
-        /// <param name="propertyValue">属性值</param>
         public void UpdateUI(bool propertyValue);
+
+        public void UpdateUI(List<int> propertyValue);
+
+        public void UpdateUI(List<float> propertyValue);
+
+        /// <summary>
+        /// 更新List&lt;Enum&gt;属性类型的UI
+        /// </summary>
+        /// <typeparam name="T">这个泛型必须是枚举类型</typeparam>
+        public void UpdateUI(IList propertyValue);
+
+        public void UpdateUI(List<string> propertyValue);
+
+        public void UpdateUI(List<bool> propertyValue);
+
+        public void UpdateUI(List<Sprite> propertyValue);
     }
 }

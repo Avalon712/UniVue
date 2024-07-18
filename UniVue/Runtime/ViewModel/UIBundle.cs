@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Model;
 using UniVue.Utils;
-using UniVue.ViewModel.Models;
 
 namespace UniVue.ViewModel
 {
@@ -104,22 +102,11 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<int> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
-            int k = 0;
-            bool congfig = Vue.Config.WhenListLessUICountThenHideSurplus;
-
             for (int i = 0; i < properties.Count; i++)
             {
                 if (propertyName.Equals(properties[i].PropertyName))
                 {
-                    if (k < propertyValue.Count)
-                    {
-                        properties[i].SetActive(true);
-                        properties[i].UpdateUI(propertyValue[k++]);
-                    }
-                    else if (congfig)
-                    {
-                        properties[i].SetActive(false);
-                    }
+                    properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -128,22 +115,11 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<float> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
-            int k = 0;
-            bool congfig = Vue.Config.WhenListLessUICountThenHideSurplus;
-
             for (int i = 0; i < properties.Count; i++)
             {
                 if (propertyName.Equals(properties[i].PropertyName))
                 {
-                    if (k < propertyValue.Count)
-                    {
-                        properties[i].SetActive(true);
-                        properties[i].UpdateUI(propertyValue[k++]);
-                    }
-                    else if (congfig)
-                    {
-                        properties[i].SetActive(false);
-                    }
+                    properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -154,34 +130,12 @@ namespace UniVue.ViewModel
         /// <typeparam name="T">这个泛型必须是枚举类型</typeparam>
         public void UpdateUI(string propertyName, IList propertyValue)
         {
-            object value = propertyValue.Count > 0 ? propertyValue[0] : null;
-            if (value == null) return;
-            if (!value.GetType().IsEnum)
-            {
-#if UNITY_EDITOR
-                LogUtil.Warning("UIBundle.UpdateUI<T>(string propertyName, List<T> propertyValue)的泛型类型必须是一个枚举类型");
-#endif
-                return;
-            }
-
-
             List<PropertyUI> properties = ProertyUIs;
-            int k = 0;
-            bool congfig = Vue.Config.WhenListLessUICountThenHideSurplus;
-
             for (int i = 0; i < properties.Count; i++)
             {
                 if (propertyName.Equals(properties[i].PropertyName))
                 {
-                    if (k < propertyValue.Count)
-                    {
-                        properties[i].SetActive(true);
-                        properties[i].UpdateUI(Convert.ToInt32(propertyValue[k++]));
-                    }
-                    else if (congfig)
-                    {
-                        properties[i].SetActive(false);
-                    }
+                    properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -190,22 +144,11 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<string> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
-            int k = 0;
-            bool congfig = Vue.Config.WhenListLessUICountThenHideSurplus;
-
             for (int i = 0; i < properties.Count; i++)
             {
                 if (propertyName.Equals(properties[i].PropertyName))
                 {
-                    if (k < propertyValue.Count)
-                    {
-                        properties[i].SetActive(true);
-                        properties[i].UpdateUI(propertyValue[k++]);
-                    }
-                    else if (congfig)
-                    {
-                        properties[i].SetActive(false);
-                    }
+                    properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -214,22 +157,11 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<bool> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
-            int k = 0;
-            bool congfig = Vue.Config.WhenListLessUICountThenHideSurplus;
-
             for (int i = 0; i < properties.Count; i++)
             {
                 if (propertyName.Equals(properties[i].PropertyName))
                 {
-                    if (k < propertyValue.Count)
-                    {
-                        properties[i].SetActive(true);
-                        properties[i].UpdateUI(propertyValue[k++]);
-                    }
-                    else if (congfig)
-                    {
-                        properties[i].SetActive(false);
-                    }
+                    properties[i].UpdateUI(propertyValue);
                 }
             }
         }
@@ -238,22 +170,11 @@ namespace UniVue.ViewModel
         public void UpdateUI(string propertyName, List<Sprite> propertyValue)
         {
             List<PropertyUI> properties = ProertyUIs;
-            int k = 0;
-            bool congfig = Vue.Config.WhenListLessUICountThenHideSurplus;
-
             for (int i = 0; i < properties.Count; i++)
             {
                 if (propertyName.Equals(properties[i].PropertyName))
                 {
-                    if (k < propertyValue.Count)
-                    {
-                        properties[i].SetActive(true);
-                        properties[i].UpdateUI(propertyValue[k++]);
-                    }
-                    else if (congfig)
-                    {
-                        properties[i].SetActive(false);
-                    }
+                    properties[i].UpdateUI(propertyValue);
                 }
             }
         }

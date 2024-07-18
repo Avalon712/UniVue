@@ -8,9 +8,6 @@ namespace UniVue.Rule
     /// <summary>
     /// 规则过滤器
     /// </summary>
-    /// <remarks>
-    /// 如果使用结构体实现此接口，要么重写Equals()和GetHashCode()方法，要么不要进行比较相
-    /// 等操作和作为数据结构的key使用。因为不重写Equals()和GetHashCode()方法值类型的比较会造成大量垃圾对象</remarks>
     public interface IRuleFilter
     {
         /// <summary>

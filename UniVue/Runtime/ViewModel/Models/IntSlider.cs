@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine.UI;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     public sealed class IntSlider : IntUI<Slider>
     {
@@ -13,7 +13,7 @@ namespace UniVue.ViewModel.Models
         private void UpdateModel(float value)
         {
             Vue.Updater.Publisher = this;
-            _notifier?.NotifyModelUpdate(_propertyName, (int)value);
+            _notifier?.NotifyModelUpdate(PropertyName, (int)value);
         }
 
 

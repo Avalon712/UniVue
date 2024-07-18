@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 
-namespace UniVue.ViewModel.Models
+namespace UniVue.ViewModel
 {
     public sealed class IntText : IntUI<TMP_Text>
     {

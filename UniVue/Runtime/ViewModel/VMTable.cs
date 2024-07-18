@@ -9,13 +9,11 @@ namespace UniVue.ViewModel
         /// <summary>
         /// key=模型  value=绑定了此模型的所有视图的viewName
         /// </summary>
-        /// <remarks>适合不易经常进行Rebind()使用</remarks>
         private Dictionary<IBindableModel, List<string>> _models;
 
         /// <summary>
         /// key=viewName value=此视图的所有UIBundle
         /// </summary>
-        /// <remarks>适用经常Rebind()使用</remarks>
         private Dictionary<string, List<UIBundle>> _views;
 
         /// <summary>
@@ -166,6 +164,8 @@ namespace UniVue.ViewModel
         {
             _models.Clear();
             _views.Clear();
+            BundleCount = 0;
+            PropertyUICount = 0;
         }
 
     }

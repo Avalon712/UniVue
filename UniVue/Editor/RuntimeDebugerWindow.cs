@@ -11,7 +11,6 @@ using UniVue.Model;
 using UniVue.Utils;
 using UniVue.View.Views;
 using UniVue.ViewModel;
-using UniVue.ViewModel.Models;
 
 namespace UniVue.Editor
 {
@@ -319,7 +318,7 @@ namespace UniVue.Editor
             GUILayout.BeginHorizontal();
             GUILayout.Label("PropertyValue: ");
             object propertyValue = record.PropertyValue;
-            if (!ReflectionUtil.HasFlags(record.Property.PropertyType))
+            if (!EnumUtil.HasFlags(record.Property.PropertyType))
                 record.PropertyValue = EditorGUILayout.EnumPopup((Enum)propertyValue);
             else
                 record.PropertyValue = EditorGUILayout.EnumFlagsField((Enum)propertyValue);
@@ -498,7 +497,7 @@ namespace UniVue.Editor
 
             Type type = propertyValue.GetType();
             int count = (int)type.GetProperty("Count").GetValue(propertyValue);
-            bool isFlagsEnum = ReflectionUtil.HasFlags(enumType);
+            bool isFlagsEnum = EnumUtil.HasFlags(enumType);
 
             PropertyInfo accessor = type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
             for (int i = 0; i < count; i++)

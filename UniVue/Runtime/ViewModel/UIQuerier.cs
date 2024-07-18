@@ -4,7 +4,6 @@ using UnityEngine;
 using UniVue.Evt.Evts;
 using UniVue.Model;
 using UniVue.Utils;
-using UniVue.ViewModel.Models;
 
 namespace UniVue.ViewModel
 {
