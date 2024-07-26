@@ -93,3 +93,10 @@
 3. 优化枚举类型绑定TMP_Dropdown的逻辑，现在TMP_Dropdown显示的全部为枚举别名，如果没有枚举别名则显示为枚举值的字符串形式；
 4. 新增ListDropdown的动态TMP_Dropdown，可以将List&lt;T&gt;的数据绑定到TMP_Dropdown组件上，动态显示值；
 5. **EnumAliasAttribute支持多语言化**：每个枚举值的别名可分别为不同的语言进行设置不同的别名，当语言环境发生改变时这些值的显示也会同步显示当前语言环境对应的别名；
+
+
+
+## #2024/7/26发布版本v1.5.1
+
+1. **对int、float类型绑定Image进行支持**：当Image类型设置为了Filled填充类型时，可以将int、float类型绑定到Image组件上；
+2. 删除对SuperGrid组件：太鸡肋了，后面会推出全新的可交互式组件系统替代；

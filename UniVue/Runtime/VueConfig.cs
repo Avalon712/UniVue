@@ -81,6 +81,12 @@ namespace UniVue
 #endif
         private int _tableSize = 20;
 
+#if UNITY_EDITOR
+        [Header("Image(Filled)的fillAmount=0时隐藏显示")]
+        [SerializeField]
+#endif
+        private bool _whenFillAmountEqualZeroThenHide = true;
+
         public static VueConfig Default => ScriptableObject.CreateInstance<VueConfig>();
 
         #region 属性
@@ -159,6 +165,11 @@ namespace UniVue
         /// 渲染表的大小，这个值根据项目的大小来填写，这个值主要是放在集合的多次扩容
         /// </summary>
         public int TabelSize { get => _tableSize; set => _tableSize = value; }
+
+        /// <summary>
+        /// 对应类型为Filled的Image的UI，当fillAmount=0时隐藏UI的显示
+        /// </summary>
+        public bool whenFillAmountEqualZeroThenHide { get => _whenFillAmountEqualZeroThenHide; set => _whenFillAmountEqualZeroThenHide = value; }
         #endregion
     }
 }

@@ -101,19 +101,6 @@ namespace UniVue.View.Widgets
             set => _renderModelOnScroll = value;
         }
 
-
-        internal IBindableModel GetData(int index) => this[index];
-
-        internal void SetData(int index, IBindableModel model) => this[index] = model;
-
-        internal void RemoveData(int index)
-        {
-            if (_observer == null)
-                RemoveData(this[index], index);
-            else
-                _observer.RemoveAt(index);
-        }
-
         /// <summary>
         /// 绑定集合
         /// </summary>

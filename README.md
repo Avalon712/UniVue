@@ -34,7 +34,7 @@ CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=
 
 
 
-## 版本核心功能一栏表
+## 大版本核心功能一栏表
 
 ### **v1.0.0**
 
@@ -376,9 +376,9 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 #### 各种类型允许绑定的UI组件
 
-- int: TMP_InputField、TMP_Text、Slider、**Toggles（Toggle.isOn的数量等于绑定的int的值）**
-- float: TMP_InputField、TMP_Text、Slider
-- bool: Toggle、TMP_InputField、TMP_Text
+- int: TMP_InputField、TMP_Text、Slider、**Toggles（Toggle.isOn的数量等于绑定的int的值）**、**Image（Filled）**
+- float: TMP_InputField、TMP_Text、Slider、**Image（Filled）**
+- bool: Toggle
 - enum: TMP_Dropdown、ToggleGroup（多个Toggle组成单选效果）、TMP_Text、TMP_InputField
 - string: TMP_InputField、TMP_Text
 - [Flags] enum: Toggle（绑定多个Toggle可以实现复选效果）、TMP_Text

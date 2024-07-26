@@ -37,10 +37,12 @@ namespace UniVue.ViewModel
                 BuildPropertyUI_Int_Text(propertyUIs, ref result, allowUIUpdateModel);
                 BuildPropertyUI_Int_Slider(propertyUIs, ref result, allowUIUpdateModel);
                 BuildPropertyUI_Int_Input(propertyUIs, ref result, allowUIUpdateModel);
+                BuildPropertyUI_Int_Image(propertyUIs, ref result, allowUIUpdateModel);
 
                 BuildPropertyUI_Float_Text(propertyUIs, ref result, allowUIUpdateModel);
                 BuildPropertyUI_Float_Slider(propertyUIs, ref result, allowUIUpdateModel);
                 BuildPropertyUI_Float_Input(propertyUIs, ref result, allowUIUpdateModel);
+                BuildPropertyUI_Float_Image(propertyUIs, ref result, allowUIUpdateModel);
 
                 BuildPropertyUI_Enum_Text(propertyUIs, ref result, allowUIUpdateModel);
                 BuildPropertyUI_Enum_Input(propertyUIs, ref result, allowUIUpdateModel);
@@ -58,6 +60,7 @@ namespace UniVue.ViewModel
 
             return propertyUIs.Count == 0 ? null : new UIBundle(model, propertyUIs);
         }
+
 
         #region List显示到UI上
 
@@ -226,6 +229,13 @@ namespace UniVue.ViewModel
             }
         }
 
+        private static void BuildPropertyUI_Int_Image(List<PropertyUI> propertyUIs, ref ModelFilterResult result, bool allowUIUpdateModel)
+        {
+            if (result.UIType != UIType.Image || result.BindType != BindableType.Int) return;
+            propertyUIs.Add(new IntImage(result.Component as Image, result.PropertyName));
+        }
+
+
         #endregion
 
         #region String绑定UI
@@ -261,6 +271,13 @@ namespace UniVue.ViewModel
             if (result.UIType != UIType.TMP_InputField || result.BindType != BindableType.Float) return;
             propertyUIs.Add(new FloatInput(result.Component as TMP_InputField, result.PropertyName, result.Property.CanWrite && allowUIUpdateModel));
         }
+
+        private static void BuildPropertyUI_Float_Image(List<PropertyUI> propertyUIs, ref ModelFilterResult result, bool allowUIUpdateModel)
+        {
+            if (result.UIType != UIType.Image || result.BindType != BindableType.Float) return;
+            propertyUIs.Add(new FloatImage(result.Component as Image, result.PropertyName));
+        }
+
         #endregion
 
         #region Bool绑定UI
