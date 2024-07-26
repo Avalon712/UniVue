@@ -716,7 +716,7 @@ namespace UniVue.Editor
                 }
                 GUILayout.EndHorizontal();
                 Draw_Horizontal_Line(Color.black);
-                for (int i = 0; i < @event.EventArgs.Length; i++)
+                for (int i = 0; i < @event.EventArgs?.Length; i++)
                 {
                     Draw_EventArg(@event.EventArgs[i]);
                     Draw_Horizontal_Line(Color.black);
