@@ -29,22 +29,5 @@
         /// 下
         /// </summary>
         Down,
-        /// <summary>
-        /// X方向
-        /// </summary>
-        X,
-        /// <summary>
-        /// Y方向
-        /// </summary>
-        Y,
-        /// <summary>
-        /// Z方向
-        /// </summary>
-        Z,
-
-        /// <summary>
-        /// XY方向
-        /// </summary>
-        XY,
     }
 }

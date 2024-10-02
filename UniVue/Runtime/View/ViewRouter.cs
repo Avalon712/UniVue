@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using UniVue.Utils;
-using UniVue.View.Views;
+using UnityEngine;
+using UniVue.Common;
 
 namespace UniVue.View
 {
@@ -10,32 +10,65 @@ namespace UniVue.View
     public sealed class ViewRouter
     {
         #region 字段
-        private Dictionary<string, IView> _views;
-        private List<string> _histories; //历史记录
-        private IUIAudioEffectController _audioEffectCtr;
+        private readonly Dictionary<string, IView> _views;
+        private readonly List<string> _histories; //历史记录
+        private readonly Dictionary<string, GameObject> _viewObjects; //所有的ViewOvbject对象, key=viewName
+        private readonly Dictionary<string, string> _viewTree; //每个视图的父亲视图, key=viewName value=parentViewName
+        private readonly List<RouteUI> _routeUIs; //所有的路由UI
         #endregion
 
         internal ViewRouter()
         {
+            _routeUIs = new List<RouteUI>();
             _views = new Dictionary<string, IView>();
             _histories = new List<string>(Vue.Config.MaxHistoryRecord);
+            _viewObjects = new Dictionary<string, GameObject>();
+            _viewTree = new Dictionary<string, string>();
+        }
+
+        internal Dictionary<string, GameObject> ViewObjects => _viewObjects;
+
+        /// <summary>
+        /// 添加路由UI
+        /// </summary>
+        internal void AddRouteUI(RouteUI routeUI)
+        {
+            _routeUIs.Add(routeUI);
         }
 
         /// <summary>
-        /// 当前视图的总数量
+        /// 当前是谁触发的路由事件
         /// </summary>
-        public int ViewCount => _views.Count;
+        internal RouteUI controller { get; set; }
 
         /// <summary>
-        /// 指示当前视图的打开关闭行为是否是路由器控制
+        /// 获取当前触发路由事件的UI
         /// </summary>
-        public bool IsRouterCtrl { get; private set; }
-
-        public IEnumerable<IView> GetAllView()
+        /// <remarks>只有在IView.Open()和IView.Close()方法中调用此方法才可能不为null，否则一定为null</remarks>
+        /// <returns>
+        /// 如果当前是通过UI交互触发的路由事件，此函数的返回值才不会null，如果是通过代码触发的路由事件则返回为null
+        /// </returns>
+        public RouteUI WhoRouted()
         {
-            foreach (var view in _views.Values)
+            return controller;
+        }
+
+        /// <summary>
+        /// 获取指定视图下所有的路由UI
+        /// </summary>
+        /// <param name="viewName">视图名称</param>
+        /// <param name="routeUIs">收集结果</param>
+        public void GetAllRouteUI(string viewName, List<RouteUI> routeUIs)
+        {
+            if (routeUIs != null)
             {
-                yield return view;
+                for (int i = 0; i < _routeUIs.Count; i++)
+                {
+                    if (_routeUIs[i].ViewName == viewName)
+                    {
+                        routeUIs.Add(_routeUIs[i]);
+                    }
+                }
             }
         }
 
@@ -45,47 +78,80 @@ namespace UniVue.View
             return view != null ? (T)view : default;
         }
 
-        public void UnloadView(string viewName)
-        {
-            if (_views.ContainsKey(viewName))
-            {
-                IView view = _views[viewName];
-                view.OnUnload();
-                _views.Remove(viewName);
-            }
-        }
 
         public IView GetView(string viewName)
         {
-            if (string.IsNullOrEmpty(viewName)) { return null; }
-            if (_views.ContainsKey(viewName)) { return _views[viewName]; }
-            return null;
+            if (viewName == null) return null;
+            _views.TryGetValue(viewName, out IView view);
+            return view;
         }
 
-        internal void AddView(IView view)
+        /// <summary>
+        /// 注册视图
+        /// </summary>
+        /// <remarks>注册视图时会根据当前视图状态state对ViewObject的状态进行初始化，即GameObject.activeSelf=IView.state</remarks>
+        /// <param name="view">视图</param>
+        public void AddView(IView view)
         {
             if (_views.ContainsKey(view.Name))
             {
-#if UNITY_EDITOR
-                LogUtil.Warning($"当前场景下的视图名称{view.Name}存在重复!");
-#endif
+                ThrowUtil.ThrowWarn($"当前场景下的视图名称{view.Name}存在重复!");
                 return;
             }
 
             _views.Add(view.Name, view);
 
             //如果当前视图的初始状态处于打开状态
-            if (view.State && view.Level != ViewLevel.Permanent)
+            ViewLevel level = view.Level;
+
+            //初始化视图状态
+            GameObjectUtil.SetActive(GetViewObject(view.Name), view.state || level == ViewLevel.Permanent);
+
+            if (view.state && (level == ViewLevel.Common || level == ViewLevel.System || level == ViewLevel.Modal))
             {
-                ListUtil.AddButNoOutOfCapacity(_histories, view.Name);
+                PushHistory(view.Name);
             }
         }
 
+        internal GameObject GetViewObject(string viewName)
+        {
+            ThrowUtil.ThrowExceptionIfTrue(!_viewObjects.TryGetValue(viewName, out GameObject viewObject), "视图尚未加载! 请调用Vue.LoadAllViewObjects()函数加载视图对象!");
+            return viewObject;
+        }
+
+        /// <summary>
+        /// 获取指定视图名称的父视图
+        /// </summary>
+        /// <param name="viewName">视图名称</param>
+        /// <returns>指定视图的父视图</returns>
+        public IView GetParent(string viewName)
+        {
+            if (_views.ContainsKey(viewName))
+            {
+                string parent = _viewTree[viewName];
+                return GetView(parent);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 重建视图树
+        /// </summary>
+        /// <remarks>当视图的ViewObject的层级关系发生改变时，调用此函数进行更新视图树</remarks>
+        public void RebuildVTree()
+        {
+            _viewTree.Clear();
+            foreach (var viewObject in _viewObjects.Values)
+            {
+                _viewTree.Add(viewObject.name, GameObjectUtil.FindParentViewObject(viewObject));
+            }
+        }
 
         #region 视图动作相关
         /// <summary>
         /// 关闭当前视图，跳转打开指定名称的视图
         /// </summary>
+        /// <param name="currentViewName">当前视图</param>
         /// <param name="viewName">待打开的视图</param>
         public void Skip(string currentViewName, string viewName)
         {
@@ -94,63 +160,64 @@ namespace UniVue.View
         }
 
         /// <summary>
-        /// 关闭当前最新被打开的视图，打开上一个被关闭的视图
+        /// 关闭最近被打开的视图，打开最近被关闭的视图
         /// </summary>
         public void Return()
         {
-            string newestClosedView = CurrentClosedView();
-            string newestOpendView = CurrentOpenedView();
-            if (newestClosedView != null) { Open(newestClosedView); }
-            if (newestOpendView != null) { Close(newestOpendView); }
+            IView newestClosedView = GetRecentlyClosedView();
+            IView newestOpendView = GetRecentlyOpenedView();
+            if (newestClosedView != null) { Open(newestClosedView.Name); }
+            if (newestOpendView != null) { Close(newestOpendView.Name); }
         }
 
         /// <summary>
         /// 打开一个指定名称的视图
         /// </summary>
         /// <param name="viewName">视图名称</param>
-        /// <param name="top">是否将打开的视图置于同级视图最前方</param>
-        public void Open(string viewName, bool top = true)
+        /// <param name="top">是否将打开的视图置于同级视图最前方（只对根视图生效）</param>
+        public void Open(string viewName, bool top = false)
         {
             IView opening = GetView(viewName);
             if (opening == null)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning($"未找到名称为{viewName}的视图进行打开操作，不存在这个名称的视图！");
-#endif
+                ThrowUtil.ThrowWarn($"未找到名称为{viewName}的视图进行打开操作，不存在这个名称的视图！");
                 return;
             }
 
-            //1.检查当前视图是否以及处于打开状态
-            //2.检查是否为Permanent级别
-            if (opening.State || opening.Level == ViewLevel.Permanent) { return; }
+            //1.非托管类型检查
+            if (opening.Level == ViewLevel.Unmanaged)
+            {
+                opening.Open();
+                return;
+            }
 
-            //3.检验当前是否有一个Modal视图被打开 
-            IView opened = GetView(CurrentOpenedView()); //当前被打开的视图
+            //2.检查当前视图是否以及处于打开状态
+            //3.检查是否为Permanent级别
+            if (opening.state || opening.Level == ViewLevel.Permanent) { return; }
+
+            //4.检验当前是否有一个Modal视图被打开 
+            IView opened = GetRecentlyOpenedView(); //当前被打开的视图
             if (opened != null && opened.Level == ViewLevel.Modal)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning($"当前有一个模态Modal视图被打开[viewName={opened.Name}],无法对视图viewName={opening.Name}执行打开操作，无法再打开其它视图，除非关闭它");
-#endif
+                ThrowUtil.ThrowWarn($"当前有一个模态Modal视图被打开[viewName={opened.Name}],无法对视图viewName={opening.Name}执行打开操作，无法再打开其它视图，除非关闭它");
                 return;
             }
 
-            //4.检查其父视图是否被打开
-            IView parent = GetView(opening.Parent);
-            if (parent != null && !parent.State)
+            //5.检查其父视图是否被打开
+            IView parent = opening.GetParent();
+            if (parent != null && !parent.state)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning($"当前正在执行打开操作的视图{viewName}的父视图{parent.Name}尚未被打开，只有先打开其父视图才允许其被打开！");
-#endif
+                ThrowUtil.ThrowWarn($"当前正在执行打开操作的视图{viewName}的父视图{parent.Name}尚未被打开，只有先打开其父视图才允许其被打开！");
                 return;
             }
 
-            //5. System级别的视图打开逻辑：同级互斥，关闭上一个与当前正在打开的视图同一级的已经打开了的System级的视图
+            //6. System级别的视图打开逻辑：同级互斥，关闭上一个与当前正在打开的视图同一级的已经打开了的System级的视图
             if (opening.Level == ViewLevel.System)
             {
                 for (int i = 0; i < _histories.Count; i++)
                 {
                     IView view = GetView(_histories[i]);
-                    if (view.State && view.Level == ViewLevel.System && view.Parent == opening.Parent)
+                    if (view.state && view.Level == ViewLevel.System && view.GetParent() == parent)
                     {
                         Close(view.Name);
                         break; //跳出的原因：同级中永远只有一个System级的视图被打开
@@ -158,34 +225,21 @@ namespace UniVue.View
                 }
             }
 
-            //6.将其设置为最后一个子物体，保证被打开的视图能被显示，只对根视图有效
-            if (top && string.IsNullOrEmpty(opening.Parent))
+            //7.将其设置为最后一个子物体，保证被打开的视图能被显示，只对根视图有效
+            if (top && parent == null)
             {
-                opening.ViewObject.transform.SetAsLastSibling();
+                opening.GetViewObject().transform.SetAsLastSibling();
             }
 
-            //7.播放音效
-            _audioEffectCtr?.PlayAudioEffect(viewName);
-
-            //8.设置状态
-            IsRouterCtrl = true;
-
-            //9.打开视图
+            //8.打开视图
             opening.Open();
 
-            //10.执行回调
-            _audioEffectCtr?.AfterOpen(viewName);
-
-            //11.加入历史记录中，只有不为瞬态的视图才加入
+            //9.加入历史记录中，只有不为瞬态的视图才加入
             if (opening.Level != ViewLevel.Transient)
             {
-                //如果当前历史记录里面已经有过其记录，则先移除再添加
-                if (_histories.Contains(viewName)) { _histories.Remove(viewName); }
-                ListUtil.AddButNoOutOfCapacity(_histories, viewName);
+                PushHistory(viewName);
             }
 
-            //12.设置状态
-            IsRouterCtrl = false;
         }
 
         /// <summary>
@@ -198,84 +252,77 @@ namespace UniVue.View
 
             if (closing == null)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning($"未找到名称为{viewName}的视图进行关闭操作，不存在这个名称的视图！");
-#endif
+                ThrowUtil.ThrowWarn($"未找到名称为{viewName}的视图进行关闭操作，不存在这个名称的视图！");
                 return;
             }
 
-            //1.检查当前视图是否以及处于关闭状态
-            if (!closing.State) { return; }
+            //1.非托管类型检查
+            if (closing.Level == ViewLevel.Unmanaged)
+            {
+                closing.Close();
+                return;
+            }
 
-            //2.检查是否为Permanent级别
+            //2.检查当前视图是否以及处于关闭状态
+            if (!closing.state) { return; }
+
+            //3.检查是否为Permanent级别
             if (closing.Level == ViewLevel.Permanent)
             {
-#if UNITY_EDITOR
-                LogUtil.Warning($"不能关闭一个视图级别为{closing.Level}的视图!");
-#endif
+                ThrowUtil.ThrowWarn($"不能关闭一个视图级别为{closing.Level}的视图!");
                 return;
             }
 
-            //3.设置状态
-            IsRouterCtrl = true;
+            //5.检验当前是否有一个Modal视图被打开 
+            IView opened = GetRecentlyOpenedView(); //当前被打开的视图
+            if (opened != null && opened.Level == ViewLevel.Modal && opened != closing)
+            {
+                ThrowUtil.ThrowWarn($"当前有一个模态Modal视图被打开[viewName={opened.Name}],无法对视图viewName={closing.Name}执行关闭操作，无法再对其它视图执行操作，除非关闭它");
+                return;
+            }
 
-            //4.关闭视图
+            //6.关闭视图
             closing.Close();
-
-            //5.执行回调
-            _audioEffectCtr?.AfterClose(viewName);
-
-            //6.设置状态
-            IsRouterCtrl = false;
         }
 
         #endregion
 
         /// <summary>
-        /// 获取当前最新被打开的视图
+        /// 获取最近被打开的视图的名称
         /// </summary>
-        /// <returns>最新被打开的视图名称</returns>
-        private string CurrentOpenedView()
+        /// <returns>最近被打开的视图名称，可能为null</returns>
+        public IView GetRecentlyOpenedView()
         {
             if (_histories.Count > 0)
             {
                 for (int i = _histories.Count - 1; i >= 0; i--)
                 {
-                    if (GetView(_histories[i]).State) { return _histories[i]; }
+                    if (GetView(_histories[i]).state) { return _views[_histories[i]]; }
                 }
             }
             return null;
         }
 
         /// <summary>
-        /// 当前最新被关闭的视图
+        /// 获取最近被关闭的视图的名称
         /// </summary>
-        /// <returns>最新被关闭的视图</returns>
-        private string CurrentClosedView()
+        /// <returns>最近被关闭的视图的名称，可能为null</returns>
+        public IView GetRecentlyClosedView()
         {
             if (_histories.Count > 0)
             {
                 for (int i = _histories.Count - 1; i >= 0; i--)
                 {
-                    if (!GetView(_histories[i]).State) { return _histories[i]; }
+                    if (!GetView(_histories[i]).state) { return _views[_histories[i]]; }
                 }
             }
             return null;
         }
 
         /// <summary>
-        /// 注册UI音效控制器
+        /// 卸载所有资源
         /// </summary>
-        /// <param name="controller">实现IUIAudioEffectController接口类型对象</param>
-        public void RegisterUIAudioEffectCtr<T>(T controller) where T : IUIAudioEffectController
-        {
-            _audioEffectCtr = controller;
-        }
-
-        /// <summary>
-        /// 清空场景视图
-        /// </summary>
-        public void UnloadAllViews()
+        internal void UnloadResources()
         {
             foreach (IView view in _views.Values)
             {
@@ -283,8 +330,29 @@ namespace UniVue.View
             }
             _views.Clear();
             _histories.Clear();
+            _viewObjects.Clear();
+            _routeUIs.Clear();
+            controller = null;
         }
 
+        /// <summary>
+        /// 添加一条视图打开的记录
+        /// </summary>
+        public void PushHistory(string view)
+        {
+            if (_histories.Contains(view))
+            {
+                _histories.Remove(view);
+            }
+
+            if (_histories.Count == _histories.Capacity)
+            {
+                _histories.RemoveAt(0);
+                _histories.Add(view);
+            }
+
+            _histories.Add(view);
+        }
     }
 
 }

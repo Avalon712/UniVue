@@ -1,6 +1,6 @@
 ﻿using System;
 using UnityEngine;
-using UniVue.Utils;
+using UniVue.Common;
 
 namespace UniVue.Tween
 {

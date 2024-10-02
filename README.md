@@ -1,6 +1,6 @@
 # UniVue
 
-想要制作一个让人体验到另外一种人生的游戏！不止于快乐，不止于游戏，在现实于虚幻中追寻自我，追寻自由，认识自我、认识世界。
+**UniVue是一给基于MVVM思想的Unity的UI解决方案框架。**它支持数据和模型的双向绑定，能够实现C#中WPF的功能，其底层UI模块依赖Unity的UGUI框架，除了数据和视图的双向绑定外，UniVue还实现高性能的UI事件系统，真正让你只关注游戏中数据的行为和视图的美术表现，这两者的交互全部依赖UniVue就能实现。
 
 
 
@@ -83,6 +83,32 @@ CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=
 
 
 
+### v2.0.0-preview
+
+- 优化整个View层的设计，不再提供任何默认的IView接口实现，实现更多灵活的功能；
+- 优化Model层的设计，源生成器将默认为实现IBindableModel接口的类提供一个BindableTypeInfo对象描述其绑定信息；
+
+- 优化整个Event系统，**所有的反射调用全部移除，全部采用直接调用**，事件调用性能消耗成本几乎可以不计；
+
+- **UniVue所有运行时模块都不再使用任何反射**，性能全面提高；
+- 重构LoopList、LoopGrid组件，同时只保留了这两个组件，之前的其它组件全部删除不再使用；
+
+- 优化规则引擎，通过使用内部实现ArrayPool和C#的Span减少数组对象的内存分布，同时对内部三大规则EventRule、ModelRule、RouteRule优化，字符串GC得到大幅度降低；
+
+- ViewLevel新增Unmanaged级别的视图，此类的视图的打开关闭不受其它级别视图的影响，同时不会被压入视图堆栈；
+- 重写运行时调式器，减少了95%以上的反射使用；
+
+- 暂时移除I18n模块，在正式版本中发布此功能；
+
+- 移除Input模块，考虑到Unity的InputSystem功能更加全面，UniVue将不再提供任何输入模块；
+
+- 对内部的频繁使用数组对象（List）全面提高开启缓存功能，默认开启缓存；
+
+- 命名规则只支持大写开头下划线分隔+UI后缀的方式，不再提高任何其它命名规则（过去提供的多种命名风格维护起来太困难，每修改新增一条规则就要有8种不同的实现，直接废弃了，UniVue2正式版中将会提供能够覆盖默认规则的实现接口）；
+- 废弃AtomModel和GroupModel；
+
+
+
 ### 未来版本核心功能
 
 **未来版本将会出现的核心功能**
@@ -90,90 +116,32 @@ CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=
 2. **UI特效**。目前第一个版本的Tween补帧动画模块较为简单，无法支撑起更多复杂的UI效果，在后续版本中将引入强大的UI特效模块实现更多花哨的UI效果；
 4. **UI优化算法**。UniVue在后续的版本可能会对UGUI的部分功能进行扩展，特别是Canvas的重绘逻辑，或许将基于屏幕后处理的原理实现一个更高性能的UI合批算法，降低UI的合批次数，减少Canvas的重绘，这个模块预计在UniVue3.0发布；
 5. **C#源生成器**。第一个版本中的UniVue的源生成器只能对Model层进行优化，在后续版本中将彻底进行完善源生器框架，使用源生器生成所有的低级代码，将所有的低效代码进行优化重组，后续源生器或许将作为内置的选项而不是可选项；
-6. **支持多平台的输入系统**。目前第一个版本中没有对输入系统进行多平台的检查，实现的输入系统也很简单，后续将对多个平台进行灵活的支持；
 7. **其它解放编码的功能：**更多的视图组件，如：灵活可变的循环列表视图，可多级展开的树形视图、多级菜单视图、大小可自定义的视图等等。
+6. **对Lua的支持**：后序将会实现对Lua的支持。
 
 
 
+## 二、Model层的使用
 
+#### 不使用UniVue的源生成器
 
-## 一、简介
+在不使用UniVue的源生成器时，你需要编写更多的低级代码，即在属性改变时调用Vue.Updater方法去更新UI，同时实现View层更高Model层数据的行为，此外为每个实现IBindableModel接口的类提供BindableTypeInfo对象，描述模型的绑定信息。
 
-### **基于MVVM模式的UI框架**
+#### 使用UniVue的源生器
 
-​       一个原型的过程如下图显示
+使用UniVue源生器需要你的Unity版本在2022及其以上，经过我的测试，在这个版本以下使用源生成器会出现源生成器生成的源文件无法被Unity的编译器编译的BUG。
 
-​       与MVC、MVP模式不同的是，MVVM模式能够实现UI与模型的自更新行为，即当UI变化时他所关联的模型数据也能及时更新，当模型数据变化时UI显示的内容也能得到立即更新。而两者的中介者是ViewModel，本框架主要实现ViewModel的接口从上述图中可见分为是IUIUpdater、IUINotifier、IModelNotifier、IModelUpdater。
+在使用源生成器后，以下特性的功能将是可用的：
 
+- **AlsoNotifyAttribute**：注解在字段上，当前属性更改时也通知指定的其它属性；
 
-### 视图加载流程
+- **BindableAttribute**：注解此特性的类将自动实现IBindableModel接口，将会为这个类中所有字段自动生成属性方法；
 
-见ViewBuilder类的实现
+- **CodeInjectAttribute**：在属性方法的指定位置注入指定代码；
 
-### 数据绑定流程
+- **DontNotifyAttribute**：指定不要为注解此特性的字段生成通知属性；
 
-见ViewUtil的实现
-
-### UI更新流程
-
-见ViewUpdater或UIBundle的实现
-
-
-### 模型更新流程
-
-见UIBundle的实现
-
-
-### 事件触发流程
-
-见UIBundle、IBindableModel的实现
-
-
-### 资源卸载流程
-
-见Vue
-
-### 自动装配与卸载EventCall的执行逻辑
-
-见EventManager的实现
-
-## 二、Model
-
-### 1.IUIUpdater
-
-该接口定义了对UI数据的更新行为
-
-### 2.IUINotifier
-
-该接口定义了当模型数据发生更该时通知UI进行更新的行为
-
-### 3.IModelUpdater
-
-该接口定义了如何更新模型数据
-
-### 4.IModelNotifer
-
-该接口定义了当用户的交互行为使得UI数据发生改变时，通知绑定了此UI的模型的数据进行更新的行为
-
-### 5.IImplementedModel:IModelUpdater, IUINotifier
-
-该接口对上述接口提供了基于默认接口的实现。
-
-### 6.IBindableModel : IImplementedModel
-
-所有可绑定的数据模型都需要继承此接口。
-
-### 7.AtomModel : IBindableModel
-
-这个个可以现实任意单个属性的数据绑定，目前UniVue框架内部提供了对BindableType中定义的12种类型都提供支持。这些属性都需要实现一个IAtomProperty&lt;T&gt;接口。同时AtomModel类的创建请使用AtomModelBuilder类进行。
-
-### 8.GroupModel : IBindableModel
-
-与AtomModel不同的是，GroupModel支持动态组合任意实现IAtomProperty&lt;T&gt;类型的属性。
-
-### 9.IConsumableModel
-
-实现将模型数据更新到UI上但是不绑定模型
+- **PropertyNameAttribute**：为字段定义属性名称；
 
 
 
@@ -181,30 +149,29 @@ CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=
 
 ​       ViewModel实现类是PropertyUI和UIBundle类。
 
-###  1.PropertyUI : IUIUpdater
+###  1.PropertyUI 
 
 ​       这是一个细腻度的类，它关心的是一个UI与Model的某个属性值的绑定关系，以及如何将绑定的数据显示到绑定的UI组件上。该类是一个抽象类，其子类有很多实现，所有子类实现的目标都是一个：如何将可绑定的各种属性类型的数据显示的UI上。如：string类型的数据可以显示到TMP_Text、TMP_InputField两个UI组件上，而枚举类型可以显示当ToggleGroup、TMP_Dropdown、TMP_Text、TMP_InputField组件上......详见代码中的各种实现。
 
-### 2.UIBundle : IModelNotifier
+### 2.ModelUI 
 
-​       这个类顾名思义，是维护了一个View与一个Model的关系（注意：一个View可以绑定多个Model，一个Model也可以绑定多个View）。同时这个类提供了对于那些可交互UI组件的对模型更新的通知行为。当UIBundle管理的PropertyUI中有UI更改了模型的数据就可以通过此类来通知Model进行更新，而更新权在IModelUpdater上，这意味者你可以实现单向的绑定。
+​     这个类顾名思义，是维护了一个View与一个Model的关系（注意：一个View可以绑定多个Model，一个Model也可以绑定多个View）。同时这个类提供了对于那些可交互UI组件的对模型更新的通知行为。当ModelUI管理的PropertyUI中有UI更改了模型的数据就可以通过此类来通知Model进行更新，而更新权在IModelUpdater上，这意味者你可以实现单向的绑定。
 
 ### 3.ViewUpdater
 
-管理所有的UIBundle对象，负责视图的更新。
+管理所有的ModelUI对象，负责视图的更新，维护VMTable。
 
 
 
 ## 四、View
 
- 视图是本框架一个很重要的概念，简单而言他是一个由很多UI组件构建成的一个完整用户界面。但是它还包含另外一层概念：绑定数据。UniVue中对视图封装了一些视图打开、关闭动画，UI拖拽、优化的网格视图(GridView)、列表视图(ListView)，使用他们可以方便地创建背包、好友列表等，同时采用了高性能的滚动算法，即使有大量的数据显示，在滚动时也不会出现掉帧、卡帧，它们的性能消耗时非常低的。下面对框架提供的扩展View进行介绍。
+ 视图是本框架一个很重要的概念，简单而言他是一个由很多UI组件构建成的一个完整用户界面。UniVue所有规则的最小区别单元就是一个View，每个View都必须有一个承载它的GameObject，这个GameObject在UniVue中成为ViewObject。
 
-**五个等级：Transient（瞬态，即打开后一段时间后会马上关闭）、Common（通用型，即可打开可关闭）、Modal（模态级别，打开后如果不关闭将不允许打开任何视图）、System（系统级，每次打开的同级视图中的系统级别视图只能有一个）、Permanent（持久级，不会被关闭，永远处于打开状态）。**
+六个等级：Transient（瞬态，即打开后一段时间后会自动关闭）、Common（通用型，即可打开可关闭）、Modal（模态级别，打开后如果不关闭将不允许打开任何视图）、System（系统级，每次打开的**同级视图**中的系统级别视图只能有一个）、Permanent（持久级，不会被关闭，永远处于打开状态）、Unmanaged（非托管级，这个级别的视图的打开关闭不会被检查，同时不会被压入视图堆栈）
 
- **两种关系：Nested、Master。**
+ **一种关系：父子关系**
 
-- 如果两个或多个视图处于Nested(嵌套)关系（意味着这些视图同属一个GameObject），那么当父视图没有被打开时，子视图不会被打开；当父视图被关闭时，子视图状态不变，即处于关闭的状态仍将处于关闭状态。
-- 如果两个或多个视图是Master关系，那么当Master视图没有被打开时所有被Master控制的视图都不能被打开；当Master视图被关闭时，所有被Master视图控制的视图都会被关闭。
+父子关系的确定是根据ViewObject的层级关系确定的，拥有同一个父亲的视图处于同级视图，所有根视图（没有父亲的视图）也属于同级视图
 
 **四个事件：Open、Close、Skip、Return。**
 
@@ -213,53 +180,15 @@ CSDN个人博客：[Avalon712-CSDN博客](https://blog.csdn.net/m0_62135731?spm=
 - Skip：关闭当前视图同时打开指定视图；
 - Return：关闭当前最新被打开的视图，打开上一个被关闭的视图.
 
-==所有视图将自动被ViewRouter管理，ViewRouter将实现上面所有的功能。同时对所有视图的打开、关闭都必须经过ViewRouter。==
-
-### 1.视图组件
-
-为了支持更多类型的视图（继承自MonoBehaviour和ScriptableObject，以及两者都不继承），同时实现更为灵活的视图。采用组件组合的方式，每个视图组件都实现了具体的功能。如：GridView的实现都是依赖了LoopGrid这个视图组件。具体而言，有的视图组件有：LoopList、LoopGrid、Tip、EnsureTip、ClampList等。这些视图组件分别单独实现具体的功能。
-
-通过组件组合的方式可以实现更多更复杂的功能。
+==所有视图将自动被ViewRouter管理，ViewRouter将实现上面所有的功能。同时对所有非Unmanaged级别的视图的打开、关闭都必须经过ViewRouter。==
 
 ### 2.IView
 
-定义了视图的所有行为。
+定义了视图的所有行为，实现此接口的类被视为一个View对象，只有View对象都有它的ViewObject，这个ViewObject是自动加载的。
 
-### 3.BaseView : IView
-
-这个视图可以通过new的方式动态地创建视图。它和ScriptableView的唯一区别就是FlexibleView不继承自ScriptableObject。如果你想拓展自己的视图可以继承这个类或者实现IView接口，实现更多你自己想要实现的效果。
-
-### 4.TipView : BaseView
-
-作用同STipView，但是可以通过new的方式.
-
-### 5.EnsureTipView : BaseView
-
-作用同SEnsureTipView，但是可以通过new的方式创建.
-
-### 6.ListView : BaseView
-
-作用同SListView，但是可以通过new的方式创建.
-
-### 7.GridView : BaseView
-
-作用同SGridView，但是可以通过new的方式创建
-
-### 8.ClampListView : BaseView
-
-作用同SClampListView，但是可以通过new的方式创建
-
-### 9.MonoView : MonoBehaviour, IView
-
-MonoView继承自MonoBehaviour，以及实现了IView接口。这个视图的功能较少，但是这个视图目的是为了一些更加灵活的功能实现。你可以继承自此类，然后通过视图组件的组装实现上面出现的任意的视图。
-
-### 10.ViewRouter
+### 3.ViewRouter
 
 这个类管理这所有的视图以及控制视图的打开、关闭行为。
-
-### 11.IUIAudioEffectController
-
-该接口定义了打开视图时播放的音效以及当视图被打开后执行回调函数、视图关闭后执行的回调函数。该接口可以方便地与你的音效系统进行绑定使用。
 
 
 
@@ -271,13 +200,13 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 在方法上注解该特性，当此事件触发时将会进行调用此函数。标记此特性的方法不能是一个泛型方法以及方法参数不能有in、out关键字。同时该方法中的方法参数的类型以及参数名如果与UI中标记的一致，那么将会对其进行自动赋值。更强大的是，如果方法参数是一个自定义的实体类型，在满足实体的属性名以及类型与UI中标记的一致，也能对其进行赋值。(有关这一部分的详细细节，参阅**命名系统**[关于事件参数映射为方法参数的说明](#7.关于事件参数映射为方法参数的说明))
 
-==注解该特性的方法支持的方法参数类型：**int、float、string、bool、enum、UIEvent、EventArg[]、EventCall、Sprite、自定义类型(不能是结构体)**。==
+==注解该特性的方法支持的方法参数类型：**int、float、string、bool、enum（需要能够从UniVue.ViewModel.Enums中获取到枚举的信息）、EventUI、ArgumentUI、EventCall、Sprite、自定义类型(自定义类型需要注册IComstomArgument接口)**。==
 
-### 2.UIEvent
+### 2.EventUI
 
-在UI组件中命名的事件将会对应一个UIEvent事件。该事件封装的信息包括：触发该事件的视图名称、事件参数。**注意：即使是一个相同的事件，在不同的视图下触发时，其事件参数是不同。**
+在UI组件中命名的事件将会对应一个EventUI事件。该事件封装的信息包括：触发该事件的视图名称、事件参数。**注意：即使是一个相同的事件，在不同的视图下触发时，其事件参数是不同。**
 
-### 3.EventArg
+### 3.ArgumentUI
 
 从UI组件上获取到的事件参数。
 
@@ -289,21 +218,9 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 该接口定义了向事件管理器中注册事件、注销事件的行为。
 
-### 6.UnityEventRegister : MonoBehaviour, IEventRegister
-
-如果你想在一个MonoBehaviour中使用EventCallAttribute特性，你需要继承自该抽象类。
-
-### 7.EventRegister : IEventRegister
-
-如果你想在一个非MonoBehaviour中使用EventCallAttribute特性，你需要继承自该抽象类。
-
 ### 8.EventManager
 
 管理所有的事件。
-
-### 9.EventCallAutowireAttribute
-
-只要在实现了接口**IEventRegister**的类上注解此特性，同时调用Vue.Instance.AutowireEventCalls()函数（此函数只会被执行一次）来装配事件注册器。注意事件注册器真正装配的时机是主动调用Vue.Instance.AutowireAndUnloadEventCalls()函数。
 
 
 
@@ -329,15 +246,9 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 ​     命名系统是整个UniVue的核心驱动，UniVue的所有核心模块都依靠命名系统完成。
 
-### 1.命名规则解析引擎
+### 1.命名规则解析引擎 - RuleEngine
 
-#### 1）NamingFormat
-
-这个枚举类定义了常见的命名风格。注意：无论是哪种命名风格，指定UI组件名称都是必要的。
-
-#### 2）RuleEngine
-
- 这个类实现了所有命名规则的解析、匹配。如果你的对命名还是不太清楚，可以看此类的源码，这个类是通过正则表达式来实现的解析和匹配。
+ 这个类实现了所有命名规则的解析、匹配。如果你的对命名还是不太清楚，可以看此类的源码。
 
 
 
@@ -428,88 +339,10 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 #### 2）举例说明
 
-**NamingFormat.CamelCase | NamingFormat.UI_Prefix**
-
-- TxtPlayerName: 绑定一个类型为Player的Name属性的TMP_Text组件，同TextPlayerName;
-
-- SliderPlayerLevel: 绑定一个类型为Player的Level属性的Slider组件
-
-- TogglePlayerHobby: 绑定一个类型为Player的Hobby属性的Toggle组件
-
-- ImgPlayerHeadImg: 绑定一个类型为Player的HeadImg属性的Image组件，同ImagePlayerHeadImg
-
-  
-
-**NamingFormat.CamelCase | NamingFormat.UI_Suffix**
-
-- PlayerNameTxt: 绑定一个类型为Player的Name属性的TMP_Text组件，同PlayerNameText;
-
-- PlayerLevelSlider: 绑定一个类型为Player的Level属性的Slider组件
-
-- PlayerHobbyToggle: 绑定一个类型为Player的Hobby属性的Toggle组件
-
-- PlayerHeadImgImg: 绑定一个类型为Player的HeadImg属性的Image组件，同PlayerHeadImgImag；
-
-  
-
- **NamingFormat.UnderlineLower | NamingFormat.UI_Suffix**
-
-- Player_Name_txt: 绑定一个类型为Player的Name属性的TMP_Text组件，同Player_Name_text
-- Player_level_slider: 绑定一个类型为Player的level属性的Slider组件
-
-
-
-**NamingFormat.UnderlineLower | NamingFormat.UI_Prefix**
-
-- txt_Player_Name : 绑定一个类型为Player的Name属性的TMP_Text组件，同text_Player_Name
-- slider_Player_level: 绑定一个类型为Player的level属性的Slider组件
-
-
-
-**NamingFormat.SpaceLower | NamingFormat.UI_Suffix**
-
-- Player Name txt: 绑定一个类型为Player的Name属性的TMP_Text组件，同Player Name text
-
-- Player level slider: 绑定一个类型为Player的level属性的Slider组件
-
-  
-
-**NamingFormat.SpaceLower | NamingFormat.UI_Prefix**
-
-- txt Player Name : 绑定一个类型为Player的Name属性的TMP_Text组件，同text Player Name
-
-- slider Player level: 绑定一个类型为Player的level属性的Slider组件
-
-  
-
-**NamingFormat.SpaceUpper | NamingFormat.UI_Suffix**
-
-- Player Name Txt: 绑定一个类型为Player的Name属性的TMP_Text组件，同Player Name Text
-
-- Player level Slider: 绑定一个类型为Player的level属性的Slider组件
-
-  
-
-**NamingFormat.SpaceUpper | NamingFormat.UI_Prefix**
-
-- Slider Player Level: 绑定一个类型为Player的Level属性的Slider组件
-
-- Toggle Player Hobby: 绑定一个类型为Player的Hobby属性的Toggle组件
-
-  
-
-**NamingFormat.UnderlineUpper | NamingFormat.UI_Suffix**
-
 - Player_Name_Txt: 绑定一个类型为Player的Name属性的TMP_Text组件，同Player_Name_Text
 
 - Player_level_Slider: 绑定一个类型为Player的level属性的Slider组件
 
-  
-
-**NamingFormat.UnderlineUpper | NamingFormat.UI_Prefix**
-
-- Txt_Player_Name: 绑定一个类型为Player的Name属性的TMP_Text组件，同Text_Player_Name
-- Slider_Player_level: 绑定一个类型为Player的level属性的Slider组件
 
 
 
@@ -527,100 +360,6 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 #### 2）命名举例说明
 
-**NamingFormat.CamelCase | NamingFormat.UI_Prefix**
-
-- BtnOpenPlayerInfoView：打开视图名为PlayerInfoView，同ButtonOpenPlayerInfoView
-
-- BtnSkipLoginView: 关闭当前视图，打开视图名为LoginView的视图，同ButtonSkipLoginView
-
-- BtnCloseRegisterView: 关闭视图名为RegisterView的视图，同ButtonCloseRegisterView
-
-- BtnReturn：关闭当前视图，打开上一次被关闭的视图，同ButtonReturn
-
-  
-
-**NamingFormat.CamelCase | NamingFormat.UI_Suffix**
-
-- OpenPlayerInfoViewBtn：打开视图名为PlayerInfoView，同OpenPlayerInfoViewButton
-
-- SkipLoginViewBtn: 关闭当前视图，打开视图名为LoginView的视图，同SkipLoginViewButton
-
-- CloseRegisterViewBtn: 关闭视图名为RegisterView的视图，同CloseRegisterViewButton
-
-- ReturnBtn：关闭当前视图，打开上一次被关闭的视图，同ReturnButton
-
-  
-
-
- **NamingFormat.UnderlineLower | NamingFormat.UI_Suffix**
-
-- open_PlayerInfoView_btn：打开视图名为PlayerInfoView，同open_PlayerInfoView_button
-- skip_LoginView_btn: 关闭当前视图，打开视图名为LoginView的视图，同skip_LoginView_button
-- close_RegisterView_btn: 关闭视图名为RegisterView的视图，同close_RegisterView_button
-- return_btn：关闭当前视图，打开上一次被关闭的视图，同return_button
-
-
-
-**NamingFormat.UnderlineLower | NamingFormat.UI_Prefix**
-
-- btn_open_PlayerInfoView：打开视图名为PlayerInfoView，同button_open_PlayerInfoView
-- btn_skip_LoginView: 关闭当前视图，打开视图名为LoginView的视图，同button_skip_LoginView
-- btn_close_RegisterView: 关闭视图名为RegisterView的视图，同button_close_RegisterView
-- btn_return：关闭当前视图，打开上一次被关闭的视图，同button_return
-
-
-
-**NamingFormat.SpaceLower | NamingFormat.UI_Suffix**
-
-- open PlayerInfoView btn：打开视图名为PlayerInfoView，同open PlayerInfoView button
-
-- skip LoginView btn: 关闭当前视图，打开视图名为LoginView的视图，同skip LoginView button
-
-- close RegisterView btn: 关闭视图名为RegisterView的视图，同close RegisterView button
-
-- return btn：关闭当前视图，打开上一次被关闭的视图，同return button
-
-  
-
-
-**NamingFormat.SpaceLower | NamingFormat.UI_Prefix**
-
-- btn open PlayerInfoView：打开视图名为PlayerInfoView，同button open PlayerInfoView
-
-- btn skip LoginView: 关闭当前视图，打开视图名为LoginView的视图，同button skip LoginView
-
-- btn close RegisterView: 关闭视图名为RegisterView的视图，同button close RegisterView
-
-- btn return：关闭当前视图，打开上一次被关闭的视图，同button return
-
-  
-
-**NamingFormat.SpaceUpper | NamingFormat.UI_Suffix**
-
-- Open PlayerInfoView Btn：打开视图名为PlayerInfoView，同Open PlayerInfoView Button
-
-- Skip LoginView Btn: 关闭当前视图，打开视图名为LoginView的视图，同Skip LoginView Button
-
-- Close RegisterView Btn: 关闭视图名为RegisterView的视图，同Close RegisterView Button
-
-- Return Btn：关闭当前视图，打开上一次被关闭的视图，同Return Button
-
-  
-
-**NamingFormat.SpaceUpper | NamingFormat.UI_Prefix**
-
-- Btn Open PlayerInfoView：打开视图名为PlayerInfoView，同Button Open PlayerInfoView
-
-- Btn Skip LoginView: 关闭当前视图，打开视图名为LoginView的视图，同Button Skip LoginView
-
-- Btn Close RegisterView: 关闭视图名为RegisterView的视图，同Button Close RegisterView
-
-- Btn Return：关闭当前视图，打开上一次被关闭的视图，同Button Return
-
-  
-
-**NamingFormat.UnderlineUpper | NamingFormat.UI_Suffix**
-
 - Open_PlayerInfoView_Btn：打开视图名为PlayerInfoView，同Open_PlayerInfoView_Button
 
 - Skip_LoginView_Btn: 关闭当前视图，打开视图名为LoginView的视图，同Skip_LoginView_Button
@@ -629,14 +368,6 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 - Return_Btn：关闭当前视图，打开上一次被关闭的视图，同Return_Button
 
-  
-
-**NamingFormat.UnderlineUpper | NamingFormat.UI_Prefix**
-
-- Btn_Open_PlayerInfoView：打开视图名为PlayerInfoView，同Button_Open_PlayerInfoView
-- Btn_Skip_LoginView: 关闭当前视图，打开视图名为LoginView的视图，同Button_Skip_LoginView
-- Btn_Close_RegisterView: 关闭视图名为RegisterView的视图，同Button_Close_RegisterView
-- Btn_Return：关闭当前视图，打开上一次被关闭的视图，同Button_Return
 
 
 
@@ -646,109 +377,17 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 ##### ①事件触发器命名
 
-​													==**Evt(或evt) + 事件名+ UI组件名称**==
-
-- 注意这个命名规则中只有UI组件的名称的顺序可以改变，即UI组件的名称可以在最前（NamingFormat.UI_Prefix）也可以在最后（NamingFormat.UI_Suffix）；
-
-- 是Evt还是evt由命名风格决定；
-
-  
+​													==**Evt+ 事件名+ UI组件名称**==
 
 ##### ②事件参数命名
 
-​                                                 ==**Arg(或arg) + 事件名[参数名] + UI组件名称**==
-
-- 注意这个命名规则中只有UI组件的名称的顺序可以改变，即UI组件的名称可以在最前（NamingFormat.UI_Prefix）也可以在最后（NamingFormat.UI_Suffix）；
-- 是Arg还是arg由命名风格决定；
+​                                                 ==**Arg + 事件名[参数名] + UI组件名称**==
 
 ##### ③事件触发器+事件参数命名
 
 ​												**==Evt&Arg(或evt&arg) + 事件名[参数名] + UI组件名称==**
 
-- 注意这个命名规则中只有UI组件的名称的顺序可以改变，即UI组件的名称可以在最前（NamingFormat.UI_Prefix）也可以在最后（NamingFormat.UI_Suffix）；
-- 是Evt&Arg还是evt&arg由命名风格决定；
-
 #### 2）举例说明
-
-**NamingFormat.CamelCase | NamingFormat.UI_Prefix**
-
-- 事件触发器：BtnEvtLogin 登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-
-- 事件参数：TxtArgLogin[name] 登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-
-- 事件触发器+事件参数: SliderEvt&ArgBuy[num] 购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-  
-
-**NamingFormat.CamelCase | NamingFormat.UI_Suffix**
-
-- 事件触发器：EvtLoginBtn  登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-
-- 事件参数：ArgLogin[name]Txt  登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-
-- 事件触发器+事件参数: Evt&ArgBuy[num]Slider  购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-  
-
-
- **NamingFormat.UnderlineLower | NamingFormat.UI_Suffix**
-
-- 事件触发器：evt_Login_btn  登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-- 事件参数：arg_Login[name]_txt  登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-- 事件触发器+事件参数: evt&arg_Buy[num]_slider  购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-
-
-**NamingFormat.UnderlineLower | NamingFormat.UI_Prefix**
-
-- 事件触发器：btn_evt_Login 登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-- 事件参数：txt_arg_Login[name] 登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-- 事件触发器+事件参数: slider_evt&arg_Buy[num] 购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-
-
-**NamingFormat.SpaceLower | NamingFormat.UI_Suffix**
-
-- 事件触发器：evt Login btn  登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-
-- 事件参数：arg Login[name] txt  登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-
-- 事件触发器+事件参数: evt&arg Buy[num] slider  购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-  
-
-
-**NamingFormat.SpaceLower | NamingFormat.UI_Prefix**
-
-- 事件触发器：btn evt Login 登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-
-- 事件参数：txt arg Login[name] 登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-
-- 事件触发器+事件参数: slider evt&arg Buy[num] 购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-  
-
-**NamingFormat.SpaceUpper | NamingFormat.UI_Suffix**
-
-- 事件触发器：Evt Login Btn  登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-
-- 事件参数：Arg Login[name] Txt  登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-
-- 事件触发器+事件参数: Evt&Arg Buy[num] Slider  购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-  
-
-**NamingFormat.SpaceUpper | NamingFormat.UI_Prefix**
-
-- 事件触发器：Btn Evt Login 登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-
-- 事件参数：Txt Arg Login[name] 登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-
-- 事件触发器+事件参数: Slider Evt&Arg Buy[num] 购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-  
-
-**NamingFormat.UnderlineUpper | NamingFormat.UI_Suffix**
 
 - 事件触发器：Evt_Login_Btn  登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
 
@@ -756,27 +395,12 @@ UniVue除了提供实现数据、视图的双向绑定外还提供了强大的�
 
 - 事件触发器+事件参数: Evt&Arg_Buy[num]_Slider  购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
 
-  
 
-**NamingFormat.UnderlineUpper | NamingFormat.UI_Prefix**
 
-- 事件触发器：Btn_Evt_Login 登录事件(Login)触发按钮，InputEvtBuy 购买事件(Buy)触发输入
-
-- 事件参数：Txt_Arg_Login[name] 登录事件(Login)参数(参数名为name)，参数值为TMP_Text.text
-
-- 事件触发器+事件参数: Slider_Evt&Arg_Buy[num] 购买事件(Buy)触发Slider，事件参数名为num，参数值为Slider.value
-
-  
 
 ### 6.综合命名
 
-这儿以**NamingFormat.UnderlineUpper | NamingFormat.UI_Suffix**风格举例说明。
-
-如果一个UI组件即绑定了数据又是一个事件参数，则使用" & "进行隔开两个命名规则，**注意'' & ''中&字符的前后均有一个空格！**如：**Player_Name_Txt & Arg_Login[Name]_Txt**。
-
-注意，多个命名规则下的顺序：**数据绑定 & 路由事件 & 自定义事件**
-
-**注：在v1.2.0以后无需关系顺序，任意顺序都可，同时无需再使用" & "隔开，但是基于可读性的基础上仍然建议这么做。**
+如果一个UI组件即绑定了数据又是一个事件参数，则使用" & "进行隔开两个命名规则，**注意'' & ''中&字符的前后均有一个空格！**如：**Player_Name_Txt & Arg_Login[Name]_Txt**。可以在VueConfig中修改这个字符。
 
 **举例说明：**
 
@@ -821,48 +445,13 @@ public class User{
 }
 ```
 
-
-
-## 八、补充讲解
-
-Model层要想实现当属性值发生改变时自动通知UI进行更新，那么建议是在属性的Set方法中进行调用NotifyUIUpdate()函数，如下：
-
-```C#
-public string Name
-{
-    get => _name;
-    set
-    {
-        if(_name != value)
-        {
-            _name = value;
-            NotifyUIUpdate(nameof(Name), value);
-         }
-    }
-}
-```
+同时你需要实现ICustomArgument接口同时注册到EventManager中来完成这个对象映射的过程。否则这个回调将永远不会被调用，为了防止异常，事件调用是保守性的，即所有参数都不为null才会进行调用。
 
 
 
-View中具有嵌套关系时，在创建被嵌套的视图时，无需指定viewObjectPrefab，而是在root视图中引用它，这样在进行视图构建时会自动为被嵌套的视图的viewObject进行赋值。同时被嵌套的视图无需赋值到CanvasConfig中！
-
-**UniVue中所有具有管理者功能的对象（如ViewRouter、ViewUpdater、EventManger）都通过Vue这个全局单例对象来访问，同时Vue对象封装了一些API来简化某些函数的调用。**
-
-**UIEvent、EventArg、UIBundle、PropertyUI都是基于视图隔离的，即使有两个相同的事件，但是他们在不同的视图中，那么UIEvent也是不同的。**
-
-
-
-## 九、编辑器扩展功能
+## 八、编辑器扩展功能
 
 在Unity的最上方的工具栏可以看见"**UniVue**"字样，点击，会出现提供的三个扩展功能。
-
-### ConfigEditorWindow
-
-位置: **UniVu > ConfigEditor**
-
-功能：提供了创建视图、视图配置的功能
-
-
 
 ### RenameEditorWindow
 
@@ -891,7 +480,3 @@ View中具有嵌套关系时，在创建被嵌套的视图时，无需指定view
 最近的大更新中使用了源生成器来提高效率，关于UniVue中的源生成器，请看这篇博客：[UniVue更新日志：使用源生成器优化Model和ViewModel层的设计-CSDN博客](https://blog.csdn.net/m0_62135731/article/details/139525492?spm=1001.2014.3001.5501)
 
 
-
-## 十一、规则引擎
-
-通过自定义实现IRuleFilter接口，使用规则引擎RuleEngine能够对任何ViewObject执行Filter操作，过滤完后你可以对过滤的结果进行自定义的处理。规则引擎是所有模块的基础，后续的所有核心功能都依赖规则引擎。

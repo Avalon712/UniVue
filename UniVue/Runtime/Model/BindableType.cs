@@ -2,6 +2,11 @@
 {
     public enum BindableType
     {
+        /// <summary>
+        /// 不能进行绑定的类型
+        /// </summary>
+        None,
+
         Enum,
 
         Bool,
@@ -14,6 +19,8 @@
 
         Sprite,
 
+        FlagsEnum,
+
         ListEnum,
 
         ListBool,
@@ -25,11 +32,5 @@
         ListString,
 
         ListSprite,
-
-        /// <summary>
-        /// 不能进行绑定的类型
-        /// </summary>
-        None,
-
     }
 }

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UniVue.Internal;
 using UniVue.Model;
 
 namespace UniVue.ViewModel
@@ -9,62 +9,44 @@ namespace UniVue.ViewModel
         /// <summary>
         /// key=模型  value=绑定了此模型的所有视图的viewName
         /// </summary>
-        private Dictionary<IBindableModel, List<string>> _models;
+        private readonly Dictionary<IBindableModel, List<string>> _models;
 
         /// <summary>
-        /// key=viewName value=此视图的所有UIBundle
+        /// key=viewName value=此视图的所有ModelUI
         /// </summary>
-        private Dictionary<string, List<UIBundle>> _views;
-
-        /// <summary>
-        /// 模型的更新生成的缓存数量
-        /// </summary>
-        public int UpdateCacheModelCount => _models.Count;
-
-        public int BundleCount { get; private set; }
-
-        public int PropertyUICount { get; private set; }
-
+        private readonly Dictionary<string, List<ModelUI>> _views;
 
         public VMTable(int tableSize)
         {
             _models = new Dictionary<IBindableModel, List<string>>(tableSize);
-            _views = new Dictionary<string, List<UIBundle>>(tableSize);
+            _views = new Dictionary<string, List<ModelUI>>(tableSize);
         }
 
 
-        public void BindVM(string viewName, UIBundle bundle)
+        public void AddVM(string viewName, ModelUI modelUI)
         {
-            BindV(viewName, bundle);
-            BindM(viewName, bundle);
-        }
-
-
-        public void BindV(string viewName, UIBundle bundle)
-        {
-            if (_views.TryGetValue(viewName, out List<UIBundle> bundles))
-                bundles.Add(bundle);
+            if (_models.TryGetValue(modelUI.Model, out List<string> viewNames))
+                viewNames.Add(viewName);
             else
             {
-                BundleCount += 1;
-                PropertyUICount += bundle.ProertyUIs.Count;
-                _views.Add(viewName, new List<UIBundle>(1) { bundle });
+                viewNames = (List<string>)CachePool.GetCache(InternalType.List_String);
+                viewNames.Add(viewName);
+                _models.Add(modelUI.Model, viewNames);
+            }
+
+            if (_views.TryGetValue(viewName, out List<ModelUI> modelUIs))
+                modelUIs.Add(modelUI);
+            else
+            {
+                modelUIs = (List<ModelUI>)CachePool.GetCache(InternalType.List_ModelUI);
+                modelUIs.Add(modelUI);
+                _views.Add(viewName, modelUIs);
             }
         }
 
-
-        public void BindM(string viewName, UIBundle bundle)
+        public bool TryGetModelUIs(string viewName, out List<ModelUI> modelUIs)
         {
-            if (_models.TryGetValue(bundle.Model, out List<string> viewNames))
-                viewNames.Add(viewName);
-            else
-                _models.Add(bundle.Model, new List<string>(1) { viewName });
-        }
-
-
-        public bool TryGetBundles(string viewName, out List<UIBundle> bundles)
-        {
-            return _views.TryGetValue(viewName, out bundles);
+            return _views.TryGetValue(viewName, out modelUIs);
         }
 
 
@@ -73,58 +55,25 @@ namespace UniVue.ViewModel
             return _models.TryGetValue(model, out views);
         }
 
-        public void RemoveBundles(string viewName)
+        public IEnumerable<List<ModelUI>> GetAllModelUI()
         {
-            if (_views.ContainsKey(viewName))
-                _views.Remove(viewName);
-
-            foreach (var views in _models.Values)
+            foreach (var modelUIs in _views.Values)
             {
-                if (views.Contains(viewName))
-                    views.Remove(viewName);
+                yield return modelUIs;
             }
         }
 
-        public IEnumerable<List<UIBundle>> GetAllUIBundles()
+        public void Rebind(string viewName, IBindableModel newModel, string modelName)
         {
-            foreach (var bundles in _views.Values)
+            if (_views.TryGetValue(viewName, out List<ModelUI> modelUIs))
             {
-                yield return bundles;
-            }
-        }
-
-        public void Rebind(string viewName, IBindableModel oldModel, IBindableModel newModel)
-        {
-            RemoveBindView(viewName, oldModel);
-            AddBindView(viewName, newModel);
-
-            if (_views.TryGetValue(viewName, out List<UIBundle> bundles))
-            {
-                for (int i = 0; i < bundles.Count; i++)
+                for (int i = 0; i < modelUIs.Count; i++)
                 {
-                    if (ReferenceEquals(bundles[i].Model, oldModel))
-                    {
-                        bundles[i].Rebind(newModel);
-                    }
-                }
-            }
-        }
-
-
-        public void Rebind(string viewName, IBindableModel newModel)
-        {
-            AddBindView(viewName, newModel);
-
-            Type newModelType = newModel.GetType();
-            if (_views.TryGetValue(viewName, out List<UIBundle> bundles))
-            {
-                for (int i = 0; i < bundles.Count; i++)
-                {
-                    IBindableModel oldModel = bundles[i].Model;
-                    if (oldModel.GetType() == newModelType)
+                    IBindableModel oldModel = modelUIs[i].Model;
+                    if (modelUIs[i].TryRebind(modelName, newModel))
                     {
                         RemoveBindView(viewName, oldModel);
-                        bundles[i].Rebind(newModel);
+                        AddBindView(viewName, newModel);
                     }
                 }
             }
@@ -134,10 +83,10 @@ namespace UniVue.ViewModel
         {
             if (TryGetViews(model, out List<string> views))
                 for (int i = 0; i < views.Count; i++)
-                    if (TryGetBundles(views[i], out List<UIBundle> bundles))
-                        for (int j = 0; j < bundles.Count; j++)
-                            if (bundles[j].active && ReferenceEquals(bundles[j].Model, model))
-                                bundles[j].Unbind();
+                    if (TryGetModelUIs(views[i], out List<ModelUI> modelUIs))
+                        for (int j = 0; j < modelUIs.Count; j++)
+                            if (modelUIs[j].active && ReferenceEquals(modelUIs[j].Model, model))
+                                modelUIs[j].Unbind();
         }
 
         public bool ContainsViewName(string viewName)
@@ -157,15 +106,31 @@ namespace UniVue.ViewModel
             if (_models.TryGetValue(model, out List<string> viewNames) && !viewNames.Contains(viewName))
                 viewNames.Add(viewName);
             else if (viewNames == null)
-                _models.Add(model, new List<string>(1) { viewName });
+            {
+                viewNames = (List<string>)CachePool.GetCache(InternalType.List_String);
+                viewNames.Add(viewName);
+                _models.Add(model, viewNames);
+            }
         }
 
         internal void ClearTable()
         {
+            foreach (var list in _models.Values)
+            {
+                list.Clear();
+                CachePool.AddCache(InternalType.List_String, list, false);
+            }
+            foreach (var list in _views.Values)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    list[i].Destroy();
+                }
+                list.Clear();
+                CachePool.AddCache(InternalType.List_ModelUI, list, false);
+            }
             _models.Clear();
             _views.Clear();
-            BundleCount = 0;
-            PropertyUICount = 0;
         }
 
     }

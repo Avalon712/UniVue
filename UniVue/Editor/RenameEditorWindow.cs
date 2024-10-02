@@ -2,20 +2,17 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UniVue.Rule;
-using UniVue.Utils;
 
 namespace UniVue.Editor
 {
     internal sealed class RenameEditorWindow : EditorWindow
     {
-        private const char SKIP_ALL_DESCENDANT_SEPARATOR = '~';
-        private const char SKIP_CURRENT_SEPARATOR = '@';
+        private const char IGNORE_SYMBOL = '~';
+        private const char SKIP_SYMBOL = '@';
 
         public List<GameObject> _viewObjects;
         private SerializedProperty _serializedObjs;
         private SerializedObject _window;
-        private NamingFormat _format = NamingFormat.UnderlineUpper | NamingFormat.UI_Suffix;
 
         private Vector2 _scrollPos = Vector2.zero;
 
@@ -53,16 +50,9 @@ namespace UniVue.Editor
             EditorGUILayout.PropertyField(_serializedObjs);
             EditorGUILayout.Space();
 
-
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("命名格式");
-            _format = (NamingFormat)EditorGUILayout.EnumFlagsField(_format);
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space();
-
             if (GUILayout.Button("重命名"))
             {
-                Rename(_format);
+                Rename();
             }
             EditorGUILayout.Space();
 
@@ -82,8 +72,8 @@ namespace UniVue.Editor
 
         private void Clear(GameObject root)
         {
-            if (root.name.StartsWith(SKIP_ALL_DESCENDANT_SEPARATOR)) { root.name = root.name.Substring(1); }
-            if (root.name.StartsWith(SKIP_CURRENT_SEPARATOR)) { root.name = root.name.Substring(1); }
+            if (root.name.StartsWith(IGNORE_SYMBOL)) { root.name = root.name.Substring(1); }
+            if (root.name.StartsWith(SKIP_SYMBOL)) { root.name = root.name.Substring(1); }
 
             Transform transform = root.transform;
             for (int i = 0; i < transform.childCount; i++)
@@ -92,13 +82,13 @@ namespace UniVue.Editor
             }
         }
 
-        private void Rename(NamingFormat format)
+        private void Rename()
         {
             for (int i = 0; i < _viewObjects.Count; i++)
             {
                 List<ValueTuple<GameObject, bool>> result = new List<ValueTuple<GameObject, bool>>();
 
-                DeapthSearch(_viewObjects[i], result, format);
+                DeapthSearch(_viewObjects[i], result);
 
                 //查看是否正确匹配
                 //for (int i = 0; i < result.Count; i++)
@@ -165,44 +155,16 @@ namespace UniVue.Editor
         }
 
         //bool指示当前GameObject名称是否匹配成功
-        private void DeapthSearch(GameObject root, List<ValueTuple<GameObject, bool>> result, NamingFormat format)
+        private void DeapthSearch(GameObject root, List<ValueTuple<GameObject, bool>> result)
         {
-            result.Add(new ValueTuple<GameObject, bool>(root, FullFuzzyMatch(format, root.name)));
+            result.Add(new ValueTuple<GameObject, bool>(root, UniVueEditorUtils.IsRule(root.name)));
 
             Transform transform = root.transform;
             for (int i = 0; i < transform.childCount; i++)
             {
-                DeapthSearch(transform.GetChild(i).gameObject, result, format);
+                DeapthSearch(transform.GetChild(i).gameObject, result);
             }
         }
 
-        /// <summary>
-        /// 简单的进行命名匹配(简单地判断一个UI的命名是否是特殊命名，这个判断结果可能是错误的)
-        /// 注：想要实现高精度的匹配办法就是使用完全不一样的命名风格，比如：以下划线隔开的可以选驼峰式或空格式这样的命名
-        /// </summary>
-        /// <param name="uiName"></param>
-        /// <returns></returns>
-        public bool FullFuzzyMatch(NamingFormat format, string uiName)
-        {
-            if (UITypeUtil.GetUIType(uiName) == UIType.None) return false;
-
-            int f = (int)format;
-            int t = f > 64 ? f - 64 : f - 32;
-
-            switch (t)
-            {
-                case 1:
-                    return !uiName.Contains('_') && (!uiName.Contains(' ') || uiName.Contains(" & "));
-                case 2:
-                    return uiName.Contains('_') && (!uiName.Contains(' ') || uiName.Contains(" & "));
-                case 4:
-                    return uiName.Contains(' ') && !uiName.Contains('_');
-                case 8:
-                    return uiName.Contains(' ') && !uiName.Contains('_');
-                case 16:
-                    return uiName.Contains('_') && (!uiName.Contains(' ') || uiName.Contains(" & "));
-            }
-            return false;
-        }
     }
 }

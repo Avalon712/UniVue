@@ -2,132 +2,205 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UniVue.Utils;
-using UniVue.View.Views;
+using UniVue.Common;
 
 namespace UniVue.Rule
 {
     public sealed class RuleEngine
     {
-        private readonly List<object> _results;
+        private readonly char _ignoreSymbol, _skipSymbol;
+        private readonly string _ruleSeparator;
+        private readonly ArrayPool _pool;
 
-        internal RuleEngine()
+        private sealed class ArrayPool
         {
-            _results = new List<object>(20);
-        }
+            private IRule[] _pool;
 
-        public void Filter(GameObject gameObject, IRuleFilter filter)
-        {
-            using (var it = GlobalRule.Filter(gameObject).GetEnumerator())
+            public ArrayPool(int capacity)
             {
-                while (it.MoveNext())
-                {
-                    ValueTuple<Component, UIType> comp = it.Current;
-                    filter.Check(ref comp, _results);
-                }
+                _pool = new IRule[capacity];
             }
-            filter.OnComplete(_results);
-            _results.Clear();
-        }
 
-        public void AsyncFilter(GameObject gameObject, IRuleFilter filter)
-        {
-            UnityTempObject tempObject = UnityTempObject.Instance;
-            tempObject.StartCoroutine(DoAsyncFilter(gameObject, filter, tempObject.gameObject));
-        }
-
-        public void Filter(GameObject gameObject, IRuleFilter[] filters, bool parallel = false)
-        {
-            if (parallel)
-                ParallelFilter(gameObject, filters);
-            else
-                SequenceFilter(gameObject, filters);
-        }
-
-        /// <summary>
-        /// 对当前场景下所有根视图的所有UI组件进行过滤
-        /// </summary>
-        public void AsyncFilterAll(IRuleFilter filter, Action onComplete = null)
-        {
-            UnityTempObject tempObject = UnityTempObject.Instance;
-            tempObject.StartCoroutine(DoAsyncFliterAll(filter, tempObject.gameObject, onComplete));
-        }
-
-        private IEnumerator DoAsyncFliterAll(IRuleFilter filter, GameObject tempObject, Action onComplete)
-        {
-            WaitForEndOfFrame waitOneFrame = new WaitForEndOfFrame();
-            using (var it = Vue.Router.GetAllView().GetEnumerator())
+            public Span<IRule> Rent(int length)
             {
-                while (it.MoveNext())
+                int len = 0;
+                for (int i = 0; i < _pool.Length; i++)
                 {
-                    IView view = it.Current;
-                    if (string.IsNullOrEmpty(view.Parent))
+                    if (_pool[i] == null)
                     {
-                        using (var it2 = GlobalRule.Filter(view.ViewObject).GetEnumerator())
+                        int startIndex = i;
+                        for (int j = i; j < _pool.Length; j++)
                         {
-                            while (it2.MoveNext())
+                            if (_pool[j] == null)
                             {
-                                ValueTuple<Component, UIType> comp = it2.Current;
-                                filter.Check(ref comp, _results);
-                                yield return waitOneFrame;
+                                len++;
+                                if (len == length)
+                                {
+                                    //找到足够长的
+                                    return _pool.AsSpan().Slice(startIndex, length);
+                                }
+                            }
+                            else
+                            {
+                                len = 0;
+                                i = j + 1;
+                                break;
                             }
                         }
                     }
                 }
+                return new IRule[length];
             }
-            UnityEngine.Object.Destroy(tempObject);
-            onComplete?.Invoke();
+
+            public void Return(in Span<IRule> rent)
+            {
+                rent.Fill(null);
+            }
         }
 
-        private IEnumerator DoAsyncFilter(GameObject gameObject, IRuleFilter filter, GameObject tempObject)
+        internal RuleEngine()
         {
-            WaitForEndOfFrame waitOneFrame = new WaitForEndOfFrame();
-            using (var it = GlobalRule.Filter(gameObject).GetEnumerator())
+            _pool = new ArrayPool(10);
+            _ruleSeparator = Vue.Config.RuleSeparator;
+            _ignoreSymbol = Vue.Config.IgnoreSymbol;
+            _skipSymbol = Vue.Config.SkipSymbol;
+        }
+
+        /// <summary>
+        /// 当前正在被执行规则的GameObject
+        /// </summary>
+        /// <remarks>仅在IRule.Check()和IRule.OnCompleted()方法中可以访问到此对象</remarks>
+        public GameObject TargetObject { get; private set; }
+
+        /// <summary>
+        /// 从池中获取一块指定长度的数组
+        /// </summary>
+        /// <remarks>当规则执行完后会自动对申请的这块数组进行回收</remarks>
+        public Span<IRule> GetArray(int length)
+        {
+            return _pool.Rent(length);
+        }
+
+        public void Execute(GameObject gameObject, IRule rule)
+        {
+            Span<IRule> rules = _pool.Rent(1);
+            rules.Fill(rule);
+            Execute(gameObject, rules);
+        }
+
+        public void ExecuteAsync(GameObject gameObject, IRule rule)
+        {
+            ExecuteAsync(gameObject, new IRule[1] { rule });
+        }
+
+        public void Execute(GameObject gameObject, in Span<IRule> rules)
+        {
+            DepthSearch(gameObject, rules, false); //第一个GameObject不进行ViewObject检查操作
+            for (int i = 0; i < rules.Length; i++)
+            {
+                TargetObject = gameObject;
+                rules[i].OnComplete();
+            }
+            _pool.Return(rules);
+            TargetObject = null;
+        }
+
+        public void ExecuteAsync(GameObject gameObject, IRule[] rules)
+        {
+            var temp = UnityTempObject.Temp;
+            temp.StartCoroutine(DepthSearchAsync(gameObject, rules, temp.gameObject, false));//第一个GameObject不进行ViewObject检查操作
+        }
+
+        /// <summary>
+        /// 对指定的所有ViewObject执行视图加载规则
+        /// </summary>
+        /// <param name="viewObjects">视图对象</param>
+        internal void ExecuteLoadViewRule(IEnumerable<GameObject> viewObjects)
+        {
+            RouteRule routeRule = new RouteRule(null);
+            EventRule eventRule = new EventRule(null);
+            Span<IRule> rules = _pool.Rent(2);
+            rules[0] = routeRule;
+            rules[1] = eventRule;
+            using (var it = viewObjects.GetEnumerator())
             {
                 while (it.MoveNext())
                 {
-                    ValueTuple<Component, UIType> comp = it.Current;
-                    filter.Check(ref comp, _results);
-                    yield return waitOneFrame;
+                    GameObject gameObject = it.Current;
+                    string viewName = gameObject.name;
+                    routeRule.ViewName = viewName;
+                    eventRule.ViewName = viewName;
+                    TargetObject = gameObject;
+                    DepthSearch(gameObject, rules, false); //第一个GameObject不进行ViewObject检查操作
+                    routeRule.OnComplete();
+                    eventRule.OnComplete();
+                    TargetObject = null;
                 }
             }
-            filter.OnComplete(_results);
-            _results.Clear();
-            UnityEngine.Object.Destroy(tempObject);
+            _pool.Return(rules);
         }
 
-        private void SequenceFilter(GameObject gameObject, IRuleFilter[] filters)
-        {
-            for (int i = 0; i < filters.Length; i++)
-            {
-                Filter(gameObject, filters[i]);
-            }
-        }
 
-        private void ParallelFilter(GameObject gameObject, IRuleFilter[] filters)
+        private void DepthSearch(GameObject gameObject, in Span<IRule> rules, bool checkViewObject)
         {
-            List<object>[] results = new List<object>[filters.Length];
-            for (int i = 0; i < filters.Length; i++)
-            {
-                results[i] = new List<object>();
-            }
+            //忽略此节点的条件：名称以忽略符号开头，当前GameObject是一个ViewObject
+            if (gameObject == null ||
+                gameObject.name.StartsWith(_ignoreSymbol) ||
+                (checkViewObject && Vue.IsViewObject(gameObject))) return;
 
-            using (var it = GlobalRule.Filter(gameObject).GetEnumerator())
+            Transform transform = gameObject.transform;
+            if (!transform.name.StartsWith(_skipSymbol) && UITypeUtil.TryGetUI(gameObject, out UIType type, out Component ui))
             {
-                while (it.MoveNext())
+                for (int i = 0; i < rules.Length; i++)
                 {
-                    ValueTuple<Component, UIType> comp = it.Current;
-                    for (int i = 0; i < filters.Length; i++)
+                    TargetObject = gameObject;
+                    string[] checkRules = gameObject.name.Split(_ruleSeparator);
+                    for (int j = 0; j < checkRules.Length; j++)
                     {
-                        filters[i].Check(ref comp, results[i]);
+                        rules[i].Check(checkRules[j], type, ui);
                     }
                 }
             }
-
-            for (int i = 0; i < filters.Length; i++)
+            int childNum = transform.childCount;
+            for (int i = 0; i < childNum; i++)
             {
-                filters[i].OnComplete(results[i]);
-                results[i].Clear();
+                DepthSearch(transform.GetChild(i).gameObject, rules, true);
+            }
+        }
+
+        private IEnumerator DepthSearchAsync(GameObject gameObject, IRule[] rules, GameObject temp, bool checkViewObject)
+        {
+            if (gameObject != null && !gameObject.name.StartsWith(_ignoreSymbol) && (!checkViewObject || !Vue.IsViewObject(gameObject)))
+            {
+                Transform transform = gameObject.transform;
+                if (!transform.name.StartsWith(_skipSymbol) && UITypeUtil.TryGetUI(gameObject, out UIType type, out Component ui))
+                {
+                    for (int i = 0; i < rules.Length; i++)
+                    {
+                        TargetObject = gameObject;
+                        string[] checkRules = gameObject.name.Split(_ruleSeparator);
+                        for (int j = 0; j < checkRules.Length; j++)
+                        {
+                            rules[i].Check(checkRules[j], type, ui);
+                        }
+                    }
+                }
+
+                yield return null;
+                int childNum = transform.childCount;
+                for (int i = 0; i < childNum; i++)
+                {
+                    yield return DepthSearchAsync(transform.GetChild(i).gameObject, rules, temp, true);
+                }
+
+                for (int i = 0; i < rules.Length; i++)
+                {
+                    TargetObject = gameObject;
+                    rules[i].OnComplete();
+                }
+                TargetObject = null;
+                UnityEngine.Object.Destroy(temp);
+                _pool.Return(rules);
             }
         }
     }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UniVue.Utils;
+using UniVue.Common;
 
 namespace UniVue.Tween
 {
@@ -26,7 +26,7 @@ namespace UniVue.Tween
             {
                 if (_tweens[i] == tween)
                 {
-                    ListUtil.TrailDelete(_tweens, i--);
+                    CommonUtil.TrailDelete(_tweens, i--);
                     break;
                 }
             }
@@ -50,7 +50,7 @@ namespace UniVue.Tween
                     {
                         task.Reset();
                         if (version == _tweens.Count)
-                            ListUtil.TrailDelete(_tweens, i--);
+                            CommonUtil.TrailDelete(_tweens, i--);
                         else
                             _tweens.Remove(task);
                     }
