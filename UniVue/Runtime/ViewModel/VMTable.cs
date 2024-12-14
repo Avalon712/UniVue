@@ -94,6 +94,27 @@ namespace UniVue.ViewModel
             return _views.ContainsKey(viewName);
         }
 
+        internal void UnloadView(string viewName)
+        {
+            //1.卸载该视图上的所有ModelUI
+            if (_views.TryGetValue(viewName, out List<ModelUI> modelUIs))
+            {
+                for (int i = 0; i < modelUIs.Count; i++)
+                {
+                    modelUIs[i].Destroy();
+                }
+                modelUIs.Clear();
+                CachePool.AddCache(InternalType.List_ModelUI, modelUIs, false);
+            }
+            //2. 移除所有绑定了此视图的模型的绑定记录
+            foreach (var views in _models.Values)
+            {
+                int index = views.IndexOf(viewName);
+                if (index != -1)
+                    views.RemoveAt(index);
+            }
+        }
+
         private void RemoveBindView(string viewName, IBindableModel model)
         {
             if (_models.TryGetValue(model, out List<string> viewNames) && viewNames.Contains(viewName))

@@ -21,10 +21,11 @@ namespace UniVue.Internal
             {
                 if (_caches == null)
                 {
-                    _caches = new List<Cache>(50);
+                    _caches = new List<Cache>(Vue.Config.CachePoolSize);
                 }
                 Cache cache = new Cache(type, obj);
-                if (!checkExist || !Contains(cache))
+                //防止扩容
+                if ((!checkExist || !Contains(cache)) && _caches.Count < _caches.Capacity)
                 {
                     _caches.Add(cache);
                 }

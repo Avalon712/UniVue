@@ -53,6 +53,16 @@ namespace UniVue.Event
         public event Action<EventCall, object> OnInvoked;
 
         /// <summary>
+        /// 当前触发的事件（如果没有事件触发将返回null）
+        /// </summary>
+        public EventUI CurrentEvent { get; private set; }
+
+        /// <summary>
+        /// 当前正在被触发的事件调用（如果没有事件触发将返回null）
+        /// </summary>
+        public EventCall CurrentCall { get; private set; }
+
+        /// <summary>
         /// 注册事件注册器
         /// </summary>
         /// <param name="register">实现IEventRegister接口对象</param>
@@ -147,8 +157,12 @@ namespace UniVue.Event
                         EventCall call = calls[j];
                         if (call.EventName == @event.EventName && call.TrySetInovkeArgumentValues(@event))
                         {
+                            CurrentCall = call;
+                            CurrentEvent = @event;
                             object result = caller.register.Invoke(call);
                             OnInvoked?.Invoke(call, result);
+                            CurrentEvent = null;
+                            CurrentCall = null;
                         }
                     }
                 }
@@ -178,6 +192,18 @@ namespace UniVue.Event
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// 卸载指定视图所有EventUI
+        /// </summary>
+        internal void UnloadView(string viewName)
+        {
+            for (int i = 0; i < _events.Count; i++)
+            {
+                if (_events[i].ViewName == viewName)
+                    _events.RemoveAt(i--);
             }
         }
 

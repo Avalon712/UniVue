@@ -198,7 +198,7 @@ namespace UniVue.ViewModel
             active = false;
         }
 
-        public void Destroy()
+        internal void Destroy()
         {
             ProertyUIs.Clear();
             CachePool.AddCache(InternalType.List_PropertyUI, ProertyUIs, false);

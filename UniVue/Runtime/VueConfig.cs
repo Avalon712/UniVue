@@ -15,8 +15,10 @@ namespace UniVue
         [SerializeField, Header("默认语言")]
         private Language _defaultLanguage = Language.None;
 
-        [SerializeField, Header("使用缓存")]
+        [SerializeField, Header("缓存")]
         private bool _useCache = true;
+        [SerializeField, Min(50)]
+        private int _cacheSize = 200;
 
         [SerializeField, Header("视图打开/关闭的最大历史记录"), Tooltip("如果发现视图的打开逻辑不正确，请将此参数调大一些"), Min(5)]
         private int _maxHistoryRecord = 10;
@@ -66,6 +68,11 @@ namespace UniVue
         /// 是否使用缓存
         /// </summary>
         public bool UseCache => _useCache;
+
+        /// <summary>
+        /// 初始时缓存池的大小
+        /// </summary>
+        public int CachePoolSize => _cacheSize;
 
         /// <summary>
         /// 检查一个GameObject是否是一个ViewObject的匹配模式

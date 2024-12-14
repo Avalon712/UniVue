@@ -72,6 +72,59 @@ namespace UniVue.View
             }
         }
 
+        /// <summary>
+        /// 卸载指定视图的资源（不包含它的后代）
+        /// </summary>
+        internal void UnloadView(string viewName)
+        {
+            int index = _histories.IndexOf(viewName);
+            if (index != -1)
+            {
+                _histories.RemoveAt(index);
+            }
+            for (int i = 0; i < _routeUIs.Count; i++)
+            {
+                if (_routeUIs[i].ViewName == viewName)
+                {
+                    _routeUIs.RemoveAt(i--);
+                }
+            }
+            if (_viewObjects.ContainsKey(viewName))
+            {
+                _viewObjects.Remove(viewName);
+            }
+            if (_views.TryGetValue(viewName, out IView view))
+            {
+                _views.Remove(viewName);
+                view.OnUnload();
+            }
+            if (_viewTree.ContainsKey(viewName))
+            {
+                _viewTree.Remove(viewName);
+            }
+        }
+
+        /// <summary>
+        /// 获取一个视图的所有后代视图
+        /// </summary>
+        /// <param name="viewName">视图名称</param>
+        /// <param name="descendants">当前视图的所有后代视图</param>
+        public void GetDescendants(string viewName, List<string> descendants)
+        {
+            if (descendants != null)
+            {
+                //当前视图的所有子视图也要进行卸载
+                foreach (var name in _viewTree.Keys)
+                {
+                    string parent = _viewTree[name];
+                    if (parent == viewName || descendants.Contains(parent))
+                    {
+                        descendants.Add(name);
+                    }
+                }
+            }
+        }
+
         public T GetView<T>(string viewName) where T : IView
         {
             IView view = GetView(viewName);
@@ -338,6 +391,7 @@ namespace UniVue.View
         /// <summary>
         /// 添加一条视图打开的记录
         /// </summary>
+        /// <remarks>需要注意是否会破坏Return路由事件的逻辑</remarks>
         public void PushHistory(string view)
         {
             if (_histories.Contains(view))

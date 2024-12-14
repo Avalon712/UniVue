@@ -218,19 +218,19 @@ namespace UniVue.Editor
             switch (argument.type)
             {
                 case SupportableArgumentType.Int:
-                    argument.UnsafeSetValue(0);
+                    ReflectionUtils.SetPropertyValue(argument, "value", 0);
                     break;
                 case SupportableArgumentType.Float:
-                    argument.UnsafeSetValue(0f);
+                    ReflectionUtils.SetPropertyValue(argument, "value", 0f);
                     break;
                 case SupportableArgumentType.String:
-                    argument.UnsafeSetValue("");
+                    ReflectionUtils.SetPropertyValue(argument, "value", "");
                     break;
                 case SupportableArgumentType.Enum:
-                    argument.UnsafeSetValue(Enum.GetValues(Type.GetType(argument.typeFullName, false)).GetValue(0));
+                    ReflectionUtils.SetPropertyValue(argument, "value", Enum.GetValues(Type.GetType(argument.typeFullName, false)).GetValue(0));
                     break;
                 case SupportableArgumentType.Bool:
-                    argument.UnsafeSetValue(false);
+                    ReflectionUtils.SetPropertyValue(argument, "value", false);
                     break;
             }
         }
@@ -253,25 +253,25 @@ namespace UniVue.Editor
                 switch (argument.type)
                 {
                     case SupportableArgumentType.Int:
-                        argument.UnsafeSetValue(EditorGUILayout.IntField((int)argument.value));
+                        ReflectionUtils.SetPropertyValue(argument, "value", EditorGUILayout.IntField((int)argument.value));
                         break;
                     case SupportableArgumentType.Float:
-                        argument.UnsafeSetValue(EditorGUILayout.FloatField((float)argument.value));
+                        ReflectionUtils.SetPropertyValue(argument, "value", EditorGUILayout.FloatField((float)argument.value));
                         break;
                     case SupportableArgumentType.String:
-                        argument.UnsafeSetValue(EditorGUILayout.TextField(argument.value as string));
+                        ReflectionUtils.SetPropertyValue(argument, "value", EditorGUILayout.TextField(argument.value as string));
                         break;
                     case SupportableArgumentType.Enum:
                         if (ReflectionUtils.IsFlagsEnumType(argument.value.GetType()))
-                            argument.UnsafeSetValue(EditorGUILayout.EnumFlagsField((Enum)argument.value));
+                            ReflectionUtils.SetPropertyValue(argument, "value", EditorGUILayout.EnumFlagsField((Enum)argument.value));
                         else
-                            argument.UnsafeSetValue(EditorGUILayout.EnumPopup((Enum)argument.value));
+                            ReflectionUtils.SetPropertyValue(argument, "value", EditorGUILayout.EnumPopup((Enum)argument.value));
                         break;
                     case SupportableArgumentType.Bool:
-                        argument.UnsafeSetValue(EditorGUILayout.Toggle((bool)argument.value));
+                        ReflectionUtils.SetPropertyValue(argument, "value", EditorGUILayout.Toggle((bool)argument.value));
                         break;
                     case SupportableArgumentType.Sprite:
-                        argument.UnsafeSetValue(EditorGUILayout.ObjectField(argument.value as Sprite, typeof(Sprite), true));
+                        ReflectionUtils.SetPropertyValue(argument, "value", EditorGUILayout.ObjectField(argument.value as Sprite, typeof(Sprite), true));
                         break;
                 }
                 if (GUILayout.Button("Apply To UI", GUILayout.Width(100)))

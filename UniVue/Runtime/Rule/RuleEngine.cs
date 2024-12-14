@@ -95,7 +95,7 @@ namespace UniVue.Rule
 
         public void Execute(GameObject gameObject, in Span<IRule> rules)
         {
-            DepthSearch(gameObject, rules, false); //第一个GameObject不进行ViewObject检查操作
+            DepthSearch(gameObject, rules); //第一个GameObject不进行ViewObject检查操作
             for (int i = 0; i < rules.Length; i++)
             {
                 TargetObject = gameObject;
@@ -108,7 +108,7 @@ namespace UniVue.Rule
         public void ExecuteAsync(GameObject gameObject, IRule[] rules)
         {
             var temp = UnityTempObject.Temp;
-            temp.StartCoroutine(DepthSearchAsync(gameObject, rules, temp.gameObject, false));//第一个GameObject不进行ViewObject检查操作
+            temp.StartCoroutine(DepthSearchAsync(gameObject, rules, temp.gameObject));//第一个GameObject不进行ViewObject检查操作
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace UniVue.Rule
                     routeRule.ViewName = viewName;
                     eventRule.ViewName = viewName;
                     TargetObject = gameObject;
-                    DepthSearch(gameObject, rules, false); //第一个GameObject不进行ViewObject检查操作
+                    DepthSearch(gameObject, rules); //第一个GameObject不进行ViewObject检查操作
                     routeRule.OnComplete();
                     eventRule.OnComplete();
                     TargetObject = null;
@@ -141,20 +141,18 @@ namespace UniVue.Rule
         }
 
 
-        private void DepthSearch(GameObject gameObject, in Span<IRule> rules, bool checkViewObject)
+        private void DepthSearch(GameObject gameObject, in Span<IRule> rules)
         {
-            //忽略此节点的条件：名称以忽略符号开头，当前GameObject是一个ViewObject
-            if (gameObject == null ||
-                gameObject.name.StartsWith(_ignoreSymbol) ||
-                (checkViewObject && Vue.IsViewObject(gameObject))) return;
+            //忽略此节点的条件：名称以忽略符号开头
+            if (gameObject == null || gameObject.name.StartsWith(_ignoreSymbol)) return;
 
             Transform transform = gameObject.transform;
-            if (!transform.name.StartsWith(_skipSymbol) && UITypeUtil.TryGetUI(gameObject, out UIType type, out Component ui))
+            if (UITypeUtil.TryGetUI(gameObject, out UIType type, out Component ui))
             {
+                TargetObject = gameObject;
+                string[] checkRules = gameObject.name.Split(_ruleSeparator);
                 for (int i = 0; i < rules.Length; i++)
                 {
-                    TargetObject = gameObject;
-                    string[] checkRules = gameObject.name.Split(_ruleSeparator);
                     for (int j = 0; j < checkRules.Length; j++)
                     {
                         rules[i].Check(checkRules[j], type, ui);
@@ -164,33 +162,37 @@ namespace UniVue.Rule
             int childNum = transform.childCount;
             for (int i = 0; i < childNum; i++)
             {
-                DepthSearch(transform.GetChild(i).gameObject, rules, true);
+                GameObject childObj = transform.GetChild(i).gameObject;
+                if (!Vue.IsViewObject(childObj))
+                    DepthSearch(childObj, rules);
             }
         }
 
-        private IEnumerator DepthSearchAsync(GameObject gameObject, IRule[] rules, GameObject temp, bool checkViewObject)
+        private IEnumerator DepthSearchAsync(GameObject gameObject, IRule[] rules, GameObject temp)
         {
-            if (gameObject != null && !gameObject.name.StartsWith(_ignoreSymbol) && (!checkViewObject || !Vue.IsViewObject(gameObject)))
+            if (gameObject != null && !gameObject.name.StartsWith(_ignoreSymbol))
             {
                 Transform transform = gameObject.transform;
-                if (!transform.name.StartsWith(_skipSymbol) && UITypeUtil.TryGetUI(gameObject, out UIType type, out Component ui))
+                if (UITypeUtil.TryGetUI(gameObject, out UIType type, out Component ui))
                 {
+                    TargetObject = gameObject;
+                    string[] checkRules = gameObject.name.Split(_ruleSeparator);
                     for (int i = 0; i < rules.Length; i++)
                     {
-                        TargetObject = gameObject;
-                        string[] checkRules = gameObject.name.Split(_ruleSeparator);
                         for (int j = 0; j < checkRules.Length; j++)
                         {
                             rules[i].Check(checkRules[j], type, ui);
+                            yield return null;
                         }
                     }
                 }
 
-                yield return null;
                 int childNum = transform.childCount;
                 for (int i = 0; i < childNum; i++)
                 {
-                    yield return DepthSearchAsync(transform.GetChild(i).gameObject, rules, temp, true);
+                    GameObject childObj = transform.GetChild(i).gameObject;
+                    if (!Vue.IsViewObject(childObj))
+                        yield return DepthSearchAsync(childObj, rules, temp);
                 }
 
                 for (int i = 0; i < rules.Length; i++)
@@ -198,6 +200,7 @@ namespace UniVue.Rule
                     TargetObject = gameObject;
                     rules[i].OnComplete();
                 }
+
                 TargetObject = null;
                 UnityEngine.Object.Destroy(temp);
                 _pool.Return(rules);

@@ -34,6 +34,7 @@ namespace UniVue.ViewModel
             {
                 _value = propertyValue;
                 _ui.captionText.text = GetAliasByValue(propertyValue);
+                SetValueIndex();
             }
         }
 
@@ -46,6 +47,18 @@ namespace UniVue.ViewModel
         {
             ShowAllAlias();
             base.OnLanguageEnvironmentChanged();
+        }
+
+        private void SetValueIndex()
+        {
+            for (int i = 0; i < _ui.options.Count; i++)
+            {
+                if (_ui.options[i].text == _ui.captionText.text)
+                {
+                    _ui.value = i;
+                    break;
+                }
+            }
         }
 
         private void ShowAllAlias()

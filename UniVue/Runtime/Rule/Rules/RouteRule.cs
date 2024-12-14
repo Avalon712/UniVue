@@ -12,7 +12,7 @@ namespace UniVue.Rule
     /// </summary>
     public sealed class RouteRule : IRule
     {
-        private static readonly Regex ROUTE = new Regex("(Open|Close|Skip|Return)_(.+)_(Btn|Button|Toggle)", RegexOptions.Compiled);
+        private static readonly Regex ROUTE = new Regex("(Open|Close|Skip)_(.+)_(Btn|Button|Toggle)", RegexOptions.Compiled);
 
         public string ViewName { get; internal set; }
 
@@ -43,16 +43,29 @@ namespace UniVue.Rule
         private bool DoCheck(string uiName, out RouteEvent routeEvent, out string opViewName)
         {
             opViewName = null;
-            routeEvent = RouteEvent.Open;
-            Match match = ROUTE.Match(uiName);
-            if (match.Success)
+            if (MatchReturn(uiName))
             {
-                routeEvent = GetRouteEvent(match.Groups[1].Value);
-                if (routeEvent != RouteEvent.Return)
-                    opViewName = match.Groups[2].Value;
+                routeEvent = RouteEvent.Return;
                 return true;
             }
+            else
+            {
+                routeEvent = RouteEvent.Open;
+                Match match = ROUTE.Match(uiName);
+                if (match.Success)
+                {
+                    routeEvent = GetRouteEvent(match.Groups[1].Value);
+                    if (routeEvent != RouteEvent.Return)
+                        opViewName = match.Groups[2].Value;
+                    return true;
+                }
+            }
             return false;
+        }
+
+        private static bool MatchReturn(string uiName)
+        {
+            return uiName == "Return_Btn" || uiName == "Return_Button" || uiName == "Return_Toggle";
         }
 
         private static RouteEvent GetRouteEvent(string str)
@@ -60,9 +73,9 @@ namespace UniVue.Rule
             switch (str)
             {
                 case nameof(RouteEvent.Open): return RouteEvent.Open;
-                case nameof(RouteEvent.Close):return RouteEvent.Close;
-                case nameof(RouteEvent.Return):return RouteEvent.Return;
-                case nameof(RouteEvent.Skip):return RouteEvent.Skip;
+                case nameof(RouteEvent.Close): return RouteEvent.Close;
+                case nameof(RouteEvent.Return): return RouteEvent.Return;
+                case nameof(RouteEvent.Skip): return RouteEvent.Skip;
             }
             return RouteEvent.Open;
         }

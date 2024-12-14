@@ -7,6 +7,7 @@ namespace UniVue.Event
         /// <summary>
         /// 方法的参数列表信息
         /// </summary>
+        /// <remarks>这个参数顺序和方法的参数顺序完全一致</remarks>
         public Argument[] Arguments { get; }
 
         /// <summary>
@@ -34,12 +35,7 @@ namespace UniVue.Event
         /// </summary>
         public bool IsCoroutine { get; }
 
-        public EventCall(Argument[] arguments,
-                         string eventName,
-                         string[] views,
-                         string methodName,
-                         string typeFullName,
-                         bool isCoroutine)
+        public EventCall(Argument[] arguments, string eventName, string[] views, string methodName, string typeFullName, bool isCoroutine)
         {
             Arguments = arguments;
             EventName = eventName;
@@ -52,42 +48,43 @@ namespace UniVue.Event
         public bool TrySetInovkeArgumentValues(EventUI eventUI)
         {
             if (Arguments == null) return true;
-            ArgumentUI[] args = eventUI.Arguments;
-            Argument[] arguments = Arguments;
+            ArgumentUI[] methodArgValues = eventUI.Arguments;
+            Argument[] methodArgs = Arguments;
             int count = 0;
-            if (args != null && arguments != null)
+            //方法参数不为null同时存在参数UI的情况
+            if (methodArgValues != null && methodArgs != null)
             {
-                for (int j = 0; j < arguments.Length; j++)
+                for (int j = 0; j < methodArgs.Length; j++)
                 {
-                    Argument argument = arguments[j];
-                    for (int i = 0; i < args.Length; i++)
+                    Argument methodArg = methodArgs[j];
+                    for (int i = 0; i < methodArgValues.Length; i++)
                     {
                         bool flag = false;
-                        switch (argument.type)
+                        switch (methodArg.type)
                         {
                             case SupportableArgumentType.Custom:
-                                if (Vue.Event.TryGetCustomArgumentMapper(argument.typeFullName, out var mapper))
+                                if (Vue.Event.TryGetCustomArgumentMapper(methodArg.typeFullName, out var mapper))
                                 {
                                     flag = true;
-                                    argument.value = mapper.GetValue(args);
+                                    methodArg.value = mapper.GetValue(methodArgValues);
                                 }
                                 else
                                 {
-                                    ThrowUtil.ThrowWarn($"事件回调方法{MethodName}中尚未为类型为{argument.typeFullName}的自定义参数类型注册参数映射器");
+                                    ThrowUtil.ThrowWarn($"事件回调方法{MethodName}中尚未为类型为{methodArg.typeFullName}的自定义参数类型注册参数映射器");
                                 }
                                 break;
                             case SupportableArgumentType.EventUI:
-                                argument.value = eventUI;
+                                methodArg.value = eventUI;
                                 flag = true;
                                 break;
                             case SupportableArgumentType.EventCall:
-                                argument.value = this;
+                                methodArg.value = this;
                                 flag = true;
                                 break;
                             default:
-                                if (args[i].TryGetArgumentValue(argument, out object value))
+                                if (methodArgValues[i].TryGetArgumentValue(methodArg, out object value))
                                 {
-                                    argument.value = value;
+                                    methodArg.value = value;
                                     flag = true;
                                 }
                                 break;
@@ -97,6 +94,36 @@ namespace UniVue.Event
                             count++;
                             break;
                         }
+                    }
+                }
+            }
+            //方法参数不为null但是不存在参数UI的情况
+            else if (methodArgValues == null && methodArgs != null)
+            {
+                for (int j = 0; j < methodArgs.Length; j++)
+                {
+                    Argument methodArg = methodArgs[j];
+                    switch (methodArg.type)
+                    {
+                        case SupportableArgumentType.Custom:
+                            if (Vue.Event.TryGetCustomArgumentMapper(methodArg.typeFullName, out var mapper))
+                            {
+                                count++;
+                                methodArg.value = mapper.GetValue(methodArgValues);
+                            }
+                            else
+                            {
+                                ThrowUtil.ThrowWarn($"事件回调方法{MethodName}中尚未为类型为{methodArg.typeFullName}的自定义参数类型注册参数映射器");
+                            }
+                            break;
+                        case SupportableArgumentType.EventUI:
+                            count++;
+                            methodArg.value = eventUI;
+                            break;
+                        case SupportableArgumentType.EventCall:
+                            count++;
+                            methodArg.value = this;
+                            break;
                     }
                 }
             }
@@ -117,14 +144,6 @@ namespace UniVue.Event
             this.type = type;
             this.name = name;
             value = null;
-        }
-
-        /// <summary>
-        /// 不安全的设置参数值，不会进行类型的安全检查
-        /// </summary>
-        public void UnsafeSetValue(object value)
-        {
-            this.value = value;
         }
     }
 }

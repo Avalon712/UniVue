@@ -4,6 +4,7 @@ using UnityEngine;
 using UniVue.Common;
 using UniVue.Event;
 using UniVue.i18n;
+using UniVue.Internal;
 using UniVue.Rule;
 using UniVue.View;
 using UniVue.ViewModel;
@@ -188,16 +189,73 @@ namespace UniVue
         /// <para>当前场景加载完毕时调用此函数加载视图对象</para>
         /// </remarks>
         /// <param name="rootCanvas">所有根Canvas对象</param>
-        public static void LoadAllViewObject(List<Canvas> rootCanvas)
+        public static void LoadAllViewObject(Canvas[] rootCanvas)
         {
             CheckInitialize();
             Dictionary<string, GameObject> viewObjects = Router.ViewObjects;
-            for (int i = 0; i < rootCanvas.Count; i++)
+            for (int i = 0; i < rootCanvas.Length; i++)
             {
                 GameObjectUtil.DepthFindAllViewObjects(rootCanvas[i].gameObject, viewObjects);
             }
             Router.RebuildVTree();
             Rule.ExecuteLoadViewRule(viewObjects.Values);
+        }
+
+        /// <summary>
+        /// 卸载指定视图名称的关联的所有资源
+        /// </summary>
+        /// <remarks>当前视图的所有后代视图相关的资源也都会被进行释放</remarks>
+        /// <param name="viewName">视图名称</param>
+        /// <param name="destoryViewObject">是否在卸载视图的同时也销毁视图对象</param>
+        public static void UnloadView(string viewName, bool destoryViewObject = true)
+        {
+            CheckInitialize();
+            if (destoryViewObject && _router.ViewObjects.TryGetValue(viewName, out GameObject viewObject))
+            {
+                UnityEngine.Object.Destroy(viewObject);
+            }
+            List<string> allUnloadViews = (List<string>)CachePool.GetCache(InternalType.List_String);
+            _router.GetDescendants(viewName, allUnloadViews);
+            allUnloadViews.Add(viewName);
+            for (int i = 0; i < allUnloadViews.Count; i++)
+            {
+                string unload = allUnloadViews[i];
+                _router.UnloadView(unload);
+                _updater.Table.UnloadView(unload);
+                _event.UnloadView(unload);
+            }
+            allUnloadViews.Clear();
+            CachePool.AddCache(InternalType.List_String, allUnloadViews, false);
+        }
+
+        /// <summary>
+        /// 加载指定视图对象 (这个视图的所有后代视图也会被加载)
+        /// </summary>
+        /// <remarks>通过代码动态的创建一个ViewObject后调用此方法进行加载</remarks>
+        /// <param name="viewObject">新创建的ViewObject</param>
+        public static void LoadView(GameObject viewObject)
+        {
+            CheckInitialize();
+            Dictionary<string, GameObject> viewObjects = new Dictionary<string, GameObject>();
+            GameObjectUtil.DepthFindAllViewObjects(viewObject, viewObjects);
+            foreach (var view in viewObjects)
+            {
+                _router.ViewObjects.Add(view.Key, view.Value);
+            }
+            _router.RebuildVTree();
+            Rule.ExecuteLoadViewRule(viewObjects.Values);
+            viewObjects.Clear();
+        }
+
+        /// <summary>
+        /// 实例化一个预制体，同时加载这个GameObject的所有视图对象
+        /// </summary>
+        /// <param name="prefab">视图预制体</param>
+        /// <param name="parent">实列化的GameObject的父物体</param>
+        public static void CreateView(GameObject prefab, Transform parent)
+        {
+            CheckInitialize();
+            LoadView(GameObjectUtil.RectTransformClone(prefab, parent));
         }
 
         #region 编辑器模式
@@ -210,6 +268,7 @@ namespace UniVue
         {
             if (!_initialized) return;
             UnloadCurrentSceneResources();
+            OnLanguageEnvironmentChanged = null;
             _rule = null;
             _router = null;
             _updater = null;

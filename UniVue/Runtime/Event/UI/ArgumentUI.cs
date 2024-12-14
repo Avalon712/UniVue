@@ -77,6 +77,8 @@ namespace UniVue.Event
         public bool TryGetArgumentValue(Argument argument, out object value)
         {
             value = null;
+            if (argument.name != ArgumentName) { return false; }
+
             object thisValue = GetRawValue();
             switch (argument.type)
             {

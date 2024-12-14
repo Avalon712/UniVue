@@ -59,7 +59,7 @@ namespace UniVue.ViewModel
                 ui.value = GetNewAlias(ui.value);
             }
         }
-        
+
         private void SetIsOn(string value, bool isOn)
         {
             for (int i = 0; i < _uis.Length; i++)

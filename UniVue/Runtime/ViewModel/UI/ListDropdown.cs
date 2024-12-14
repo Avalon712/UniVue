@@ -102,6 +102,9 @@ namespace UniVue.ViewModel
 
         private void ShowItem(int index, string item)
         {
+            if (string.IsNullOrEmpty(_dropdown.captionText.text))
+                _dropdown.captionText.text = item;
+
             if (_dropdown.options.Count > index)
                 _dropdown.options[index].text = item;
             else
@@ -110,6 +113,9 @@ namespace UniVue.ViewModel
 
         private void ShowItem(int index, Sprite item)
         {
+            if (_dropdown.captionImage != null && _dropdown.captionImage.sprite == null)
+                _dropdown.captionImage.sprite = item;
+
             if (_dropdown.options.Count > index)
                 _dropdown.options[index].image = item;
             else

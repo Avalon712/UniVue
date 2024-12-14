@@ -10,9 +10,9 @@ namespace UniVue.ViewModel
     /// </summary>
     public sealed class ViewUpdater
     {
-        internal ViewUpdater() 
-        { 
-            Table = new VMTable(Vue.Config.TabelSize); 
+        internal ViewUpdater()
+        {
+            Table = new VMTable(Vue.Config.TabelSize);
             Vue.OnLanguageEnvironmentChanged += OnLanguageEnvironmentChanged;
         }
 
