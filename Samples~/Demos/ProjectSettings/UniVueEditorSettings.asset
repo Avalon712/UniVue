@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 53
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29be6488dfac40a49a4391ad7fafbe5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  redPointKeyExportDirectory: 
+  redPointKeyNamespace: 
+  uiTypes: 00000000010000000200000003000000040000000500000007000000080000001c0000001d0000001b00000019000000
+  typeSuffixes:
+  - Image,Img,img,image
+  - RawImage,RImg,rimg,rawimage
+  - Txt,Text,txt,text
+  - Button,Btn,button,btn
+  - Toggle,toggle
+  - Slider,slider
+  - Dropdown,dropdown
+  - Input,input
+  - Input,input
+  - Dropdown,dropdown
+  - Txt,Text,txt,text
+  - ToggleGroup

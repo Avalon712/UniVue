@@ -1,0 +1,18 @@
+{
+  "name": "org.avalon712.univue",
+  "displayName": "UniVue",
+  "version": "3.0.0",
+  "unity": "2019.3",
+  "description": "A high-performance, lightweight reactive UI framework for UnityEngine.",
+  "repository": {
+    "url": "https://github.com/Avalon712/UniVue.git",
+    "type": "git"
+  },
+  "samples": [
+    {
+      "displayName": "Demos",
+      "description": "This sample demonstrates how to use UniVue",
+      "path": "Samples~/Demos"
+    }
+  ]
+}

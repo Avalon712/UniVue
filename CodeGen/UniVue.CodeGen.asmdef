@@ -1,0 +1,24 @@
+{
+  "name": "Unity.UniVue.CodeGen",
+  "rootNamespace": "UniVue.CodeGen",
+  "references": [
+    "GUID:ed231924b8cc4d34b98948b0ecb3e26d",
+    "GUID:3d9cecfccb012844daaae6d5cda79c7b"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "Mono.Cecil.dll",
+    "Mono.Cecil.Pdb.dll",
+    "Mono.Cecil.Mdb.dll",
+    "Mono.Cecil.Rocks.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
