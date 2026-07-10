@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Common;
-using UniVue.Coroutine;
 using UniVue.Internal;
 using UniVue.Utils;
+using VC;
 
 namespace UniVue.UI
 {
@@ -32,7 +32,7 @@ namespace UniVue.UI
 
         public RedPointMgr()
         {
-            CoroutineMgr.Run(UpdateRedPointSystem());
+            VCoroutine.Run(UpdateRedPointSystem());
         }
 
         public RedPointMgr(Type redPointKeyType)
@@ -82,7 +82,7 @@ namespace UniVue.UI
                     node.rule = GetRule(key);
             }
 
-            CoroutineMgr.Run(UpdateRedPointSystem());
+            VCoroutine.Run(UpdateRedPointSystem());
         }
 
         private IEnumerator UpdateRedPointSystem()

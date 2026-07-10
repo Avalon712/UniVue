@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Common;
-using UniVue.Coroutine;
 using UniVue.Internal;
+using VC;
 
 namespace UniVue.Timer
 {
@@ -67,7 +67,7 @@ namespace UniVue.Timer
         {
             if (!_initialized)
             {
-                CoroutineMgr.Run(Tick());
+                VCoroutine.Run(Tick());
                 _initialized = true;
             }
 
@@ -158,12 +158,12 @@ namespace UniVue.Timer
         public ref struct TimerBuilder
         {
             private static ulong _timerId = ulong.MaxValue;
-            private float delay;
-            private float interval;
-            private int repeatCount;
-            private Action callback;
-            private Func<bool> executeCondition;
-            private Func<bool> cancelCondition;
+            private float _delay;
+            private float _interval;
+            private int _repeatCount;
+            private Action _callback;
+            private Func<bool> _executeCondition;
+            private Func<bool> _cancelCondition;
 
             /// <summary>
             /// 设置回调函数（重复调用将进行追加）
@@ -173,7 +173,7 @@ namespace UniVue.Timer
             public TimerBuilder OfCallback(Action callback)
             {
                 if (callback != null)
-                    this.callback += callback;
+                    _callback += callback;
                 return this;
             }
 
@@ -184,7 +184,7 @@ namespace UniVue.Timer
             /// <returns></returns>
             public TimerBuilder OfInterval(float interval)
             {
-                this.interval = interval;
+                _interval = interval;
                 return this;
             }
 
@@ -195,7 +195,7 @@ namespace UniVue.Timer
             /// <returns></returns>
             public TimerBuilder OfDelay(float delay)
             {
-                this.delay = delay;
+                _delay = delay;
                 return this;
             }
 
@@ -206,7 +206,7 @@ namespace UniVue.Timer
             /// <returns></returns>
             public TimerBuilder OfCount(int repeatCount)
             {
-                this.repeatCount = repeatCount;
+                _repeatCount = repeatCount;
                 return this;
             }
 
@@ -218,7 +218,7 @@ namespace UniVue.Timer
             public TimerBuilder OfExecuteCondition(Func<bool> executeCondition)
             {
                 if (executeCondition != null)
-                    this.executeCondition = executeCondition;
+                    _executeCondition = executeCondition;
                 return this;
             }
 
@@ -230,7 +230,7 @@ namespace UniVue.Timer
             public TimerBuilder OfCancelCondition(Func<bool> cancelCondition)
             {
                 if (cancelCondition != null)
-                    this.cancelCondition = cancelCondition;
+                    _cancelCondition = cancelCondition;
                 return this;
             }
 
@@ -241,16 +241,16 @@ namespace UniVue.Timer
             /// <exception cref="Exception"></exception>
             public ulong Build()
             {
-                bool dontCreateTimer = callback == null || (delay <= 0 && interval <= 0);
+                bool dontCreateTimer = _callback == null || (_delay <= 0 && _interval <= 0);
                 LogUtil.Assert(!dontCreateTimer, "Callback or delay/interval must be set");
                 ulong timerId = _timerId--;
                 TimerTask timerTask = InternalObjectPool<TimerTask>.Shared.Rent();
-                timerTask.delay = delay;
-                timerTask.interval = interval;
-                timerTask.repeatCount = repeatCount == 0 ? 1 : repeatCount;
-                timerTask.callback = callback;
-                timerTask.executeCondition = executeCondition;
-                timerTask.cancelCondition = cancelCondition;
+                timerTask.delay = _delay;
+                timerTask.interval = _interval;
+                timerTask.repeatCount = _repeatCount == 0 ? 1 : _repeatCount;
+                timerTask.callback = _callback;
+                timerTask.executeCondition = _executeCondition;
+                timerTask.cancelCondition = _cancelCondition;
                 timerTask.surplusWaitTime = timerTask.TotalTime;
                 AddTimer(timerId, timerTask);
                 return timerId;

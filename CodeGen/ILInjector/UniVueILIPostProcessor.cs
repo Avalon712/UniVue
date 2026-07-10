@@ -52,7 +52,6 @@ namespace UniVue.CodeGen
                 AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(peStream, readerParameters);
                 bool modified = false;
                 modified |= ParamsGCOptimizationInjector.Inject(assemblyDefinition, diagnostics);
-                modified |= UILazyInitUIInjector.Inject(assemblyDefinition, diagnostics);
                 modified |= NotifyPropertyChangedInjector.Inject(assemblyDefinition);
                 if (!modified) return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, diagnostics);
 

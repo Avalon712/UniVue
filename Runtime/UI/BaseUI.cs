@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 using UniVue.Common;
-using UniVue.Coroutine;
+using VC;
 using UniVue.Event;
 using UniVue.Internal;
 using UniVue.Model;
@@ -48,9 +48,9 @@ namespace UniVue.UI
                 if (Disposed || _enable == value) return;
                 _enable = value;
                 if (value)
-                    CoroutineMgr.Resume(_updateCoroutine);
+                    VCoroutine.Resume(_updateCoroutine);
                 else
-                    CoroutineMgr.Stop(_updateCoroutine);
+                    VCoroutine.Stop(_updateCoroutine);
                 if (value)
                     RefreshUI();
                 UIMgr.Renderer.SetEnable(_graph, value);
@@ -65,7 +65,7 @@ namespace UniVue.UI
             UI = ui;
             OnCreate();
             if (enableUpdate | enableUpdatePerSecond)
-                _updateCoroutine = CoroutineMgr.Run(UpdateInternal());
+                _updateCoroutine = VCoroutine.Run(UpdateInternal());
 
             _enable = ui.gameObject.activeSelf;
         }
@@ -80,7 +80,7 @@ namespace UniVue.UI
             EventMgr.Off(this);
             UI = null;
             Disposed = true;
-            CoroutineMgr.Kill(_updateCoroutine);
+            VCoroutine.Kill(_updateCoroutine);
             _updateCoroutine = 0;
             InternalObjectPool<List<ulong>>.Shared.Return(ref _coroutines);
             InternalObjectPool<List<ulong>>.Shared.Return(ref _timers);
@@ -458,7 +458,7 @@ namespace UniVue.UI
         protected CoroutineID RunCoroutine(IEnumerator routine)
         {
             CheckDisposedAndInitialized();
-            CoroutineID coroutineID = CoroutineMgr.Run(routine);
+            CoroutineID coroutineID = VCoroutine.Run(routine);
             _coroutines.Add(coroutineID.id);
             return coroutineID;
         }
@@ -469,7 +469,7 @@ namespace UniVue.UI
         protected void StopCoroutine(in CoroutineID coroutineId)
         {
             CheckDisposedAndInitialized();
-            CoroutineMgr.Stop(coroutineId);
+            VCoroutine.Stop(coroutineId);
         }
 
         /// <summary>
@@ -478,7 +478,7 @@ namespace UniVue.UI
         protected void ResumeCoroutine(in CoroutineID coroutineId)
         {
             CheckDisposedAndInitialized();
-            CoroutineMgr.Resume(coroutineId);
+            VCoroutine.Resume(coroutineId);
         }
 
         /// <summary>
@@ -487,7 +487,7 @@ namespace UniVue.UI
         protected void KillCoroutine(in CoroutineID coroutineId)
         {
             CheckDisposedAndInitialized();
-            CoroutineMgr.Kill(coroutineId);
+            VCoroutine.Kill(coroutineId);
             _coroutines.Remove(coroutineId.id);
         }
 
@@ -504,7 +504,7 @@ namespace UniVue.UI
         protected void KillAllCoroutines()
         {
             CheckDisposedAndInitialized();
-            foreach (ulong coroutine in _coroutines) CoroutineMgr.Kill(coroutine);
+            foreach (ulong coroutine in _coroutines) VCoroutine.Kill(coroutine);
             _coroutines.Clear();
         }
 

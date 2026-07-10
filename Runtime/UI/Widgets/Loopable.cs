@@ -19,7 +19,6 @@ namespace UniVue.UI.Widgets
         Horizontal
     }
 
-    [DontGenUICode(Code = UIGenCode.Property)]
     public abstract class LoopItem : BaseComponent { }
 
     [RequireComponent(typeof(ScrollRect))]

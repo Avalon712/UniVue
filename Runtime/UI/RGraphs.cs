@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UniVue.Common;
-using UniVue.Coroutine;
 using UniVue.Event;
 using UniVue.Internal;
 using UniVue.Model;
 using UniVue.Utils;
+using VC;
 
 namespace UniVue.UI
 {
@@ -52,7 +52,7 @@ namespace UniVue.UI
             RNode.ForceDispose(Entry.g);
             Entry = default;
             EventMgr.OnEvent -= OnTriggerEvent;
-            CoroutineMgr.Kill(_coroutineId);
+            VCoroutine.Kill(_coroutineId);
             _coroutineId = 0;
             _renderQueue.Clear();
         }
@@ -110,7 +110,7 @@ namespace UniVue.UI
                 });
             }
 
-            if (_coroutineId == 0) _coroutineId = CoroutineMgr.Run(Render(), _renderCtx);
+            if (_coroutineId == 0) _coroutineId = VCoroutine.Run(Render(), _renderCtx);
         }
 
         private void OnNotifyPropertyChanged(BaseModel model, string propertyName, object _)
@@ -152,7 +152,7 @@ namespace UniVue.UI
                 });
             }
 
-            if (_coroutineId == 0) _coroutineId = CoroutineMgr.Run(Render(), _renderCtx);
+            if (_coroutineId == 0) _coroutineId = VCoroutine.Run(Render(), _renderCtx);
         }
 
         internal void SetEnable(in RGraph graph, bool enable)

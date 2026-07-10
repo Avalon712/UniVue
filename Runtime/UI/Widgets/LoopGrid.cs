@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UniVue.UI.Widgets
 {
-    [DontGenUICode(Code = UIGenCode.Class)]
     [AddComponentMenu("UniVue/UI Widgets/LoopGrid")]
     public sealed class LoopGrid : Loopable
     {
