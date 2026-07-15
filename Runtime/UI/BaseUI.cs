@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UniVue.Common;
 using VC;
@@ -13,114 +13,211 @@ using UniVue.Utils;
 
 namespace UniVue.UI
 {
-    /// <summary>
-    /// 不建议使用MonoBehaviour的任何函数，框架内部自有一套生命周期管理函数，继承自MonoBehaviour只是方便绑定UI预制体
-    /// </summary>
     [RequireComponent(typeof(RectTransform))]
-    public abstract class BaseUI : MonoBehaviour
+    public abstract class BaseUI : UIModel
     {
-        private List<ulong> _coroutines;
-        private bool _enable;
         private RGraph _graph;
         private float _timer;
+        private List<ulong> _coroutines;
         private List<ulong> _timers;
-        private CoroutineID _updateCoroutine;
-
-        /// <summary>
-        /// 是否启用回调OnUpdate()，默认false
-        /// </summary>
-        protected bool enableUpdate;
-
-        /// <summary>
-        /// 是否启用回调OnUpdatePerSecond()，默认false
-        /// </summary>
-        protected bool enableUpdatePerSecond;
+        private List<BaseUI> _children;
+        
+        //保证OnCreate一定最先被执行
+        private bool _creationInvoked;
+        private bool _needInvokeOnActivateAfterOnCreate; 
+        private bool _needInvokeOnInactiveAfterOnCreate;
 
         public bool Disposed { get; private set; }
 
+        /// <summary>
+        /// UI对象
+        /// </summary>
         public GameObject UI { get; private set; }
 
-        protected bool Enable
+        public RectTransform Layout { get; private set; }
+
+        /// <summary>
+        /// UI名称
+        /// <remarks>此名称为创建时的名称，且不会再变</remarks>
+        /// </summary>
+        public string Name { get; private set; }
+
+        /// <summary>
+        /// 所有子UI
+        /// <remarks>每次调用都是重新获取不会缓存结果</remarks>
+        /// </summary>
+        public IReadOnlyList<BaseUI> Children
         {
-            get => !Disposed && _enable;
-            set
+            get
             {
-                if (Disposed || _enable == value) return;
-                _enable = value;
-                if (value)
-                    VCoroutine.Resume(_updateCoroutine);
-                else
-                    VCoroutine.Stop(_updateCoroutine);
-                if (value)
-                    RefreshUI();
-                UIMgr.Renderer.SetEnable(_graph, value);
+                CheckDisposed();
+                if (_children == null)
+                    _children = InternalObjectPool<List<BaseUI>>.Shared.Rent();
+                _children.Clear();
+                foreach (Transform child in transform)
+                {
+                    if (child.TryGetComponent(out BaseUI ui))
+                    {
+                        _children.Add(ui);
+                    }
+                }
+                return _children;
             }
         }
 
-        internal void OnCreateInternal(GameObject ui)
+        /// <summary>
+        /// 父UI
+        /// <remarks>每次调用都是重新获取不会缓存结果</remarks>
+        /// </summary>
+        public BaseUI Parent
         {
-            if (Disposed) return;
-            _coroutines = InternalObjectPool<List<ulong>>.Shared.Rent();
-            _timers = InternalObjectPool<List<ulong>>.Shared.Rent();
-            UI = ui;
-            OnCreate();
-            if (enableUpdate | enableUpdatePerSecond)
-                _updateCoroutine = VCoroutine.Run(UpdateInternal());
-
-            _enable = ui.gameObject.activeSelf;
+            get
+            {
+                CheckDisposed();
+                Transform parent = transform.parent;
+                BaseUI parentUI = null;
+                while (parent)
+                {
+                    if (parent.TryGetComponent(out parentUI))
+                        break;
+                    parent = parent.parent;
+                }
+                return parentUI;
+            }
         }
 
-        internal void OnDisposeInternal()
+        internal void OnCreateInternal()
         {
+            static void TraverseChildren(Transform transform)
+            {
+                foreach (Transform child in transform)
+                {
+                    if (child.TryGetComponent(out BaseUI ui))
+                        ui.OnCreateInternal();
+                    else
+                        TraverseChildren(child);
+                }
+            }
+            
             if (Disposed) return;
+            
+            TraverseChildren(transform);
+            Name = gameObject.name;
+            UI = gameObject;
+            Layout = UI.GetComponent<RectTransform>();
+            
+            OnCreate();
+            _creationInvoked = true;
+            if (_needInvokeOnActivateAfterOnCreate)
+                SetUIActive(true);
+            else if (_needInvokeOnInactiveAfterOnCreate)
+                SetUIActive(false);
+        }
+
+        private void SetUIActive(bool active)
+        {
+            UIMgr.Renderer.SetEnable(_graph, active);
+            if (active)
+            {
+                OnActive();
+                RefreshUI();
+            }
+            else
+            {
+                OnInactive();
+            }
+        }
+        
+        #region Unity回调
+        
+        private void OnEnable()
+        {
+            //OnEnable调用情况：不管何种情况gameObject.activeSelf=true && enabled=true都是前提
+            //在Awake之后自然调用
+            //其祖上节点处于失活状态，当其离开失活区域时
+            //祖上节点从失活状态变为激活状态
+
+            if (!_creationInvoked)
+            {
+                _needInvokeOnActivateAfterOnCreate = true;
+                _needInvokeOnInactiveAfterOnCreate = false;
+                return;
+            }
+            SetUIActive(true);
+        }
+
+        private void OnDisable()
+        {
+            //OnDisable调用情况：
+            //gameObject.activeSelf = false
+            //enabled = false
+            //从激活状态进入失活区域
+            
+            if (!_creationInvoked)
+            {
+                _needInvokeOnActivateAfterOnCreate = false;
+                _needInvokeOnInactiveAfterOnCreate = true;
+                return;
+            }
+            SetUIActive(false);
+        }
+
+        private void OnDestroy()
+        {
+            OnDispose();
             UIMgr.Renderer.Remove(ref _graph);
             KillAllCoroutines();
             KillAllTimers();
-            OnDispose();
             EventMgr.Off(this);
-            UI = null;
-            Disposed = true;
-            VCoroutine.Kill(_updateCoroutine);
-            _updateCoroutine = 0;
+            _children?.Clear();
             InternalObjectPool<List<ulong>>.Shared.Return(ref _coroutines);
             InternalObjectPool<List<ulong>>.Shared.Return(ref _timers);
+            InternalObjectPool<List<BaseUI>>.Shared.Return(ref _children);
+            Disposed = true;
         }
 
-        [Conditional("UNITY_EDITOR")]
-        protected void CheckDisposedAndInitialized()
+        #endregion
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void CheckDisposed()
         {
             ExceptionUtils.ThrowIfTrue(Disposed, Disposed ? $"{GetType().Name} is disposed." : string.Empty);
-            ExceptionUtils.ThrowIfNull(_timers, "初始化尚未完成");
-            ExceptionUtils.ThrowIfNull(_coroutines, "初始化尚未完成");
         }
 
-        private IEnumerator UpdateInternal()
+        private bool TryAllocateCollections(ref List<ulong> collection)
         {
-            while (true)
+            if (collection == null)
             {
-                if (!_enable)
-                    yield return new WaitUntil(() => _enable);
-
-                yield return null;
-
-                float deltaTime = Time.deltaTime;
-                if (enableUpdate)
-                    OnUpdate(deltaTime);
-
-                if (enableUpdatePerSecond)
-                {
-                    _timer += deltaTime;
-                    if (_timer >= 1f)
-                    {
-                        _timer -= 1f;
-                        OnUpdatePerSecond();
-                    }
-                }
+                collection = InternalObjectPool<List<ulong>>.Shared.Rent();
+                return true;
             }
+            return false;
         }
 
-#region 辅助函数
+        #region 辅助函数
 
+        /// <summary>
+        /// 当前UI是否可以被看见
+        /// </summary>
+        /// <returns></returns>
+        protected bool IsVisible()
+        {
+            bool visible = false;
+            if (gameObject.activeSelf)
+            {
+                Transform parent = transform.parent;
+                while (parent)
+                {
+                    if(parent.gameObject.activeSelf)
+                        parent = parent.parent;
+                    else
+                        break;
+                }
+                visible = !parent;
+            }
+            return visible;
+        }
+        
         /// <summary>
         /// 刷新UI（绑定的所有渲染函数都会被执行一次，当渲染状态从Disable变为Enable时会自动调用一次此函数）
         /// <remarks>绝大多数情况下你都无需手动调用此函数。此函数不是精准式的更新，只要有脏标记则会将此UI绑定的所有渲染函数都执行一遍</remarks>
@@ -129,7 +226,7 @@ namespace UniVue.UI
         protected void RefreshUI(bool force = false)
         {
             if (_graph.g == null) return;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             UIMgr.Renderer.RenderIfDirtyOrForce(_graph, force, true);
         }
 
@@ -155,7 +252,7 @@ namespace UniVue.UI
         public T GetModel<T>() where T : BaseModel
         {
             if (_graph.g == null) return null;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             foreach (BaseModel model in GetModels())
             {
                 if (model is T modelT)
@@ -170,10 +267,10 @@ namespace UniVue.UI
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public bool ContainsModel(BaseModel model)
+        public bool IsBind(BaseModel model)
         {
-            CheckDisposedAndInitialized();
             if (_graph.g == null) return false;
+            CheckDisposed();
             return _graph.g.next.ContainsKey(model);
         }
 
@@ -186,12 +283,12 @@ namespace UniVue.UI
         protected void Rebind<T>(T oldModel, T newModel) where T : BaseModel
         {
             if (_graph.g == null || oldModel == newModel) return;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfArgNull(oldModel, nameof(oldModel));
             ExceptionUtils.ThrowIfArgNull(newModel, nameof(newModel));
-            ExceptionUtils.ThrowIfFalse(ContainsModel(oldModel), "当前UI不存在绑定的模型(oldModel)");
-            ExceptionUtils.ThrowIfTrue(ContainsModel(newModel), "当前UI已经绑定了模型(newModel)");
-            UIMgr.Renderer.Rebind(_graph, oldModel, newModel, Enable);
+            ExceptionUtils.ThrowIfFalse(IsBind(oldModel), "当前UI不存在绑定的模型(oldModel)");
+            ExceptionUtils.ThrowIfTrue(IsBind(newModel), "当前UI已经绑定了模型(newModel)");
+            UIMgr.Renderer.Rebind(_graph, oldModel, newModel, enabled && gameObject.activeSelf);
             UIMgr.Renderer.TrySetDirty(_graph);
         }
 
@@ -203,7 +300,7 @@ namespace UniVue.UI
         /// <returns>绑定的渲染函数</returns>
         protected Action Bind(BaseModel model, Action renderFunc)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfArgNull(model, nameof(model));
             ExceptionUtils.ThrowIfArgNull(renderFunc, nameof(renderFunc));
             UIMgr.Renderer.AddNode(ref _graph, model, renderFunc);
@@ -220,7 +317,7 @@ namespace UniVue.UI
         [InternalParamsGCOptimization]
         protected Action Bind(BaseModel model, Action renderFunc, params string[] propertyNames)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfArgNull(model, nameof(model));
             ExceptionUtils.ThrowIfArgNull(renderFunc, nameof(renderFunc));
             if (propertyNames == null || propertyNames.Length <= 0)
@@ -239,7 +336,7 @@ namespace UniVue.UI
         /// <returns>绑定的渲染函数</returns>
         protected Action Bind(BaseModel model, Action renderFunc, in Params<string> propertyNames)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfArgNull(model, nameof(model));
             ExceptionUtils.ThrowIfArgNull(renderFunc, nameof(renderFunc));
             if (propertyNames.Length <= 0)
@@ -257,7 +354,7 @@ namespace UniVue.UI
         /// <returns>绑定的渲染函数</returns>
         protected Action Bind(in EventKey eventKey, Action renderFunc)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfTrue(eventKey.Type == EventKeyType.NotEventKey, "无效的EventKey");
             ExceptionUtils.ThrowIfArgNull(renderFunc, nameof(renderFunc));
             UIMgr.Renderer.AddNode(ref _graph, eventKey, renderFunc);
@@ -273,7 +370,7 @@ namespace UniVue.UI
         [InternalParamsGCOptimization]
         protected Action Bind(Action renderFunc, params EventKey[] eventKeys)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfTrue(eventKeys == null || eventKeys.Length <= 0, "无效的EventKey");
             ExceptionUtils.ThrowIfArgNull(renderFunc, nameof(renderFunc));
             if (eventKeys == null || eventKeys.Length <= 0) return renderFunc;
@@ -293,7 +390,7 @@ namespace UniVue.UI
         /// <returns>绑定的渲染函数</returns>
         protected Action Bind(Action renderFunc, in Params<EventKey> eventKeys)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfTrue(eventKeys.Length <= 0, "无效的EventKey");
             ExceptionUtils.ThrowIfArgNull(renderFunc, nameof(renderFunc));
             foreach (EventKey eventKey in eventKeys)
@@ -311,7 +408,7 @@ namespace UniVue.UI
         protected void Unbind(BaseModel model)
         {
             if (_graph.g == null) return;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfArgNull(model, nameof(model));
             UIMgr.Renderer.Clear(ref _graph, model);
         }
@@ -324,7 +421,7 @@ namespace UniVue.UI
         protected void Unbind(params EventKey[] eventKeys)
         {
             if (_graph.g == null || eventKeys.Length <= 0) return;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             foreach (EventKey eventKey in eventKeys)
             {
                 if (eventKey.Type == EventKeyType.NotEventKey) continue;
@@ -339,7 +436,7 @@ namespace UniVue.UI
         protected void Unbind(in Params<EventKey> eventKeys)
         {
             if (_graph.g == null || eventKeys.Length <= 0) return;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             foreach (EventKey eventKey in eventKeys)
             {
                 if (eventKey.Type == EventKeyType.NotEventKey) continue;
@@ -356,7 +453,7 @@ namespace UniVue.UI
         protected void Unbind(BaseModel model, params string[] propertyNames)
         {
             if (_graph.g == null) return;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfArgNull(model, nameof(model));
             if (propertyNames == null || propertyNames.Length == 0)
                 UIMgr.Renderer.Clear(ref _graph, model);
@@ -372,7 +469,7 @@ namespace UniVue.UI
         protected void Unbind(BaseModel model, in Params<string> propertyNames)
         {
             if (_graph.g == null) return;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             ExceptionUtils.ThrowIfArgNull(model, nameof(model));
             if (propertyNames.Length <= 0)
                 UIMgr.Renderer.Clear(ref _graph, model);
@@ -386,7 +483,7 @@ namespace UniVue.UI
         protected void UnbindAll()
         {
             if (_graph.g == null) return;
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             UIMgr.Renderer.Remove(ref _graph);
         }
 
@@ -397,6 +494,7 @@ namespace UniVue.UI
         /// <param name="callback">事件回调（不支持多播委托）</param>
         protected void On(in EventKey eventKey, Action callback)
         {
+            CheckDisposed();
             EventMgr.On(eventKey, this, callback);
         }
 
@@ -408,6 +506,7 @@ namespace UniVue.UI
         /// <typeparam name="T"></typeparam>
         protected void On<T>(in EventKey eventKey, Action<T> callback)
         {
+            CheckDisposed();
             EventMgr.On(eventKey, this, callback);
         }
 
@@ -418,6 +517,7 @@ namespace UniVue.UI
         /// <param name="callback">事件回调</param>
         protected void Off(in EventKey eventKey, Action callback)
         {
+            CheckDisposed();
             EventMgr.Off(eventKey, callback);
         }
 
@@ -429,6 +529,7 @@ namespace UniVue.UI
         /// <typeparam name="T">事件参数类型</typeparam>
         protected void Off<T>(in EventKey eventKey, Action<T> callback)
         {
+            CheckDisposed();
             EventMgr.Off(eventKey, callback);
         }
 
@@ -442,10 +543,11 @@ namespace UniVue.UI
         /// <param name="executeCondition">每次执行时需要满足的条件，一旦不满足条件将自动销毁当前定时器</param>
         /// <param name="cancelCondition">定时任务取消条件</param>
         /// <returns>定时器唯一id</returns>
-        protected ulong AddTimer(float delay, float interval, int repeat, Action callback, Func<bool> executeCondition,
+        protected ulong AddTimer(float delay, float interval, int repeat, Action callback, Func<bool> executeCondition = null,
                                  Func<bool> cancelCondition = null)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
+            TryAllocateCollections(ref _timers);
             ulong timerId = TimerMgr.Create().OfDelay(delay).OfInterval(interval).OfCount(repeat).OfCallback(callback)
                                     .OfExecuteCondition(executeCondition).OfCancelCondition(cancelCondition).Build();
             _timers.Add(timerId);
@@ -457,7 +559,8 @@ namespace UniVue.UI
         /// </summary>
         protected CoroutineID RunCoroutine(IEnumerator routine)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
+            TryAllocateCollections(ref _coroutines);
             CoroutineID coroutineID = VCoroutine.Run(routine);
             _coroutines.Add(coroutineID.id);
             return coroutineID;
@@ -468,7 +571,7 @@ namespace UniVue.UI
         /// </summary>
         protected void StopCoroutine(in CoroutineID coroutineId)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             VCoroutine.Stop(coroutineId);
         }
 
@@ -477,7 +580,7 @@ namespace UniVue.UI
         /// </summary>
         protected void ResumeCoroutine(in CoroutineID coroutineId)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             VCoroutine.Resume(coroutineId);
         }
 
@@ -486,9 +589,8 @@ namespace UniVue.UI
         /// </summary>
         protected void KillCoroutine(in CoroutineID coroutineId)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             VCoroutine.Kill(coroutineId);
-            _coroutines.Remove(coroutineId.id);
         }
 
         /// <summary>
@@ -497,20 +599,23 @@ namespace UniVue.UI
         /// <param name="coroutineId">协程id</param>
         protected void ManageCoroutine(in CoroutineID coroutineId)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
+            TryAllocateCollections(ref _coroutines);
             if (!_coroutines.Contains(coroutineId.id)) _coroutines.Add(coroutineId.id);
         }
 
-        protected void KillAllCoroutines()
+        private void KillAllCoroutines()
         {
-            CheckDisposedAndInitialized();
+            if (_coroutines == null) return;
+            CheckDisposed();
             foreach (ulong coroutine in _coroutines) VCoroutine.Kill(coroutine);
             _coroutines.Clear();
         }
 
-        protected void KillAllTimers()
+        private void KillAllTimers()
         {
-            CheckDisposedAndInitialized();
+            if (_timers == null) return;
+            CheckDisposed();
             foreach (ulong timer in _timers) TimerMgr.Kill(timer);
             _timers.Clear();
         }
@@ -521,36 +626,35 @@ namespace UniVue.UI
         /// <param name="path">从当前UI根节点开始的路径，如：UIRoot/txtText，UIRoot</param>
         protected GameObject FindByPath(string path)
         {
-            CheckDisposedAndInitialized();
+            CheckDisposed();
             if (string.IsNullOrEmpty(path)) return null;
-            return GameObjectUtils.FindByPath(path, UI);
+            return CoreUtils.FindByPath(path, UI);
         }
 
-#endregion
+        #endregion
 
-#region 生命周期
+        #region 生命周期
 
         /// <summary>
-        /// UI被创建成功时回调
+        /// UI被创建成功时回调（不受Unity生命周期的管理）
         /// </summary>
         protected virtual void OnCreate() { }
 
         /// <summary>
-        /// 每帧回调，需设置<see cref="enableUpdate" />为true
+        /// 被激活时回调(受Unity的生命周期控制)
         /// </summary>
-        /// <param name="deltaTime">帧生成时间，秒</param>
-        protected virtual void OnUpdate(in float deltaTime) { }
+        protected virtual void OnActive() { }
 
         /// <summary>
-        /// 每秒调用，需设置<see cref="enableUpdatePerSecond" />为true
+        /// 失活时回调(受Unity的生命周期控制)
         /// </summary>
-        protected virtual void OnUpdatePerSecond() { }
+        protected virtual void OnInactive() { }
 
         /// <summary>
-        /// UI被销毁时回调
+        /// UI被销毁时回调(受Unity的生命周期控制)
         /// </summary>
         protected virtual void OnDispose() { }
 
-#endregion
+        #endregion
     }
 }

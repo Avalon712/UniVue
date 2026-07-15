@@ -29,7 +29,7 @@ namespace UniVue.UI
             Root = canvas.gameObject;
             Root.SetActive(true);
 
-            HideLayer = GameObjectUtils.CreateRectTransformGameObject("Hide Layer", canvas.transform);
+            HideLayer = CoreUtils.CreateRectTransformGameObject("Hide Layer", canvas.transform);
             HideLayer.SetActive(false);
             HideLayer.hideFlags = HideFlags.HideInHierarchy;
         }
@@ -71,7 +71,7 @@ namespace UniVue.UI
             }
 
             RectTransform canvas = Root.GetComponent<Canvas>().transform as RectTransform;
-            GameObject newLayerObj = GameObjectUtils.CreateRectTransformGameObject(layerName, canvas);
+            GameObject newLayerObj = CoreUtils.CreateRectTransformGameObject(layerName, canvas);
             RectTransform newLayer = newLayerObj.transform as RectTransform;
             newLayer.sizeDelta = canvas.sizeDelta;
 

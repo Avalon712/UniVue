@@ -87,7 +87,7 @@ namespace UniVue.UI.Widgets
                 if (_tail >= _head)
                     OnItemRender?.Invoke(_tail, item);
                 else
-                    item.Hide();
+                    item.gameObject.SetActive(false);
 
                 node = node.Next;
                 node2 = node2.Next;
@@ -158,7 +158,7 @@ namespace UniVue.UI.Widgets
                 if (_tail >= _head)
                     OnItemRender?.Invoke(_tail, item);
                 else
-                    item.Hide();
+                    item.gameObject.SetActive(false);
 
                 node = node.Next;
                 node2 = node2.Next;

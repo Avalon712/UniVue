@@ -21,6 +21,7 @@ namespace UniVue.UI.Widgets
 
     public abstract class LoopItem : BaseComponent { }
 
+    [DisableUICodeGenerated]
     [RequireComponent(typeof(ScrollRect))]
     public abstract class Loopable : BaseComponent
     {
@@ -99,10 +100,8 @@ namespace UniVue.UI.Widgets
 
         protected sealed override void OnCreate()
         {
-            enableUpdate = true;
             _scrollRect = GetComponent<ScrollRect>();
-
-
+            
             //防止BaseComponent的Show回调
             RectTransform content = _scrollRect.content;
             ChildCount = content.childCount;
@@ -127,7 +126,7 @@ namespace UniVue.UI.Widgets
             Count = 0;
         }
 
-        protected override void OnUpdate(in float deltaTime)
+        protected virtual void Update()
         {
             if (!_isDirty) return;
             _scrollRect.viewport.GetWorldCorners(_viewportCorners);
@@ -226,7 +225,7 @@ namespace UniVue.UI.Widgets
                 if (_tail < count)
                     OnItemRender?.Invoke(_tail++, item);
                 else
-                    item.Hide();
+                    item.gameObject.SetActive(false);
             }
 
             --_tail;
@@ -240,7 +239,7 @@ namespace UniVue.UI.Widgets
             {
                 if (item is T itemT)
                 {
-                    item.Show();
+                    item.gameObject.SetActive(true);
                     itemRender.Invoke(index, itemT);
                 }
             };

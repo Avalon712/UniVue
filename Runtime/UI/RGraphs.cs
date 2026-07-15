@@ -113,16 +113,16 @@ namespace UniVue.UI
             if (_coroutineId == 0) _coroutineId = VCoroutine.Run(Render(), _renderCtx);
         }
 
-        private void OnNotifyPropertyChanged(BaseModel model, string propertyName, object _)
+        private void OnNotifyPropertyChanged(IModel model, string propertyName, object _)
         {
-            if (Entry.g == null || !Entry.g.next.TryGetValue(model, out RNode mGraphs)) return;
+            if (Entry.g == null || !Entry.g.next.TryGetValue(new RKey(model), out RNode mGraphs)) return;
             using InternalTempCollection<Dictionary<RKey, RNode>, KeyValuePair<RKey, RNode>> graphs = new(mGraphs.next);
 
             foreach (RNode graph in graphs.Collection.Values)
             {
                 graph.Visit(node =>
                 {
-                    if (node.Key.type != RKeyType.Model || !node.Key.Equals(model))
+                    if (node.Key.type != RKeyType.Model || !node.Key.Equals(new RKey(model)))
                         return node.Key.type == RKeyType.Model || node.Key.type == RKeyType.Graph;
 
                     if (node.next.TryGetValue(propertyName, out RNode pNode))
@@ -421,10 +421,10 @@ namespace UniVue.UI
             foreach (RNode graph in mGraphs.next.Values)
             {
                 --graph.In;
-                if (!graph.Reachable)
+                if (graph.Reachable)
+                    RNode.SafeDispose(graph.next[model]); //说明此Graph还可通过其他节点可达，不能强制释放   
+                else     
                     RNode.ForceDispose(graph);
-                else
-                    RNode.SafeDispose(graph.next[model]); //说明此Graph还可通过其他节点可达，不能强制释放        
             }
 
             mGraphs.next.Clear();
@@ -539,10 +539,10 @@ namespace UniVue.UI
             foreach (RNode graph in node.next.Values)
             {
                 --graph.In;
-                if (!graph.Reachable)
-                    RNode.ForceDispose(graph);
+                if (graph.Reachable)
+                    RNode.SafeDispose(graph.next[eventKey]); //说明此Graph还可通过其他节点可达，不能强制释放 
                 else
-                    RNode.SafeDispose(graph.next[eventKey]); //说明此Graph还可通过其他节点可达，不能强制释放        
+                    RNode.ForceDispose(graph);
             }
 
             node.next.Clear();

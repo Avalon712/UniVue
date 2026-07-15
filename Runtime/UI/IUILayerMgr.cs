@@ -10,11 +10,6 @@ namespace UniVue.UI
         public GameObject Root { get; }
 
         /// <summary>
-        /// 特殊层级，用于存放所有被关闭的根视图界面，等待销毁或被重新打开
-        /// </summary>
-        public GameObject HideLayer { get; }
-
-        /// <summary>
         /// 获取层级的名称
         /// </summary>
         /// <param name="layer"></param>

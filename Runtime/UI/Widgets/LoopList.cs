@@ -50,9 +50,9 @@ namespace UniVue.UI.Widgets
             }
         }
 
-        protected override void OnUpdate(in float deltaTime)
+        protected override void Update()
         {
-            base.OnUpdate(in deltaTime);
+            base.Update();
             //滚动动画的实现
             if (_targetIndex != -1)
             {
@@ -61,7 +61,6 @@ namespace UniVue.UI.Widgets
                     _velocity = Vector2.zero;
                     _targetIndex = -1;
                 }
-
                 _scrollRect.velocity = _velocity;
             }
         }

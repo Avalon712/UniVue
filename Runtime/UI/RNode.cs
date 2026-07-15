@@ -134,7 +134,7 @@ namespace UniVue.UI
             _data = propertyName;
         }
 
-        public RKey(BaseModel model)
+        public RKey(IModel model)
         {
             type = RKeyType.Model;
             _data = model;
@@ -162,6 +162,11 @@ namespace UniVue.UI
         }
 
         public static implicit operator RKey(BaseModel model)
+        {
+            return new RKey(model);
+        }
+        
+        public static implicit operator RKey(UIModel model)
         {
             return new RKey(model);
         }

@@ -8,6 +8,8 @@ namespace UniVue.CodeGen
     internal static class NotifyPropertyChangedInjector
     {
         private const string BaseModelFullName = "UniVue.Model.BaseModel";
+        private const string UIModelFullName = "UniVue.Model.UIModel";
+        private const string NoNotifyAttributeFullName = "UniVue.Model.NoNotifyAttribute";
 
         public static bool Inject(AssemblyDefinition assemblyDefinition)
         {
@@ -27,10 +29,13 @@ namespace UniVue.CodeGen
 
             if (type == null) return false;
 
-            if (IsSubclassOfBaseModel(type))
+            if (IsModelSubclass(type) && !IsNoNotifyType(type))
             {
                 foreach (PropertyDefinition property in type.Properties)
+                {
+                    if (ShouldSkipProperty(type, property)) continue;
                     modified |= InjectPropertySetter(module, type, property);
+                }
             }
 
             foreach (TypeDefinition nestedType in type.NestedTypes) modified |= InjectType(module, nestedType);
@@ -95,7 +100,7 @@ namespace UniVue.CodeGen
         private static MethodReference CreateCheckPropertyChangedMethodReference(
             ModuleDefinition module, TypeDefinition ownerType, TypeReference propertyType)
         {
-            MethodDefinition baseMethodDefinition = FindBaseModelCheckMethod(ownerType);
+            MethodDefinition baseMethodDefinition = FindModelCheckMethod(ownerType);
             MethodReference importedMethod = module.ImportReference(baseMethodDefinition);
 
             GenericInstanceMethod genericInstance = new(importedMethod);
@@ -103,7 +108,7 @@ namespace UniVue.CodeGen
             return genericInstance;
         }
 
-        private static MethodDefinition FindBaseModelCheckMethod(TypeDefinition ownerType)
+        private static MethodDefinition FindModelCheckMethod(TypeDefinition ownerType)
         {
             TypeReference current = ownerType.BaseType;
             while (current != null)
@@ -111,7 +116,7 @@ namespace UniVue.CodeGen
                 TypeDefinition resolved = current.Resolve();
                 if (resolved == null) break;
 
-                if (resolved.FullName == BaseModelFullName)
+                if (IsModelRootType(resolved.FullName))
                 {
                     foreach (MethodDefinition method in resolved.Methods)
                     {
@@ -124,7 +129,83 @@ namespace UniVue.CodeGen
                 current = resolved.BaseType;
             }
 
-            throw new InvalidOperationException("Failed to locate BaseModel.CheckPropertyChanged<T>.");
+            throw new InvalidOperationException(
+                "Failed to locate BaseModel/UIModel.CheckPropertyChanged<T>.");
+        }
+
+        /// <summary>
+        /// 当前类型或其任意祖先（含自身，不含 BaseModel/UIModel）标有 NoNotify 时，整棵子树均不注入。
+        /// </summary>
+        private static bool IsNoNotifyType(TypeDefinition type)
+        {
+            TypeDefinition current = type;
+            while (current != null)
+            {
+                if (IsModelRootType(current.FullName)) return false;
+                if (HasNoNotifyAttribute(current)) return true;
+
+                TypeReference baseType = current.BaseType;
+                if (baseType == null) return false;
+
+                try
+                {
+                    current = baseType.Resolve();
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 属性自身或同名基类虚属性标有 NoNotify 时跳过注入（含重写属性）。
+        /// </summary>
+        private static bool ShouldSkipProperty(TypeDefinition ownerType, PropertyDefinition property)
+        {
+            if (HasNoNotifyAttribute(property)) return true;
+
+            TypeReference current = ownerType.BaseType;
+            while (current != null)
+            {
+                TypeDefinition resolved;
+                try
+                {
+                    resolved = current.Resolve();
+                }
+                catch
+                {
+                    break;
+                }
+
+                if (resolved == null) break;
+                if (IsModelRootType(resolved.FullName)) break;
+
+                foreach (PropertyDefinition baseProperty in resolved.Properties)
+                {
+                    if (baseProperty.Name != property.Name) continue;
+                    if (HasNoNotifyAttribute(baseProperty)) return true;
+                }
+
+                current = resolved.BaseType;
+            }
+
+            return false;
+        }
+
+        private static bool HasNoNotifyAttribute(ICustomAttributeProvider provider)
+        {
+            if (provider == null || !provider.HasCustomAttributes) return false;
+
+            foreach (CustomAttribute attribute in provider.CustomAttributes)
+            {
+                if (attribute.AttributeType.FullName == NoNotifyAttributeFullName)
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool HasCheckPropertyChangedCall(MethodDefinition method)
@@ -141,12 +222,12 @@ namespace UniVue.CodeGen
             return false;
         }
 
-        private static bool IsSubclassOfBaseModel(TypeDefinition type)
+        private static bool IsModelSubclass(TypeDefinition type)
         {
             TypeReference current = type.BaseType;
             while (current != null)
             {
-                if (current.FullName == BaseModelFullName) return true;
+                if (IsModelRootType(current.FullName)) return true;
 
                 try
                 {
@@ -162,6 +243,11 @@ namespace UniVue.CodeGen
             }
 
             return false;
+        }
+
+        private static bool IsModelRootType(string fullName)
+        {
+            return fullName == BaseModelFullName || fullName == UIModelFullName;
         }
 
         private static Instruction CreateLoadArgInstruction(int argumentIndex)

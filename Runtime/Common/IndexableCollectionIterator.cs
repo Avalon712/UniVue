@@ -15,7 +15,7 @@ namespace UniVue.Common
         where TRequireType : TCollectionItemType
     {
         private TCollectionItemType[] _array;
-        private List<TCollectionItemType> _list;
+        private IReadOnlyList<TCollectionItemType> _list;
         private int _index;
 
         private int Count
@@ -23,7 +23,7 @@ namespace UniVue.Common
             get
             {
                 if (_list == null && _array == null) return 0;
-                return _list == null ? _array.Length : _list.Count;
+                return _list?.Count ?? _array.Length;
             }
         }
 
@@ -49,6 +49,14 @@ namespace UniVue.Common
         }
 
         public IndexableCollectionIterator(List<TCollectionItemType> list)
+        {
+            _index = 0;
+            _array = null;
+            _list = list;
+            Current = default;
+        }
+        
+        public IndexableCollectionIterator(IReadOnlyList<TCollectionItemType> list)
         {
             _index = 0;
             _array = null;

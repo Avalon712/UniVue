@@ -15,12 +15,12 @@ namespace UniVue.Editor
             {
                 GameObject original = PrefabUtility.GetCorrespondingObjectFromOriginalSource(prefab);
                 GameObject clone = (GameObject)PrefabUtility.InstantiatePrefab(original, parent);
-                GameObjectUtils.KeepTheSameWithPrefab(original.transform as RectTransform,
+                CoreUtils.KeepTheSameWithPrefab(original.transform as RectTransform,
                                                       clone.transform as RectTransform);
                 return clone;
             }
 
-            return GameObjectUtils.RectTransformClone(prefab, parent);
+            return CoreUtils.RectTransformClone(prefab, parent);
         }
 
         /// <summary>

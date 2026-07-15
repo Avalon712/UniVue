@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Common;
+using UniVue.Event;
+using UniVue.Internal;
 using UniVue.Timer;
 using UniVue.Utils;
 using Object = UnityEngine.Object;
@@ -10,11 +12,68 @@ namespace UniVue.UI
 {
     public static class UIMgr
     {
+        private readonly struct LazyDisposeInfo : IEquatable<LazyDisposeInfo>, IComparable<LazyDisposeInfo>
+        {
+            public readonly string viewName;
+            public readonly float closedTimeTick;
+            public readonly float liveTime;
+
+            public LazyDisposeInfo(string viewName, float liveTime)
+            {
+                this.viewName = viewName;
+                closedTimeTick = Time.realtimeSinceStartup;
+                this.liveTime = liveTime;
+            }
+            
+            public bool Equals(LazyDisposeInfo other)
+            {
+                return viewName == other.viewName;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is LazyDisposeInfo other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return viewName.GetHashCode();
+            }
+
+            public int CompareTo(LazyDisposeInfo other)
+            {
+                return closedTimeTick.CompareTo(other.closedTimeTick);
+            }
+            
+            public static implicit operator LazyDisposeInfo(string viewName)
+            {
+                return new LazyDisposeInfo(viewName, 0);
+            }
+        }
+        
+        /// <summary>
+        /// 根视图打开事件，事件参数-界面名称
+        /// </summary>
+        public const string EVENT_OPEN_VIEW = nameof(EVENT_OPEN_VIEW);
+
+        /// <summary>
+        /// 根视图关闭事件，事件参数-界面名称
+        /// </summary>
+        public const string EVENT_CLOSE_VIEW = nameof(EVENT_CLOSE_VIEW);
+
+        /// <summary>
+        /// 根视图销毁事件，事件参数-界面名称
+        /// </summary>
+        public const string EVENT_DISPOSE_VIEW = nameof(EVENT_DISPOSE_VIEW);
+
         private static bool _initialized;
         private static readonly Dictionary<string, BaseView> _closedViews = new(16);
-        private static readonly List<string> _disposeQueue = new(16);
+        private static readonly List<LazyDisposeInfo> _disposeQueue = new(16);
         private static readonly Dictionary<string, Action<bool>> _loadingViews = new(16);
         private static readonly Dictionary<string, BaseView> _openedViews = new(16);
+        
+        private static uint _liveTimeAfterClosed = 30;
+        private const float AllowDisposeErrorTime = 0.1f; //在0.1f秒的误差内都认为可以进行释放
 
         internal static IUIPrefabLoader Loader { get; private set; }
 
@@ -23,16 +82,17 @@ namespace UniVue.UI
         public static RGraphs Renderer { get; private set; }
 
         public static RedPointMgr RedPointMgr { get; private set; }
-
+        
+        
         /// <summary>
         /// 初始化UIMgr(包括红点系统)
         /// </summary>
         /// <param name="redPointKeyEnumType">RedPointKey枚举类型</param>
         /// <param name="loader">加载UI预制体</param>
         /// <param name="layerMgr">层级管理接口，如果为Null则使用默认的管理器</param>
-        /// <param name="lazyDisposeInterval">每隔指定秒数执行一次对被关闭的界面的资源释放(一次释放一个界面)</param>
+        /// <param name="liveTimeAfterClosed">当界面被关闭后仍可存活的时间（秒，仅对根界面生效，默认为30秒，小于0则立即销毁）</param>
         public static void Initialize(Type redPointKeyEnumType, IUIPrefabLoader loader, IUILayerMgr layerMgr = null,
-                                      uint lazyDisposeInterval = 30)
+                                      uint liveTimeAfterClosed = 30)
         {
             if (_initialized)
             {
@@ -46,7 +106,7 @@ namespace UniVue.UI
                 return;
             }
 
-            Initialize(loader, layerMgr, lazyDisposeInterval);
+            Initialize(loader, layerMgr, liveTimeAfterClosed);
             RedPointMgr = new RedPointMgr(redPointKeyEnumType);
         }
 
@@ -55,8 +115,8 @@ namespace UniVue.UI
         /// </summary>
         /// <param name="loader">加载UI预制体</param>
         /// <param name="layerMgr">层级管理接口，如果为Null则使用默认的管理器</param>
-        /// <param name="lazyDisposeInterval">每隔指定秒数执行一次对被关闭的界面的资源释放(一次释放一个界面)</param>
-        public static void Initialize(IUIPrefabLoader loader, IUILayerMgr layerMgr, uint lazyDisposeInterval = 30)
+        /// <param name="liveTimeAfterClosed">当界面被关闭后仍可存活的时间（秒，仅对根界面生效，默认为30秒）</param>
+        public static void Initialize(IUIPrefabLoader loader, IUILayerMgr layerMgr, uint liveTimeAfterClosed = 30)
         {
             if (_initialized)
             {
@@ -74,39 +134,43 @@ namespace UniVue.UI
             Loader = loader;
             LayerMgr = layerMgr;
 
-            //隐藏层级
-
-            Transform rootLayer = LayerMgr.Root.transform;
-            LayerMgr.HideLayer.transform.SetParent(rootLayer.GetChild(rootLayer.childCount - 1));
-
             Object.DontDestroyOnLoad(LayerMgr.Root);
 
-            //每隔一定时间释放一次关闭的界面
-            float seconds = lazyDisposeInterval;
-            TimerMgr.Create()
-                    .OfCount(-1)
-                    .OfInterval(seconds)
-                    .OfExecuteCondition(() => _initialized && LayerMgr.HideLayer)
-                    .OfCallback(() =>
-                     {
-                         if (_disposeQueue.Count > 0)
-                         {
-                             string viewName = _disposeQueue[0];
-                             _disposeQueue.RemoveAt(0);
-                             if (_closedViews.Remove(viewName, out BaseView view) && view != null)
-                             {
-                                 GameObject ui = view.UI;
-                                 view.OnDisposeInternal();
-                                 Object.Destroy(ui);
-                             }
-                         }
-                     })
-                    .Build();
-
+            _liveTimeAfterClosed = liveTimeAfterClosed;
             Renderer = new RGraphs();
+
+            TimerMgr.Create().OfCallback(LazyDispose).OfCount(-1).OfInterval(1).Build();
         }
 
+        private static void LazyDispose()
+        {
+            if(_disposeQueue.Count <= 0) return;
+            float currentTime = Time.realtimeSinceStartup;
+            int disposeEndIndex = -1;
+            for (int i = 0; i < _disposeQueue.Count; i++)
+            {
+                LazyDisposeInfo lazy = _disposeQueue[i];
+                if (Mathf.Abs(currentTime - lazy.closedTimeTick - lazy.liveTime) <= AllowDisposeErrorTime)
+                {
+                    if (_closedViews.Remove(lazy.viewName, out BaseView closedView) && closedView)
+                    {
+                        DisposeUI(closedView);
+                        EventMgr.Dispatch(EVENT_DISPOSE_VIEW, lazy.viewName);
+                    }
+                    disposeEndIndex = i;
+                }
+                else
+                    break; //_disposeQueue一定是按closedTimeTick升序排序的
+            }
+            if (disposeEndIndex >= 0)
+                _disposeQueue.RemoveRange(0, disposeEndIndex + 1);
+        }
 
+        private static void DisposeUI(BaseUI ui)
+        {
+            Object.Destroy(ui.gameObject);
+        }
+        
         public static T GetView<T>(string viewName) where T : BaseView
         {
             if (_openedViews.TryGetValue(viewName, out BaseView view) && view is T typedView) return typedView;
@@ -115,12 +179,22 @@ namespace UniVue.UI
 
         public static bool IsOpen<T>() where T : BaseView
         {
-            return _openedViews.ContainsKey(typeof(T).Name);
+            return IsOpen(typeof(T).Name);
+        }
+
+        public static bool IsOpen(string viewName)
+        {
+            return _openedViews.ContainsKey(viewName);
         }
 
         public static bool IsClosed<T>() where T : BaseView
         {
             return !IsOpen<T>();
+        }
+
+        public static bool IsClosed(string viewName)
+        {
+            return !IsOpen(viewName);
         }
 
         /// <summary>
@@ -141,69 +215,7 @@ namespace UniVue.UI
         /// <typeparam name="T">界面类型（如果GameObject身上没有添加此组件则会自动添加此组件）</typeparam>
         public static void Open<T>(Action<bool> callback = null, params object[] args) where T : BaseView
         {
-            Type viewType = typeof(T);
-            string viewName = viewType.Name;
-
-            if (_loadingViews.TryGetValue(viewName, out Action<bool> callbacks))
-            {
-                if (callback != null)
-                    _loadingViews[viewName] += callback;
-                return;
-            }
-
-            if (_openedViews.ContainsKey(viewName))
-            {
-                callback?.Invoke(true);
-                return;
-            }
-
-            if (_closedViews.Remove(viewName, out BaseView view) && view != null)
-            {
-                _openedViews.Add(viewName, view);
-                _disposeQueue.Remove(viewName);
-
-                view.UI.transform.SetParent(LayerMgr.GetLayerRoot(view.Layer).transform);
-                view.OnOpenInternal(args);
-                callback?.Invoke(true);
-                return;
-            }
-
-            _openedViews[viewName] = null; //这一步是防止加载未完成时重复加载
-            _loadingViews[viewName] = callback;
-            Loader.LoadUIPrefabAsync(viewType, viewPrefab =>
-            {
-                //界面没有加载完成就关闭了界面
-                if (_closedViews.Remove(viewName))
-                {
-                    if (_loadingViews.Remove(viewName, out Action<bool> callbacks))
-                        callbacks?.Invoke(false);
-                    return;
-                }
-
-                if (viewPrefab == null)
-                {
-                    if (_loadingViews.Remove(viewName, out Action<bool> callbacks))
-                        callbacks?.Invoke(false);
-                    _openedViews.Remove(viewName);
-                    LogUtil.Exception(new Exception($"加载UI预制体失败，界面类型：{viewName}"));
-                    return;
-                }
-
-                GameObject viewObj = GameObjectUtils.RectTransformClone(viewPrefab, LayerMgr.HideLayer.transform);
-                BaseView newView = viewObj.GetComponent<T>();
-                if (!newView)
-                    newView = viewObj.AddComponent<T>();
-
-                newView.transform.SetParent(LayerMgr.GetLayerRoot(newView.Layer).transform);
-                GameObjectUtils.KeepTheSameWithPrefab(viewPrefab.transform as RectTransform,
-                                                      viewObj.transform as RectTransform);
-
-                _openedViews[viewName] = newView;
-                viewObj.name = viewName;
-                newView.OnCreateInternal(viewObj);
-                newView.OnOpenInternal(args);
-                if (_loadingViews.Remove(viewName, out callbacks)) callbacks?.Invoke(true);
-            });
+            Open(typeof(T).Name, callback, args);
         }
 
         /// <summary>
@@ -233,26 +245,26 @@ namespace UniVue.UI
                 return;
             }
 
-            if (_openedViews.ContainsKey(viewName))
+            if (_openedViews.TryGetValue(viewName, out BaseView openedView) && openedView)
             {
+                openedView.OnOpenInternal(args);
                 callback?.Invoke(true);
                 return;
             }
 
-            if (_closedViews.Remove(viewName, out BaseView view) && view != null)
+            if (_closedViews.Remove(viewName, out BaseView closedView) && closedView)
             {
-                _openedViews.Add(viewName, view);
+                _openedViews.Add(viewName, closedView);
                 _disposeQueue.Remove(viewName);
 
-                view.UI.transform.SetParent(LayerMgr.GetLayerRoot(view.Layer).transform);
-                view.OnOpenInternal(args);
+                closedView.OnOpenInternal(args);
                 callback?.Invoke(true);
                 return;
             }
 
             _openedViews[viewName] = null; //这一步是防止加载未完成时重复加载
             _loadingViews[viewName] = callback;
-            Loader.LoadUIPrefabAsync(viewName, viewPrefab =>
+            Loader.LoadUIObjectAsync(viewName, loadedUIObj =>
             {
                 //界面没有加载完成就关闭了界面
                 if (_closedViews.Remove(viewName))
@@ -262,49 +274,62 @@ namespace UniVue.UI
                     return;
                 }
 
-                if (viewPrefab == null)
+                if (!loadedUIObj)
                 {
                     if (_loadingViews.Remove(viewName, out Action<bool> callbacks))
                         callbacks?.Invoke(false);
                     _openedViews.Remove(viewName);
-                    LogUtil.Exception(new Exception($"加载UI预制体失败，界面类型：{viewName}"));
+                    LogUtil.Exception(new Exception($"加载UI对象失败，界面类型：{viewName}"));
                     return;
                 }
 
-                BaseView viewOnPrefab = viewPrefab.GetComponent<BaseView>();
-                ExceptionUtils.ThrowIfNull(viewOnPrefab, "UI预制体身上没有挂载任何BaseView脚本，无法正常完成初始化流程");
-
-                if (!viewOnPrefab)
+                bool isPrefab = !loadedUIObj.scene.IsValid();
+                GameObject viewObj = loadedUIObj;
+                if (isPrefab)
                 {
-                    if (_loadingViews.Remove(viewName, out callbacks)) callbacks?.Invoke(false);
-                    return;
+                    BaseView viewOnPrefab = loadedUIObj.GetComponent<BaseView>();
+                    if (!viewOnPrefab)
+                    { 
+                        LogUtil.Exception(new Exception($"UI预制体身上没有挂载任何BaseView脚本，无法正常完成初始化流程，界面类型：{viewName}"));
+                        if (_loadingViews.Remove(viewName, out callbacks)) callbacks?.Invoke(false);
+                        return;
+                    }
+                    viewObj = CoreUtils.RectTransformClone(loadedUIObj, LayerMgr.GetLayerRoot(viewOnPrefab.Layer).transform);
+                    CoreUtils.KeepTheSameWithPrefab(loadedUIObj.transform as RectTransform, viewObj.transform as RectTransform);
                 }
 
-                GameObject viewObj = GameObjectUtils.RectTransformClone(viewPrefab, LayerMgr.HideLayer.transform);
                 BaseView newView = viewObj.GetComponent<BaseView>();
-
-                newView.transform.SetParent(LayerMgr.GetLayerRoot(newView.Layer).transform);
-                GameObjectUtils.KeepTheSameWithPrefab(viewPrefab.transform as RectTransform,
-                                                      viewObj.transform as RectTransform);
-
+                Transform layer = LayerMgr.GetLayerRoot(newView.Layer).transform;
+                if (viewObj.transform.parent != layer)
+                    viewObj.transform.SetParent(layer);
+                
                 _openedViews[viewName] = newView;
                 viewObj.name = viewName;
-                newView.OnCreateInternal(viewObj);
+                newView.OnCreateInternal();
                 newView.OnOpenInternal(args);
                 if (_loadingViews.Remove(viewName, out callbacks)) callbacks?.Invoke(true);
             });
         }
 
+        public static void Close<T>() where T : BaseView
+        {
+            Close(typeof(T).Name);
+        }
+
         public static void Close(string viewName)
         {
-            if (_openedViews.Remove(viewName, out BaseView view))
+            if (_openedViews.Remove(viewName, out BaseView view) && view)
             {
                 _closedViews[viewName] = view;
-                if (view != null)
+                float liveTimeAfterClose = Mathf.Min(_liveTimeAfterClosed, view.LiveTimeAfterClosed);
+                if (liveTimeAfterClose > AllowDisposeErrorTime)
+                    _disposeQueue.Add(new LazyDisposeInfo(viewName, liveTimeAfterClose));
+                view.OnCloseInternal();
+                EventMgr.Dispatch(EVENT_CLOSE_VIEW, viewName);
+                if (liveTimeAfterClose <= AllowDisposeErrorTime)
                 {
-                    _disposeQueue.Add(viewName);
-                    view.OnCloseInternal();
-                    view.UI.transform.SetParent(LayerMgr.HideLayer.transform);
+                    Object.Destroy(view.gameObject);
+                    EventMgr.Dispatch(EVENT_DISPOSE_VIEW, viewName);
                 }
             }
         }
@@ -312,67 +337,130 @@ namespace UniVue.UI
         /// <summary>
         /// 创建UI
         /// </summary>
+        /// <param name="uiName">UI预制体名称</param>
         /// <param name="callback">创建完成后的回调，参数1-true-创建成功 false-创建失败  参数2-创建好的UI对象 </param>
+        /// <param name="parent">父物体</param>
         /// <typeparam name="T"></typeparam>
-        public static void CreateUI<T>(Action<bool, T> callback) where T : BaseUI
+        public static void CreateUI<T>(string uiName, Action<bool, T> callback, GameObject parent = null) where T : BaseUI
         {
-            Loader.LoadUIPrefabAsync(typeof(T), uiPrefab =>
+            Loader.LoadUIObjectAsync(uiName, loadedUIObj =>
             {
-                if (!uiPrefab)
+                if (!loadedUIObj)
                 {
                     callback?.Invoke(false, null);
                     return;
                 }
+                bool isPrefab = !loadedUIObj.scene.IsValid();
 
-                GameObject uiObj = GameObjectUtils.RectTransformClone(uiPrefab, null);
+                GameObject uiObj = loadedUIObj;
+                
+                if (isPrefab)
+                    uiObj = CoreUtils.RectTransformClone(loadedUIObj, null);
+                
+                if (parent)
+                    uiObj.transform.SetParent(parent.transform);
+
+                if (isPrefab)
+                    CoreUtils.KeepTheSameWithPrefab(loadedUIObj.transform as RectTransform, uiObj.transform as RectTransform);
+                
                 if (!uiObj.TryGetComponent(out T ui))
                     ui = uiObj.AddComponent<T>();
+                
+                ui.OnCreateInternal();
                 callback?.Invoke(true, ui);
             });
         }
 
         /// <summary>
-        /// 创建UI
-        /// <remarks>注意这种方式必须保证预制体身上有一个已经挂载的BaseUI脚本</remarks>
+        /// 判断一个界面是否是根视图
         /// </summary>
-        /// <param name="uiName"></param>
-        /// <param name="callback">创建完成后的回调，参数1-true-创建成功 false-创建失败  参数2-创建好的UI对象 </param>
-        public static void CreateUI(string uiName, Action<bool, BaseUI> callback)
+        /// <param name="view"></param>
+        /// <returns></returns>
+        public static bool IsRootView(BaseView view)
         {
-            if (string.IsNullOrEmpty(uiName))
-            {
-                callback?.Invoke(false, null);
-                return;
-            }
-
-            Loader.LoadUIPrefabAsync(uiName, uiPrefab =>
-            {
-                if (!uiPrefab || !uiPrefab.GetComponent<BaseUI>())
-                {
-                    callback?.Invoke(false, null);
-                    return;
-                }
-
-                GameObject uiObj = GameObjectUtils.RectTransformClone(uiPrefab, null);
-                callback?.Invoke(true, uiObj.GetComponent<BaseUI>());
-            });
+            return (_openedViews.TryGetValue(view.Name, out BaseView openedView) && openedView == view) ||
+                   (_closedViews.TryGetValue(view.Name, out BaseView closedView) && closedView == view);
+        }
+        
+        /// <summary>
+        /// 创建UI
+        /// </summary>
+        /// <param name="callback">创建完成后的回调，参数1-true-创建成功 false-创建失败  参数2-创建好的UI对象 </param>
+        /// <param name="parent">父物体</param>
+        /// <typeparam name="T"></typeparam>
+        public static void CreateUI<T>(Action<bool, T> callback, GameObject parent = null) where T : BaseUI
+        {
+            CreateUI(typeof(T).Name, callback, parent);
         }
 
         /// <summary>
-        /// 销毁UI
+        /// 销毁UI(无法通过此函数销毁View对象)
         /// </summary>
-        /// <param name="ui">要销毁的UI</param>
+        /// <param name="ui">要销毁的UI(根界面无法通过此函数销毁)</param>
         public static void DestroyUI(BaseUI ui)
         {
-            if (!ui) return;
-            GameObject uiObj = ui.UI;
-            ui.OnDisposeInternal();
-            Object.Destroy(uiObj);
+            if (!ui || ui.Disposed || (ui is BaseView view && IsRootView(view))) return;
+            DisposeUI(ui);
         }
 
-        public static void Close<T>() where T : BaseView
+        /// <summary>
+        /// 向指定界面发送消息
+        /// </summary>
+        /// <param name="viewName">根视图名称</param>
+        /// <param name="sender">发送者</param>
+        /// <param name="message">消息</param>
+        /// <param name="sendIfClosed">true-即使界面处于关闭状态仍然发送消息，默认为true</param>
+        /// <returns>true-发送成功被正确接受到 false-失败</returns>
+        public static bool SendMessage(string viewName, object sender, object message, bool sendIfClosed = true)
         {
-            Close(typeof(T).Name);
+            if (_openedViews.TryGetValue(viewName, out BaseView openedView) && openedView)
+            {
+                openedView.OnReceiveMessageInternal(sender, message);
+                return true;
+            }
+            else if (sendIfClosed && _closedViews.TryGetValue(viewName, out BaseView closedView) && closedView)
+            {
+                closedView.OnReceiveMessageInternal(sender, message);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 向指定界面发送消息
+        /// </summary>
+        /// <param name="sender">发送者</param>
+        /// <param name="message">消息</param>
+        /// <param name="sendIfClosed">true-即使界面处于关闭状态仍然发送消息，默认为true</param>
+        /// <returns>true-发送成功被正确接受到 false-失败</returns>
+        public static bool SendMessage<T>(object sender, object message, bool sendIfClosed = true) where T : BaseView
+        {
+            return SendMessage(typeof(T).Name, sender, message, sendIfClosed);
+        }
+
+        /// <summary>
+        /// 向所有根界面广播消息
+        /// </summary>
+        /// <param name="sender">发送者</param>
+        /// <param name="message">消息</param>
+        /// <param name="includeClosedViews">是否包含被关闭的界面，默认为false</param>
+        public static void BroadcastMessage(object sender, object message, bool includeClosedViews = false)
+        {
+            using InternalTempCollection<Dictionary<string, BaseView>, KeyValuePair<string, BaseView>> openedViews = new(_openedViews);
+            foreach (var kv in openedViews)
+            {
+                if (kv.Value)
+                    kv.Value.OnReceiveMessageInternal(sender, message);
+            }
+
+            if (!includeClosedViews) return;
+
+            using InternalTempCollection<Dictionary<string, BaseView>, KeyValuePair<string, BaseView>> closedViews = new(_closedViews);
+            foreach (var kv in closedViews)
+            {
+                if (kv.Value)
+                    kv.Value.OnReceiveMessageInternal(sender, message);
+            }
         }
     }
 }
