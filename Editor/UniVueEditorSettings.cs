@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
+using UniVue.I18n;
 
 namespace UniVue.Editor
 {
@@ -16,11 +17,16 @@ namespace UniVue.Editor
         /// </summary>
         public string redPointKeyNamespace;
 
+        /// <summary>
+        /// 多语言配置
+        /// </summary>
+        public I18NConfig languageConfig;
+
         public void SaveSettings()
         {
             Save(true);
         }
     }
 
-  
+
 }

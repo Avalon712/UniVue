@@ -114,6 +114,19 @@ namespace UniVue.UI
                 SetUIActive(false);
         }
 
+        internal void RefreshUIInternal(bool force = false)
+        {
+            static void TraverseChildren(BaseUI parent, bool force)
+            {
+                foreach (BaseUI child in parent.Children)
+                {
+                    TraverseChildren(child, force);
+                    child.RefreshUI(force);
+                }
+            }
+            TraverseChildren(this, force);
+        }
+        
         private void SetUIActive(bool active)
         {
             UIMgr.Renderer.SetEnable(_graph, active);
@@ -223,8 +236,9 @@ namespace UniVue.UI
         /// <remarks>绝大多数情况下你都无需手动调用此函数。此函数不是精准式的更新，只要有脏标记则会将此UI绑定的所有渲染函数都执行一遍</remarks>
         /// </summary>
         /// <param name="force">是否强制刷新，即不管有无脏标记都重新渲染一遍（默认情况只有在当前UI的渲染状态处于Disable期间有渲染状态的变化时才会真正调用）</param>
-        protected void RefreshUI(bool force = false)
+        public void RefreshUI(bool force = false)
         {
+            OnRefreshUI(force);
             if (_graph.g == null) return;
             CheckDisposed();
             UIMgr.Renderer.RenderIfDirtyOrForce(_graph, force, true);
@@ -654,7 +668,13 @@ namespace UniVue.UI
         /// UI被销毁时回调(受Unity的生命周期控制)
         /// </summary>
         protected virtual void OnDispose() { }
-
+        
+        /// <summary>
+        /// 刷新UI
+        /// </summary>
+        /// <param name="force">true-强制刷新</param>
+        protected virtual void OnRefreshUI(bool force) { }
+        
         #endregion
     }
 }

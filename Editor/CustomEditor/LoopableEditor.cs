@@ -3,6 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 using UniVue.UI.Widgets;
+using UniVue.Utils;
 
 namespace UniVue.Editor
 {
@@ -161,7 +162,7 @@ namespace UniVue.Editor
                 GameObject prefab = Prefab.gameObject;
                 for (int i = 0; i < needCount; i++)
                 {
-                    CloneUtils.RectTransformClone(prefab, content);
+                    CoreUtils.RectTransformClone(prefab, content);
                 }
             }
             else if (needCount < 0) //删除多余的

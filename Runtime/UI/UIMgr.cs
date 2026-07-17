@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UniVue.Common;
 using UniVue.Event;
@@ -460,6 +461,24 @@ namespace UniVue.UI
             {
                 if (kv.Value)
                     kv.Value.OnReceiveMessageInternal(sender, message);
+            }
+        }
+
+        /// <summary>
+        /// 从所有根视图节点开始，刷新所有的挂载有BaseUI的组件
+        /// </summary>
+        /// <param name="force">true-强制刷新</param>
+        /// <param name="includeClosedView">true-包含已经关闭的界面（默认为false）</param>
+        public static void RefreshAllUI(bool force = false, bool includeClosedView = false)
+        {
+            foreach (BaseView view in _openedViews.Values)
+            {
+                view.RefreshUIInternal(force);
+            }
+            if (!includeClosedView) return;
+            foreach (BaseView closedView in _closedViews.Values)
+            {
+                closedView.RefreshUIInternal(force);
             }
         }
     }

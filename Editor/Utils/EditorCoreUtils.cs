@@ -7,22 +7,19 @@ using UniVue.Utils;
 
 namespace UniVue.Editor
 {
-    public static class CloneUtils
+    public static class EditorCoreUtils
     {
-        public static GameObject RectTransformClone(GameObject prefab, Transform parent)
+
+        /// <summary>
+        /// 获取项目的根目录
+        /// </summary>
+        /// <returns></returns>
+        public static string GetProjectRootDirectory()
         {
-            if (PrefabUtility.IsAnyPrefabInstanceRoot(prefab))
-            {
-                GameObject original = PrefabUtility.GetCorrespondingObjectFromOriginalSource(prefab);
-                GameObject clone = (GameObject)PrefabUtility.InstantiatePrefab(original, parent);
-                CoreUtils.KeepTheSameWithPrefab(original.transform as RectTransform,
-                                                      clone.transform as RectTransform);
-                return clone;
-            }
-
-            return CoreUtils.RectTransformClone(prefab, parent);
+            string dataPath = Application.dataPath;
+            return dataPath.Substring(0, dataPath.LastIndexOf("/"));
         }
-
+        
         /// <summary>
         /// 深拷贝一个对象
         /// </summary>
