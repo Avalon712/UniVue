@@ -1,3 +1,5 @@
+#region
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +9,8 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using UniVue.Common;
+
+#endregion
 
 namespace UniVue.Editor
 {
@@ -82,29 +86,19 @@ namespace UniVue.Editor
         {
             _trees ??= new List<RedPointTree>();
 
-            if (_boxStyle == null)
-                _boxStyle = new GUIStyle(GUI.skin.box) { padding = new RectOffset(8, 8, 8, 8) };
-            if (_leftScrollStyle == null)
-            {
-                _leftScrollStyle = new GUIStyle(GUI.skin.box)
-                    { padding = new RectOffset(0, 0, 0, 0), margin = new RectOffset(0, 0, 0, 0) };
-            }
+            _boxStyle ??= new GUIStyle(GUI.skin.box) { padding = new RectOffset(8, 8, 8, 8) };
+            _leftScrollStyle ??= new GUIStyle(GUI.skin.box)
+                { padding = new RectOffset(0, 0, 0, 0), margin = new RectOffset(0, 0, 0, 0) };
 
-            if (_pmListLabelStyle == null)
+            _pmListLabelStyle ??= new GUIStyle(EditorStyles.label)
             {
-                _pmListLabelStyle = new GUIStyle(EditorStyles.label)
-                {
-                    padding = new RectOffset(12, 8, 2, 2),
-                    alignment = TextAnchor.MiddleLeft,
-                    clipping = TextClipping.Clip
-                };
-            }
+                padding = new RectOffset(12, 8, 2, 2),
+                alignment = TextAnchor.MiddleLeft,
+                clipping = TextClipping.Clip
+            };
 
-            if (_readOnlyLabelStyle == null)
-            {
-                _readOnlyLabelStyle = new GUIStyle(EditorStyles.label)
-                    { normal = { textColor = new Color(0.85f, 0.85f, 0.85f) } };
-            }
+            _readOnlyLabelStyle ??= new GUIStyle(EditorStyles.label)
+                { normal = { textColor = new Color(0.85f, 0.85f, 0.85f) } };
 
             EditorGUILayout.Space(4);
 
@@ -129,7 +123,7 @@ namespace UniVue.Editor
             EditorGUILayout.LabelField(bottomText, EditorStyles.miniLabel);
         }
 
-        [MenuItem("UniVue/Windows/RedPointTreeEditor (Editor)")]
+        [MenuItem("UniVue/RedPointTreeEditor (Editor)")]
         public static void ShowWindow()
         {
             if (EditorApplication.isPlaying)
@@ -436,7 +430,7 @@ namespace UniVue.Editor
             Dictionary<(ulong value, int depth), RedPointTree.Node> keyToNode = new();
             List<RedPointTree> roots = new();
             foreach ((string name, ulong value, int depth, string comment) in entries.OrderBy(e => e.depth)
-                        .ThenBy(e => e.value))
+                         .ThenBy(e => e.value))
             {
                 int ruleBit = depth == 0 ? (int)((value >> 48) & 1) : (int)((value >> (8 * (6 - depth))) & 1);
                 RedPointTree.Node node = new()
@@ -497,9 +491,9 @@ namespace UniVue.Editor
         /// 收集导出项。根: 2B 末位规则; 子: 1B 末位规则. 子值包含父值.
         /// </summary>
         private void CollectExportEntries(RedPointTree.Node node, int depth, ulong parentValue, int treeIndex,
-                                          int siblingIndex,
-                                          List<(string name, ulong value, string comment, int depth, int treeIndex)>
-                                              entries)
+            int siblingIndex,
+            List<(string name, ulong value, string comment, int depth, int treeIndex)>
+                entries)
         {
             if (node == null) return;
             string key = node.key ?? "Unnamed";
@@ -553,12 +547,10 @@ namespace UniVue.Editor
             if (string.IsNullOrEmpty(key)) return "Unnamed";
             StringBuilder sb = new();
             foreach (char c in key)
-            {
                 if (char.IsLetterOrDigit(c) || c == '_')
                     sb.Append(c);
                 else if (c == ' ' || c == '-' || c == '.')
                     sb.Append('_');
-            }
 
             string s = sb.ToString().Trim('_');
             if (string.IsNullOrEmpty(s)) return "Unnamed";
@@ -668,9 +660,9 @@ namespace UniVue.Editor
             {
                 string path =
                     EditorUtility.OpenFolderPanel("选择目录",
-                                                  string.IsNullOrEmpty(_directoryPath)
-                                                      ? Application.dataPath
-                                                      : _directoryPath, "");
+                        string.IsNullOrEmpty(_directoryPath)
+                            ? Application.dataPath
+                            : _directoryPath, "");
                 if (!string.IsNullOrEmpty(path))
                 {
                     _directoryPath = path;
@@ -748,13 +740,11 @@ namespace UniVue.Editor
             }
 
             if (UnityEngine.Event.current.type == EventType.MouseMove)
-            {
                 if (newHover != _leftListHoverIndex)
                 {
                     _leftListHoverIndex = newHover;
                     Repaint();
                 }
-            }
 
             if (filtered.Count == 0) EditorGUILayout.HelpBox("暂无红点树\n点击「+创建」添加", MessageType.Info);
 
@@ -812,7 +802,7 @@ namespace UniVue.Editor
         }
 
         private void DrawNode(RedPointTree.Node node, string prefix, bool isLast, bool isRoot, int depth,
-                              Dictionary<string, int> keyCounts, bool showComment, bool readOnly)
+            Dictionary<string, int> keyCounts, bool showComment, bool readOnly)
         {
             if (node == null) return;
 
@@ -869,7 +859,6 @@ namespace UniVue.Editor
                 EditorGUI.EndDisabledGroup();
 
                 if (GUILayout.Button("-", GUILayout.Width(24)))
-                {
                     if (EditorUtility.DisplayDialog("确认删除", $"确定要删除节点 \"{node.key}\" 及其所有子节点吗？", "删除", "取消"))
                     {
                         if (node == _selectedTree.root)
@@ -887,7 +876,6 @@ namespace UniVue.Editor
                         Repaint();
                         return;
                     }
-                }
             }
 
             if (node.children.Count > 0)
@@ -910,14 +898,14 @@ namespace UniVue.Editor
                 if (readOnly)
                 {
                     EditorGUILayout.LabelField(node.comment ?? "", _readOnlyLabelStyle, GUILayout.MinWidth(120),
-                                               GUILayout.ExpandWidth(true));
+                        GUILayout.ExpandWidth(true));
                 }
                 else
                 {
                     EditorGUI.BeginChangeCheck();
                     node.comment =
                         EditorGUILayout.TextField(node.comment ?? "", GUILayout.MinWidth(120),
-                                                  GUILayout.ExpandWidth(true));
+                            GUILayout.ExpandWidth(true));
                     if (EditorGUI.EndChangeCheck()) MarkDirty();
                 }
             }
@@ -929,10 +917,8 @@ namespace UniVue.Editor
             List<RedPointTree.Node> children = node.children.ToList();
             int childDepth = depth + 1;
             for (int i = 0; i < children.Count; i++)
-            {
                 DrawNode(children[i], childPrefix, i == children.Count - 1, false, childDepth, keyCounts, showComment,
-                         readOnly);
-            }
+                    readOnly);
         }
 
         private bool RemoveNode(RedPointTree.Node parent, RedPointTree.Node toRemove)
@@ -944,10 +930,8 @@ namespace UniVue.Editor
             if (parent.children.Remove(toRemove))
                 return true;
             foreach (RedPointTree.Node child in parent.children)
-            {
                 if (RemoveNode(child, toRemove))
                     return true;
-            }
 
             return false;
         }

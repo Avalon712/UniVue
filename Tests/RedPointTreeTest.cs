@@ -1,19 +1,23 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UniVue.UI;
 
+#endregion
+
 namespace UniVue.Test
 {
     /// <summary>
     /// <see cref="RedPointMgr" /> 的单元测试。覆盖四类行为：
     /// <list type="bullet">
-    /// <item>静态 Key 几何编码 API（根/父/子/深度判断），与运行时无关，用 <see cref="TestAttribute" /> 运行。</item>
-    /// <item>枚举初始化的红点树状态传播（叶子 → 父 → 根，帧末协程刷新）。</item>
-    /// <item>监听订阅 / 取消订阅回调。</item>
-    /// <item>动态树 API（创建、添加依赖、状态、删除）。</item>
+    ///     <item>静态 Key 几何编码 API（根/父/子/深度判断），与运行时无关，用 <see cref="TestAttribute" /> 运行。</item>
+    ///     <item>枚举初始化的红点树状态传播（叶子 → 父 → 根，帧末协程刷新）。</item>
+    ///     <item>监听订阅 / 取消订阅回调。</item>
+    ///     <item>动态树 API（创建、添加依赖、状态、删除）。</item>
     /// </list>
     /// <para>
     /// <see cref="RedPointMgr" /> 通过 <c>VCoroutine</c> 在帧末（<see cref="UnityEngine.WaitForEndOfFrame" />）统一刷新
@@ -24,34 +28,6 @@ namespace UniVue.Test
     /// </summary>
     public sealed class RedPointTreeTest
     {
-        #region Helpers
-
-        /// <summary>逐帧等待直到 <paramref name="predicate" /> 成立，超出最大帧数则判定失败。</summary>
-        private static IEnumerator WaitUntil(Func<bool> predicate, string message)
-        {
-            const int maxFrames = 300;
-            int frames = 0;
-            while (!predicate())
-            {
-                if (++frames > maxFrames)
-                {
-                    Assert.Fail($"等待超时（{maxFrames} 帧）：{message}");
-                    yield break;
-                }
-
-                yield return null;
-            }
-        }
-
-        /// <summary>固定等待若干帧（用于「状态应保持不变」这类稳定性断言）。</summary>
-        private static IEnumerator WaitFrames(int count)
-        {
-            for (int i = 0; i < count; i++)
-                yield return null;
-        }
-
-        #endregion
-
         #region 静态 Key 几何编码
 
         [Test]
@@ -71,7 +47,7 @@ namespace UniVue.Test
             Assert.AreEqual(t1, RedPointMgr.GetParentKey(t12), "Test_1_2 的父应为 Test_1");
             Assert.IsTrue(RedPointMgr.IsParentOf(t1, t12), "IsParentOf(Test_1, Test_1_2) 应为真");
             Assert.AreNotEqual(main, RedPointMgr.GetRootKey((ulong)RedPointKey.Test2_Main),
-                               "Test2 树根应与 Test_Main 不同");
+                "Test2 树根应与 Test_Main 不同");
         }
 
         #endregion
@@ -176,13 +152,41 @@ namespace UniVue.Test
             HashSet<ulong> children = new();
             mgr.GetChildrenKeysNoneAlloc(dynRoot, children);
             Assert.IsTrue(children.Contains(leafA) && children.Contains(leafB),
-                          "GetChildrenKeysNoneAlloc 应返回全部子 key");
+                "GetChildrenKeysNoneAlloc 应返回全部子 key");
 
             mgr.DeleteDependency(leafB);
             Assert.IsTrue(mgr.IsRedPointKey(leafA) && !mgr.IsRedPointKey(leafB), "删除单个子节点应仅移除该节点");
 
             mgr.DeleteDependency(dynRoot);
             Assert.IsFalse(mgr.IsRedPointKey(dynRoot), "删除动态根后其 key 不应再存在");
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>逐帧等待直到 <paramref name="predicate" /> 成立，超出最大帧数则判定失败。</summary>
+        private static IEnumerator WaitUntil(Func<bool> predicate, string message)
+        {
+            const int maxFrames = 300;
+            int frames = 0;
+            while (!predicate())
+            {
+                if (++frames > maxFrames)
+                {
+                    Assert.Fail($"等待超时（{maxFrames} 帧）：{message}");
+                    yield break;
+                }
+
+                yield return null;
+            }
+        }
+
+        /// <summary>固定等待若干帧（用于「状态应保持不变」这类稳定性断言）。</summary>
+        private static IEnumerator WaitFrames(int count)
+        {
+            for (int i = 0; i < count; i++)
+                yield return null;
         }
 
         #endregion

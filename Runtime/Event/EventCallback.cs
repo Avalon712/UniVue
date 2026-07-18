@@ -1,5 +1,9 @@
-﻿using System;
+﻿#region
+
+using System;
 using UniVue.Common;
+
+#endregion
 
 namespace UniVue.Event
 {

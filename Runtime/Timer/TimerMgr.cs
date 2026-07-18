@@ -1,10 +1,14 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Common;
 using UniVue.Internal;
 using VC;
+
+#endregion
 
 namespace UniVue.Timer
 {
@@ -107,16 +111,16 @@ namespace UniVue.Timer
         /// <param name="cancelCondition">定时任务取消条件（true表示满足条件），一旦满足条件会移除定时器</param>
         /// <returns>定时器唯一id</returns>
         public static ulong AddTimer(float delay, float interval, int repeat, Action callback,
-                                     Func<bool> executeCondition = null, Func<bool> cancelCondition = null)
+            Func<bool> executeCondition = null, Func<bool> cancelCondition = null)
         {
             return Create()
-                  .OfDelay(delay)
-                  .OfInterval(interval)
-                  .OfCount(repeat)
-                  .OfCallback(callback)
-                  .OfExecuteCondition(executeCondition)
-                  .OfCancelCondition(cancelCondition)
-                  .Build();
+                .OfDelay(delay)
+                .OfInterval(interval)
+                .OfCount(repeat)
+                .OfCallback(callback)
+                .OfExecuteCondition(executeCondition)
+                .OfCancelCondition(cancelCondition)
+                .Build();
         }
 
         public static void Kill(ulong timerId)

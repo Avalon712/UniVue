@@ -1,7 +1,11 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.IO;
 using UnityEngine;
 using Object = UnityEngine.Object;
+
+#endregion
 
 namespace UniVue.Utils
 {
@@ -62,7 +66,7 @@ namespace UniVue.Utils
 
             return self;
         }
-        
+
         public static GameObject FindByPath(string path, GameObject self)
         {
             if (string.IsNullOrEmpty(path) || !self) return null;
@@ -82,10 +86,8 @@ namespace UniVue.Utils
                 if (name == null) return span.IsEmpty;
                 if (span.Length != name.Length) return false;
                 for (int i = 0; i < span.Length; i++)
-                {
                     if (span[i] != name[i])
                         return false;
-                }
 
                 return true;
             }
@@ -161,10 +163,7 @@ namespace UniVue.Utils
         public static GameObject CreateRectTransformGameObject(string name, Transform parent = null)
         {
             GameObject go = new(name, typeof(RectTransform));
-            if (!go.TryGetComponent(out RectTransform rt))
-            {
-                rt = go.AddComponent<RectTransform>();
-            }
+            if (!go.TryGetComponent(out RectTransform rt)) rt = go.AddComponent<RectTransform>();
 
             rt.SetParent(parent);
             rt.anchorMin = new Vector2(0.5f, 0.5f);
@@ -178,7 +177,7 @@ namespace UniVue.Utils
             rt.localPosition = Vector3.zero;
             return go;
         }
-        
+
         /// <summary>
         /// FNV-1a 哈希算法生成唯一ID
         /// </summary>
@@ -194,9 +193,10 @@ namespace UniVue.Utils
                 hash ^= b;
                 hash *= prime;
             }
+
             return hash;
         }
-        
+
         internal static string GetStreamingAssetsURL(string filePath)
         {
             string full = Path.Combine(Application.streamingAssetsPath, filePath);

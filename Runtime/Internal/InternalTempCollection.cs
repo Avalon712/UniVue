@@ -1,6 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
+
+#endregion
 
 namespace UniVue.Internal
 {
@@ -10,8 +14,8 @@ namespace UniVue.Internal
     /// <typeparam name="TCollection"></typeparam>
     /// <typeparam name="TItem"></typeparam>
     internal struct InternalTempCollection<TCollection, TItem> : IDisposable,
-                                                                 IEquatable<InternalTempCollection<TCollection, TItem>>,
-                                                                 IEnumerable<TItem>
+        IEquatable<InternalTempCollection<TCollection, TItem>>,
+        IEnumerable<TItem>
         where TCollection : class, ICollection<TItem>, new()
     {
         private TCollection _collection;
@@ -33,10 +37,8 @@ namespace UniVue.Internal
             _collection = InternalObjectPool<TCollection>.Shared.Rent();
             _collection.Clear();
             if (collection != null)
-            {
                 foreach (TItem item in collection)
                     _collection.Add(item);
-            }
         }
 
         public InternalTempCollection(IEnumerable<TItem> collection)
@@ -45,10 +47,8 @@ namespace UniVue.Internal
             _collection = InternalObjectPool<TCollection>.Shared.Rent();
             _collection.Clear();
             if (collection != null)
-            {
                 foreach (TItem item in collection)
                     _collection.Add(item);
-            }
         }
 
         public static implicit operator TCollection(InternalTempCollection<TCollection, TItem> collection)

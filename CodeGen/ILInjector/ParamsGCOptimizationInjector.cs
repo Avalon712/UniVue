@@ -1,8 +1,12 @@
+#region
+
 using System;
 using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
+
+#endregion
 
 namespace UniVue.CodeGen
 {
@@ -24,7 +28,7 @@ namespace UniVue.CodeGen
         }
 
         private static bool InjectType(ModuleDefinition module, TypeDefinition type,
-                                       List<DiagnosticMessage> diagnostics)
+            List<DiagnosticMessage> diagnostics)
         {
             if (type == null) return false;
 
@@ -39,7 +43,7 @@ namespace UniVue.CodeGen
         }
 
         private static bool InjectMethod(ModuleDefinition module, MethodDefinition method,
-                                         List<DiagnosticMessage> diagnostics)
+            List<DiagnosticMessage> diagnostics)
         {
             if (method == null || !method.HasBody) return false;
 
@@ -56,10 +60,10 @@ namespace UniVue.CodeGen
                 if (!IsOptimizableParamsMethod(calledMethodDef, out ArrayType paramsArrayType)) continue;
 
                 if (!TryFindReplacementMethod(calledMethodDef, paramsArrayType.ElementType,
-                                              out MethodDefinition replacementMethod))
+                        out MethodDefinition replacementMethod))
                 {
                     diagnostics.Add(CreateWarning(
-                                                  $"ParamsGCOptimization skipped call in {method.FullName}: cannot find 'in Params<T>' overload for {calledMethodDef.FullName}."));
+                        $"ParamsGCOptimization skipped call in {method.FullName}: cannot find 'in Params<T>' overload for {calledMethodDef.FullName}."));
                     continue;
                 }
 
@@ -67,7 +71,7 @@ namespace UniVue.CodeGen
                     continue;
 
                 if (!TryParseInlineParamsArray(instructions, i, paramsArrayType,
-                                               out InlineArrayParseResult parseResult))
+                        out InlineArrayParseResult parseResult))
                     continue;
 
                 // 特性约束：仅优化不超过 10 个参数的 params 调用，超过则保持原调用不变。
@@ -75,11 +79,11 @@ namespace UniVue.CodeGen
 
                 bool isValueTypeElement = IsValueType(paramsArrayType.ElementType);
                 if (!TryCreateParamsFactoryMethod(module, paramsValueType, paramsArrayType.ElementType,
-                                                  isValueTypeElement,
-                                                  out MethodReference factoryMethod))
+                        isValueTypeElement,
+                        out MethodReference factoryMethod))
                 {
                     diagnostics.Add(CreateWarning(
-                                                  $"ParamsGCOptimization skipped call in {method.FullName}: cannot resolve UniVue.Common.Params<T>._ factory method."));
+                        $"ParamsGCOptimization skipped call in {method.FullName}: cannot resolve UniVue.Common.Params<T>._ factory method."));
                     continue;
                 }
 
@@ -114,8 +118,8 @@ namespace UniVue.CodeGen
                         method.Body.Variables.Add(defaultValueLocal);
                         il.InsertBefore(callInstruction, Instruction.Create(OpCodes.Ldloca, defaultValueLocal));
                         il.InsertBefore(callInstruction,
-                                        Instruction.Create(OpCodes.Initobj,
-                                                           module.ImportReference(paramsArrayType.ElementType)));
+                            Instruction.Create(OpCodes.Initobj,
+                                module.ImportReference(paramsArrayType.ElementType)));
                     }
 
                     il.InsertBefore(callInstruction, CreateLoadIntInstruction(parseResult.ElementCount));
@@ -178,7 +182,7 @@ namespace UniVue.CodeGen
                 CustomAttribute attribute = parameterDefinition.CustomAttributes[i];
                 if (attribute?.AttributeType == null) continue;
                 if (string.Equals(attribute.AttributeType.FullName, "System.ParamArrayAttribute",
-                                  StringComparison.Ordinal))
+                        StringComparison.Ordinal))
                     return true;
             }
 
@@ -193,7 +197,7 @@ namespace UniVue.CodeGen
                 CustomAttribute attribute = methodDefinition.CustomAttributes[i];
                 if (attribute?.AttributeType == null) continue;
                 if (string.Equals(attribute.AttributeType.FullName, OptimizationAttributeFullName,
-                                  StringComparison.Ordinal))
+                        StringComparison.Ordinal))
                     return true;
             }
 
@@ -201,7 +205,7 @@ namespace UniVue.CodeGen
         }
 
         private static bool TryFindReplacementMethod(MethodDefinition sourceMethod, TypeReference elementType,
-                                                     out MethodDefinition replacementMethod)
+            out MethodDefinition replacementMethod)
         {
             replacementMethod = null;
             if (sourceMethod == null || sourceMethod.DeclaringType == null || elementType == null) return false;
@@ -256,7 +260,7 @@ namespace UniVue.CodeGen
         }
 
         private static bool TryParseInlineParamsArray(IList<Instruction> instructions, int callInstructionIndex,
-                                                      ArrayType expectedArrayType, out InlineArrayParseResult result)
+            ArrayType expectedArrayType, out InlineArrayParseResult result)
         {
             result = default;
             if (instructions == null || callInstructionIndex <= 0 || expectedArrayType == null) return false;
@@ -310,7 +314,7 @@ namespace UniVue.CodeGen
         }
 
         private static int FindNearestNewArray(IList<Instruction> instructions, int callInstructionIndex,
-                                               TypeReference expectedElementType)
+            TypeReference expectedElementType)
         {
             for (int i = callInstructionIndex - 1; i >= 0; i--)
             {
@@ -328,34 +332,28 @@ namespace UniVue.CodeGen
         private static int FindPreviousNonNopInstructionIndex(IList<Instruction> instructions, int startIndex)
         {
             for (int i = startIndex; i >= 0; i--)
-            {
                 if (instructions[i].OpCode != OpCodes.Nop)
                     return i;
-            }
 
             return -1;
         }
 
         private static int FindNextNonNopInstructionIndex(IList<Instruction> instructions, int startIndex,
-                                                          int endExclusive)
+            int endExclusive)
         {
             for (int i = startIndex; i < endExclusive; i++)
-            {
                 if (instructions[i].OpCode != OpCodes.Nop)
                     return i;
-            }
 
             return -1;
         }
 
         private static int FindNextStelemInstructionIndex(IList<Instruction> instructions, int startIndex,
-                                                          int endExclusive)
+            int endExclusive)
         {
             for (int i = startIndex; i < endExclusive; i++)
-            {
                 if (IsStelemInstruction(instructions[i]))
                     return i;
-            }
 
             return -1;
         }
@@ -390,8 +388,8 @@ namespace UniVue.CodeGen
         }
 
         private static bool TryCreateParamsFactoryMethod(ModuleDefinition module, TypeReference paramsValueType,
-                                                         TypeReference elementType, bool isValueTypeElement,
-                                                         out MethodReference factoryMethod)
+            TypeReference elementType, bool isValueTypeElement,
+            out MethodReference factoryMethod)
         {
             factoryMethod = null;
             TypeDefinition paramsTypeDefinition = SafeResolve(paramsValueType);
@@ -416,14 +414,12 @@ namespace UniVue.CodeGen
                     if (method.Parameters[0].ParameterType.MetadataType != MetadataType.Int32) continue;
                     bool byRefParamsMatched = true;
                     for (int i = 1; i < method.Parameters.Count; i++)
-                    {
                         if (method.Parameters[i].ParameterType is not ByReferenceType byRefType ||
                             !AreSameType(byRefType.ElementType, genericParameter))
                         {
                             byRefParamsMatched = false;
                             break;
                         }
-                    }
 
                     if (!byRefParamsMatched) continue;
                 }
@@ -444,7 +440,7 @@ namespace UniVue.CodeGen
         }
 
         private static MethodReference MakeHostInstanceGeneric(MethodReference methodReference,
-                                                               params TypeReference[] declaringTypeArguments)
+            params TypeReference[] declaringTypeArguments)
         {
             GenericInstanceType declaringTypeInstance = new(methodReference.DeclaringType);
             for (int i = 0; i < declaringTypeArguments.Length; i++)

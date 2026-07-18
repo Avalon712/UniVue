@@ -18,6 +18,8 @@
             }
         }
 
-        protected virtual void OnCreateInstance() { }
+        protected virtual void OnCreateInstance()
+        {
+        }
     }
 }

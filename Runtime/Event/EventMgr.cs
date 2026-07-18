@@ -1,9 +1,13 @@
+#region
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UniVue.Common;
 using UniVue.Internal;
 using UniVue.Utils;
+
+#endregion
 
 namespace UniVue.Event
 {
@@ -136,10 +140,8 @@ namespace UniVue.Event
             {
                 using InternalTempCollection<List<EventCallback>, EventCallback> tempCollection = new(callbacks);
                 foreach (EventCallback caller in tempCollection.Collection)
-                {
                     if (caller.Is(callback))
                         callbacks.Remove(caller);
-                }
 
                 if (callbacks.Count <= 0)
                 {
@@ -164,10 +166,8 @@ namespace UniVue.Event
             {
                 using InternalTempCollection<List<EventCallback>, EventCallback> tempCollection = new(callbacks);
                 foreach (EventCallback caller in tempCollection.Collection)
-                {
                     if (caller.Is(callback))
                         callbacks.Remove(caller);
-                }
 
                 if (callbacks.Count <= 0)
                 {
@@ -197,10 +197,8 @@ namespace UniVue.Event
             if (callbacks == null) return;
             using InternalTempCollection<List<EventCallback>, EventCallback> tempCollection = new(callbacks);
             foreach (EventCallback callback in tempCollection.Collection)
-            {
                 if (callback.Target == target)
                     callbacks.Remove(callback);
-            }
         }
 
         /// <summary>
@@ -266,10 +264,8 @@ namespace UniVue.Event
 
                 using InternalTempCollection<List<EventCallback>, EventCallback> tempCollection = new(callbacks);
                 foreach (EventCallback callback in tempCollection.Collection)
-                {
                     if (callbacks.Contains(callback) && callback.Invoke() && printLog)
                         PrintLog(eventKey, callback);
-                }
 
                 OnEvent?.Invoke(eventKey);
                 _dispatchPaths.Clear();
@@ -298,10 +294,8 @@ namespace UniVue.Event
 
                 using InternalTempCollection<List<EventCallback>, EventCallback> tempCollection = new(callbacks);
                 foreach (EventCallback callback in tempCollection.Collection)
-                {
                     if (callbacks.Contains(callback) && callback.Invoke(eventArg) && printLog)
                         PrintLog(eventKey, callback);
-                }
 
                 OnEvent?.Invoke(eventKey);
                 _dispatchPaths.Clear();

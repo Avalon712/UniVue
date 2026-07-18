@@ -1,20 +1,21 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.UI.ScrollRect;
+
+#endregion
 
 namespace UniVue.UI.Widgets
 {
     [AddComponentMenu("UniVue/UI Widgets/LoopList")]
     public sealed class LoopList : Loopable
     {
-        [SerializeField]
-        private bool _unlimitScroll;
+        [SerializeField] private bool _unlimitScroll;
 
-        [SerializeField]
-        private bool _alwaysNewest;
+        [SerializeField] private bool _alwaysNewest;
 
-        [SerializeField]
-        private float _perItemScrollTime = 0.1f;
+        [SerializeField] private float _perItemScrollTime = 0.1f;
 
         private int _targetIndex = -1; //要滚动到指定数据的目标位置
         private Vector2 _velocity; //滚动速度
@@ -22,6 +23,22 @@ namespace UniVue.UI.Widgets
         private int VisibleCount => scrollDir == ScrollDirection.Vertical ? grid.y : grid.x;
 
         protected override int LastIndex => ChildCount - 2;
+
+        protected override void Update()
+        {
+            base.Update();
+            //滚动动画的实现
+            if (_targetIndex != -1)
+            {
+                if (_targetIndex >= _head && _targetIndex <= _tail)
+                {
+                    _velocity = Vector2.zero;
+                    _targetIndex = -1;
+                }
+
+                _scrollRect.velocity = _velocity;
+            }
+        }
 
         /// <summary>
         /// 滚动到指定数据的位置
@@ -47,21 +64,6 @@ namespace UniVue.UI.Widgets
                     : Mathf.Abs(sumDeltaPos.x / Distance.x) * _perItemScrollTime;
 
                 _velocity = (endPos - startPos) / duration;
-            }
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-            //滚动动画的实现
-            if (_targetIndex != -1)
-            {
-                if (_targetIndex >= _head && _targetIndex <= _tail)
-                {
-                    _velocity = Vector2.zero;
-                    _targetIndex = -1;
-                }
-                _scrollRect.velocity = _velocity;
             }
         }
 
@@ -108,7 +110,7 @@ namespace UniVue.UI.Widgets
         }
 
 
-#region 滚动算法实现
+        #region 滚动算法实现
 
         protected override bool OnMoveItem(Direction direction, Vector3[] viewportCorners, Vector3[] itemCorners)
         {
@@ -181,6 +183,6 @@ namespace UniVue.UI.Widgets
             return index != -1;
         }
 
-#endregion
+        #endregion
     }
 }

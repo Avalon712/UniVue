@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#region
+
+using System;
 using System.IO;
-using System.Text;
 using UnityEngine;
 using UniVue.UI;
+
+#endregion
 
 namespace UniVue.Editor.CodeGen
 {
@@ -26,13 +28,15 @@ namespace UniVue.Editor.CodeGen
         internal void ExportInternal(GameObject uiPrefab, string sourceFilePath, Type sourceType, string prefabPath)
         {
             Script = uiPrefab.GetComponent<BaseUI>();
-            UIGeneratedFile file = new UIGeneratedFile();
+            UIGeneratedFile file = new();
             if (!Script)
             {
-                Debug.LogWarning($"The UI prefab({prefabPath}) does not have a BaseUI component attached. Code generation will be skipped.", uiPrefab);
+                Debug.LogWarning(
+                    $"The UI prefab({prefabPath}) does not have a BaseUI component attached. Code generation will be skipped.",
+                    uiPrefab);
                 return;
             }
-            
+
             File = file;
             file.AssetPath = prefabPath;
             file.SourceType = sourceType;
@@ -46,15 +50,9 @@ namespace UniVue.Editor.CodeGen
 
         private void TraverseUIHierarchy(GameObject ui, string uiPath)
         {
-            if (!IfIgnoreCurrent(ui, uiPath))
-            {
-                OnVisitUIHierarchy(ui, uiPath);
-            }
+            if (!IfIgnoreCurrent(ui, uiPath)) OnVisitUIHierarchy(ui, uiPath);
 
-            if (IfSkipDescendant(ui, uiPath))
-            {
-                return;
-            }
+            if (IfSkipDescendant(ui, uiPath)) return;
 
             foreach (Transform child in ui.transform)
             {
@@ -79,7 +77,8 @@ namespace UniVue.Editor.CodeGen
         /// <param name="sourceFilePath">源文件的绝对路径</param>
         /// <param name="generatedFileNameWithExtension">生成的文件的名称（含扩展名）</param>
         /// <returns>生成的文件的绝对路径</returns>
-        protected virtual string GetGeneratedFileAbsolutPath(string sourceFilePath, string generatedFileNameWithExtension)
+        protected virtual string GetGeneratedFileAbsolutPath(string sourceFilePath,
+            string generatedFileNameWithExtension)
         {
             return Path.Combine(Path.GetDirectoryName(sourceFilePath) ?? string.Empty, generatedFileNameWithExtension);
         }
@@ -112,14 +111,14 @@ namespace UniVue.Editor.CodeGen
         /// </summary>
         /// <param name="file"></param>
         protected abstract void OnFileInitialized(UIGeneratedFile file);
-        
+
         /// <summary>
         /// 为当前节点生成导出属性
         /// </summary>
         /// <param name="ui">当前被检查的UI对象</param>
         /// <param name="uiPath">从预制体节点到当前节点的路径</param>
         protected abstract void OnVisitUIHierarchy(GameObject ui, string uiPath);
-        
+
         /// <summary>
         /// 生成完整的源代码
         /// </summary>
@@ -130,6 +129,11 @@ namespace UniVue.Editor.CodeGen
 
     public sealed class UIGeneratedFile
     {
+        /// <summary>
+        /// 自定义的额外数据
+        /// </summary>
+        public object customExtraData;
+
         /// <summary>
         /// 预制体路径
         /// </summary>
@@ -154,12 +158,5 @@ namespace UniVue.Editor.CodeGen
         /// 源文件路径
         /// </summary>
         public string SourceFilePath { get; internal set; }
-
-        /// <summary>
-        /// 自定义的额外数据
-        /// </summary>
-        public object customExtraData;
     }
-    
-
 }

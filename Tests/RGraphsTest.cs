@@ -1,14 +1,18 @@
-﻿using System;
+﻿#region
+
+using System;
 using NUnit.Framework;
 using UniVue.Common;
 using UniVue.Event;
 using UniVue.Model;
 using UniVue.UI;
 
+#endregion
+
 namespace UniVue.Test
 {
     /// <summary>
-    /// 针对 <see cref="RGraphs"/> 渲染依赖图的严格单元测试，覆盖：
+    /// 针对 <see cref="RGraphs" /> 渲染依赖图的严格单元测试，覆盖：
     /// 构造/销毁、节点添加（模型/属性/事件）、启用禁用、脏标记、
     /// 强制渲染、属性/事件触发入队、各种 Clear、Rebind 以及边界与空参数场景。
     /// </summary>
@@ -56,7 +60,7 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Model_CreatesGraphAndBinding()
         {
-            var model = new TestModel();
+            TestModel model = new();
             int count = 0;
             Action render = () => count++;
 
@@ -67,7 +71,7 @@ namespace UniVue.Test
             Assert.That(_rg.Entry.g.next.ContainsKey(model), Is.True, "入口应记录该模型");
 
             // 强制渲染应当调用绑定的渲染函数
-            _rg.RenderIfDirtyOrForce(graph, force: true, enable: true);
+            _rg.RenderIfDirtyOrForce(graph, true, true);
             Assert.That(count, Is.EqualTo(1));
         }
 
@@ -84,9 +88,9 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Model_NullRenderFn_IsNoOp()
         {
-            var model = new TestModel();
+            TestModel model = new();
             RGraph graph = default;
-            _rg.AddNode(ref graph, model, (Action)null);
+            _rg.AddNode(ref graph, model, null);
 
             Assert.That(graph.g, Is.Null, "渲染函数为空时不应创建图");
             Assert.That(_rg.Entry.g.next.Count, Is.EqualTo(0));
@@ -95,7 +99,7 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Model_AnyPropertyChange_Enqueues()
         {
-            var model = new TestModel();
+            TestModel model = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, model, () => { });
 
@@ -108,7 +112,7 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Model_SameRenderFnTwice_NotDuplicated()
         {
-            var model = new TestModel();
+            TestModel model = new();
             int count = 0;
             Action render = () => count++;
 
@@ -116,7 +120,7 @@ namespace UniVue.Test
             _rg.AddNode(ref graph, model, render);
             _rg.AddNode(ref graph, model, render);
 
-            _rg.RenderIfDirtyOrForce(graph, force: true, enable: true);
+            _rg.RenderIfDirtyOrForce(graph, true, true);
             Assert.That(count, Is.EqualTo(1), "同一渲染函数重复添加不应重复调用");
         }
 
@@ -127,7 +131,7 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Property_OnlyBoundPropertyEnqueues()
         {
-            var model = new TestModel();
+            TestModel model = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, model, () => { }, "Hp");
 
@@ -141,7 +145,7 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Property_EmptyPropertyNames_FallsBackToModelBinding()
         {
-            var model = new TestModel();
+            TestModel model = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, model, () => { }, new string[0]);
 
@@ -153,7 +157,7 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Property_MultipleProperties()
         {
-            var model = new TestModel();
+            TestModel model = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, model, () => { }, "Hp", "Mp");
 
@@ -167,7 +171,7 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Property_UsingParamsStruct()
         {
-            var model = new TestModel();
+            TestModel model = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, model, () => { }, new Params<string>(1, "Hp"));
 
@@ -181,7 +185,7 @@ namespace UniVue.Test
         [Test]
         public void AddNode_Property_EmptyParamsStruct_FallsBackToModelBinding()
         {
-            var model = new TestModel();
+            TestModel model = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, model, () => { }, new Params<string>(0, null));
 
@@ -324,7 +328,7 @@ namespace UniVue.Test
         {
             RGraph graph = MakeModelGraph(out _, out RenderCounter counter);
 
-            _rg.RenderIfDirtyOrForce(graph, force: false, enable: true);
+            _rg.RenderIfDirtyOrForce(graph, false, true);
             Assert.That(counter.Count, Is.EqualTo(0));
         }
 
@@ -333,7 +337,7 @@ namespace UniVue.Test
         {
             RGraph graph = MakeModelGraph(out _, out RenderCounter counter);
 
-            _rg.RenderIfDirtyOrForce(graph, force: true, enable: true);
+            _rg.RenderIfDirtyOrForce(graph, true, true);
             Assert.That(counter.Count, Is.EqualTo(1));
         }
 
@@ -344,7 +348,7 @@ namespace UniVue.Test
             _rg.SetEnable(graph, false);
             model.Hp = 1; // 标记为脏（flag == 2）
 
-            _rg.RenderIfDirtyOrForce(graph, force: false, enable: true);
+            _rg.RenderIfDirtyOrForce(graph, false, true);
 
             Assert.That(counter.Count, Is.EqualTo(1), "脏图应被渲染");
             Assert.That(_rg.DisableGraphCount, Is.EqualTo(0), "enable 为 true 时应从禁用集中移除");
@@ -357,7 +361,7 @@ namespace UniVue.Test
             _rg.SetEnable(graph, false);
             model.Hp = 1;
 
-            _rg.RenderIfDirtyOrForce(graph, force: false, enable: false);
+            _rg.RenderIfDirtyOrForce(graph, false, false);
 
             Assert.That(counter.Count, Is.EqualTo(1));
             Assert.That(_rg.DisableGraphCount, Is.EqualTo(1), "enable 为 false 时应保留禁用状态");
@@ -393,8 +397,8 @@ namespace UniVue.Test
         [Test]
         public void Clear_Model_RemovesOnlyThatModel()
         {
-            var modelA = new TestModel();
-            var modelB = new TestModel();
+            TestModel modelA = new();
+            TestModel modelB = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, modelA, () => { });
             _rg.AddNode(ref graph, modelB, () => { });
@@ -417,7 +421,7 @@ namespace UniVue.Test
             RGraph graph = MakeModelGraph(out _, out _);
             int before = _rg.Entry.g.next.Count;
 
-            _rg.Clear((BaseModel)null);
+            _rg.Clear(null);
             Assert.That(_rg.Entry.g.next.Count, Is.EqualTo(before));
         }
 
@@ -425,7 +429,7 @@ namespace UniVue.Test
         public void Clear_Model_Unregistered_IsNoOp()
         {
             MakeModelGraph(out _, out _);
-            var other = new TestModel();
+            TestModel other = new();
 
             Assert.DoesNotThrow(() => _rg.Clear(other));
         }
@@ -556,9 +560,9 @@ namespace UniVue.Test
         [Test]
         public void Rebind_Model_MigratesBindingAndRefreshes()
         {
-            var oldModel = new TestModel();
-            var newModel = new TestModel();
-            var counter = new RenderCounter();
+            TestModel oldModel = new();
+            TestModel newModel = new();
+            RenderCounter counter = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, oldModel, counter.Render, "Hp");
 
@@ -578,13 +582,13 @@ namespace UniVue.Test
         [Test]
         public void Rebind_Model_NoRefresh_DoesNotRender()
         {
-            var oldModel = new TestModel();
-            var newModel = new TestModel();
-            var counter = new RenderCounter();
+            TestModel oldModel = new();
+            TestModel newModel = new();
+            RenderCounter counter = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, oldModel, counter.Render, "Hp");
 
-            _rg.Rebind(oldModel, newModel, refreshRightNow: false);
+            _rg.Rebind(oldModel, newModel, false);
 
             Assert.That(counter.Count, Is.EqualTo(0));
             Assert.That(_rg.Entry.g.next.ContainsKey(newModel), Is.True);
@@ -593,22 +597,22 @@ namespace UniVue.Test
         [Test]
         public void Rebind_Model_SameOrNull_IsNoOp()
         {
-            var model = new TestModel();
+            TestModel model = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, model, () => { });
 
             Assert.DoesNotThrow(() => _rg.Rebind(model, model));
-            Assert.DoesNotThrow(() => _rg.Rebind<TestModel>(null, model));
-            Assert.DoesNotThrow(() => _rg.Rebind<TestModel>(model, null));
+            Assert.DoesNotThrow(() => _rg.Rebind(null, model));
+            Assert.DoesNotThrow(() => _rg.Rebind(model, null));
             Assert.That(_rg.Entry.g.next.ContainsKey(model), Is.True);
         }
 
         [Test]
         public void Rebind_GraphModel_MigratesBinding()
         {
-            var oldModel = new TestModel();
-            var newModel = new TestModel();
-            var counter = new RenderCounter();
+            TestModel oldModel = new();
+            TestModel newModel = new();
+            RenderCounter counter = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, oldModel, counter.Render, "Hp");
 
@@ -625,8 +629,8 @@ namespace UniVue.Test
         [Test]
         public void Rebind_GraphModel_NewModelAlreadyBound_IsNoOp()
         {
-            var oldModel = new TestModel();
-            var newModel = new TestModel();
+            TestModel oldModel = new();
+            TestModel newModel = new();
             RGraph graph = default;
             _rg.AddNode(ref graph, oldModel, () => { }, "Hp");
             _rg.AddNode(ref graph, newModel, () => { }, "Hp");
@@ -702,7 +706,11 @@ namespace UniVue.Test
         private sealed class RenderCounter
         {
             public int Count { get; private set; }
-            public void Render() => Count++;
+
+            public void Render()
+            {
+                Count++;
+            }
         }
 
         private sealed class TestModel : BaseModel

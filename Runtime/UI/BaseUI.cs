@@ -1,31 +1,35 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UniVue.Common;
-using VC;
 using UniVue.Event;
 using UniVue.Internal;
 using UniVue.Model;
 using UniVue.Timer;
 using UniVue.Utils;
+using VC;
+
+#endregion
 
 namespace UniVue.UI
 {
     [RequireComponent(typeof(RectTransform))]
     public abstract class BaseUI : UIModel
     {
-        private RGraph _graph;
-        private float _timer;
-        private List<ulong> _coroutines;
-        private List<ulong> _timers;
         private List<BaseUI> _children;
-        
+        private List<ulong> _coroutines;
+
         //保证OnCreate一定最先被执行
         private bool _creationInvoked;
-        private bool _needInvokeOnActivateAfterOnCreate; 
+        private RGraph _graph;
+        private bool _needInvokeOnActivateAfterOnCreate;
         private bool _needInvokeOnInactiveAfterOnCreate;
+        private float _timer;
+        private List<ulong> _timers;
 
         public bool Disposed { get; private set; }
 
@@ -55,12 +59,9 @@ namespace UniVue.UI
                     _children = InternalObjectPool<List<BaseUI>>.Shared.Rent();
                 _children.Clear();
                 foreach (Transform child in transform)
-                {
                     if (child.TryGetComponent(out BaseUI ui))
-                    {
                         _children.Add(ui);
-                    }
-                }
+
                 return _children;
             }
         }
@@ -82,6 +83,7 @@ namespace UniVue.UI
                         break;
                     parent = parent.parent;
                 }
+
                 return parentUI;
             }
         }
@@ -91,21 +93,19 @@ namespace UniVue.UI
             static void TraverseChildren(Transform transform)
             {
                 foreach (Transform child in transform)
-                {
                     if (child.TryGetComponent(out BaseUI ui))
                         ui.OnCreateInternal();
                     else
                         TraverseChildren(child);
-                }
             }
-            
+
             if (Disposed) return;
-            
+
             TraverseChildren(transform);
             Name = gameObject.name;
             UI = gameObject;
             Layout = UI.GetComponent<RectTransform>();
-            
+
             OnCreate();
             _creationInvoked = true;
             if (_needInvokeOnActivateAfterOnCreate)
@@ -124,9 +124,10 @@ namespace UniVue.UI
                     child.RefreshUI(force);
                 }
             }
+
             TraverseChildren(this, force);
         }
-        
+
         private void SetUIActive(bool active)
         {
             UIMgr.Renderer.SetEnable(_graph, active);
@@ -140,9 +141,26 @@ namespace UniVue.UI
                 OnInactive();
             }
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void CheckDisposed()
+        {
+            ExceptionUtils.ThrowIfTrue(Disposed, Disposed ? $"{GetType().Name} is disposed." : string.Empty);
+        }
+
+        private bool TryAllocateCollections(ref List<ulong> collection)
+        {
+            if (collection == null)
+            {
+                collection = InternalObjectPool<List<ulong>>.Shared.Rent();
+                return true;
+            }
+
+            return false;
+        }
+
         #region Unity回调
-        
+
         private void OnEnable()
         {
             //OnEnable调用情况：不管何种情况gameObject.activeSelf=true && enabled=true都是前提
@@ -156,6 +174,7 @@ namespace UniVue.UI
                 _needInvokeOnInactiveAfterOnCreate = false;
                 return;
             }
+
             SetUIActive(true);
         }
 
@@ -165,13 +184,14 @@ namespace UniVue.UI
             //gameObject.activeSelf = false
             //enabled = false
             //从激活状态进入失活区域
-            
+
             if (!_creationInvoked)
             {
                 _needInvokeOnActivateAfterOnCreate = false;
                 _needInvokeOnInactiveAfterOnCreate = true;
                 return;
             }
+
             SetUIActive(false);
         }
 
@@ -191,22 +211,6 @@ namespace UniVue.UI
 
         #endregion
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void CheckDisposed()
-        {
-            ExceptionUtils.ThrowIfTrue(Disposed, Disposed ? $"{GetType().Name} is disposed." : string.Empty);
-        }
-
-        private bool TryAllocateCollections(ref List<ulong> collection)
-        {
-            if (collection == null)
-            {
-                collection = InternalObjectPool<List<ulong>>.Shared.Rent();
-                return true;
-            }
-            return false;
-        }
-
         #region 辅助函数
 
         /// <summary>
@@ -220,17 +224,16 @@ namespace UniVue.UI
             {
                 Transform parent = transform.parent;
                 while (parent)
-                {
-                    if(parent.gameObject.activeSelf)
+                    if (parent.gameObject.activeSelf)
                         parent = parent.parent;
                     else
                         break;
-                }
                 visible = !parent;
             }
+
             return visible;
         }
-        
+
         /// <summary>
         /// 刷新UI（绑定的所有渲染函数都会被执行一次，当渲染状态从Disable变为Enable时会自动调用一次此函数）
         /// <remarks>绝大多数情况下你都无需手动调用此函数。此函数不是精准式的更新，只要有脏标记则会将此UI绑定的所有渲染函数都执行一遍</remarks>
@@ -268,10 +271,8 @@ namespace UniVue.UI
             if (_graph.g == null) return null;
             CheckDisposed();
             foreach (BaseModel model in GetModels())
-            {
                 if (model is T modelT)
                     return modelT;
-            }
 
             return null;
         }
@@ -388,10 +389,7 @@ namespace UniVue.UI
             ExceptionUtils.ThrowIfTrue(eventKeys == null || eventKeys.Length <= 0, "无效的EventKey");
             ExceptionUtils.ThrowIfArgNull(renderFunc, nameof(renderFunc));
             if (eventKeys == null || eventKeys.Length <= 0) return renderFunc;
-            foreach (EventKey eventKey in eventKeys)
-            {
-                UIMgr.Renderer.AddNode(ref _graph, eventKey, renderFunc);
-            }
+            foreach (EventKey eventKey in eventKeys) UIMgr.Renderer.AddNode(ref _graph, eventKey, renderFunc);
 
             return renderFunc;
         }
@@ -407,10 +405,7 @@ namespace UniVue.UI
             CheckDisposed();
             ExceptionUtils.ThrowIfTrue(eventKeys.Length <= 0, "无效的EventKey");
             ExceptionUtils.ThrowIfArgNull(renderFunc, nameof(renderFunc));
-            foreach (EventKey eventKey in eventKeys)
-            {
-                UIMgr.Renderer.AddNode(ref _graph, eventKey, renderFunc);
-            }
+            foreach (EventKey eventKey in eventKeys) UIMgr.Renderer.AddNode(ref _graph, eventKey, renderFunc);
 
             return renderFunc;
         }
@@ -557,13 +552,14 @@ namespace UniVue.UI
         /// <param name="executeCondition">每次执行时需要满足的条件，一旦不满足条件将自动销毁当前定时器</param>
         /// <param name="cancelCondition">定时任务取消条件</param>
         /// <returns>定时器唯一id</returns>
-        protected ulong AddTimer(float delay, float interval, int repeat, Action callback, Func<bool> executeCondition = null,
-                                 Func<bool> cancelCondition = null)
+        protected ulong AddTimer(float delay, float interval, int repeat, Action callback,
+            Func<bool> executeCondition = null,
+            Func<bool> cancelCondition = null)
         {
             CheckDisposed();
             TryAllocateCollections(ref _timers);
             ulong timerId = TimerMgr.Create().OfDelay(delay).OfInterval(interval).OfCount(repeat).OfCallback(callback)
-                                    .OfExecuteCondition(executeCondition).OfCancelCondition(cancelCondition).Build();
+                .OfExecuteCondition(executeCondition).OfCancelCondition(cancelCondition).Build();
             _timers.Add(timerId);
             return timerId;
         }
@@ -652,29 +648,39 @@ namespace UniVue.UI
         /// <summary>
         /// UI被创建成功时回调（不受Unity生命周期的管理）
         /// </summary>
-        protected virtual void OnCreate() { }
+        protected virtual void OnCreate()
+        {
+        }
 
         /// <summary>
         /// 被激活时回调(受Unity的生命周期控制)
         /// </summary>
-        protected virtual void OnActive() { }
+        protected virtual void OnActive()
+        {
+        }
 
         /// <summary>
         /// 失活时回调(受Unity的生命周期控制)
         /// </summary>
-        protected virtual void OnInactive() { }
+        protected virtual void OnInactive()
+        {
+        }
 
         /// <summary>
         /// UI被销毁时回调(受Unity的生命周期控制)
         /// </summary>
-        protected virtual void OnDispose() { }
-        
+        protected virtual void OnDispose()
+        {
+        }
+
         /// <summary>
         /// 刷新UI
         /// </summary>
         /// <param name="force">true-强制刷新</param>
-        protected virtual void OnRefreshUI(bool force) { }
-        
+        protected virtual void OnRefreshUI(bool force)
+        {
+        }
+
         #endregion
     }
 }

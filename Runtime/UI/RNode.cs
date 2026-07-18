@@ -1,8 +1,12 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using UniVue.Event;
 using UniVue.Internal;
 using UniVue.Model;
+
+#endregion
 
 namespace UniVue.UI
 {
@@ -165,7 +169,7 @@ namespace UniVue.UI
         {
             return new RKey(model);
         }
-        
+
         public static implicit operator RKey(UIModel model)
         {
             return new RKey(model);
@@ -179,7 +183,6 @@ namespace UniVue.UI
         public bool Equals(RKey other)
         {
             if (type == other.type)
-            {
                 switch (type)
                 {
                     case RKeyType.Graph: return As<RGraph>().Equals(other.As<RGraph>());
@@ -188,7 +191,6 @@ namespace UniVue.UI
                     case RKeyType.Property: return As<string>() == other.As<string>();
                     case RKeyType.Rendering: return As<Action>() == other.As<Action>();
                 }
-            }
 
             return false;
         }

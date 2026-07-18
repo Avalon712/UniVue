@@ -1,8 +1,12 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Common;
 using UniVue.Internal;
+
+#endregion
 
 namespace UniVue.UI
 {
@@ -10,8 +14,8 @@ namespace UniVue.UI
     public abstract class BaseView : BaseUI
     {
         private List<BaseUI> _childViews;
-        private bool _openInvoked;
         private bool _closeInvoked = true;
+        private bool _openInvoked;
 
         /// <summary>
         /// UI层级，层级高的界面会显示在层级低的前面
@@ -23,7 +27,7 @@ namespace UniVue.UI
         /// <remarks>仅对根视图有效(此值如果小于UIMgr初始化时设定的值则取当前值，否则取UIMgr初始化时设定的值)</remarks>
         /// </summary>
         public virtual int LiveTimeAfterClosed { get; } = 30;
-        
+
         /// <summary>
         /// 父界面，如果为Null，则说明是根视图
         /// </summary>
@@ -36,17 +40,19 @@ namespace UniVue.UI
                 BaseView result = null;
                 while (parent)
                 {
-                    if(parent is BaseView view)
+                    if (parent is BaseView view)
                     {
                         result = view;
                         break;
                     }
+
                     parent = parent.Parent;
                 }
+
                 return result;
             }
         }
-        
+
         public IndexableCollectionIterator<BaseView, BaseUI> ChildViews
         {
             get
@@ -55,16 +61,16 @@ namespace UniVue.UI
                 if (_childViews == null)
                     _childViews = InternalObjectPool<List<BaseUI>>.Shared.Rent();
                 _childViews.Clear();
+
                 static void GetChildView(List<BaseUI> list, BaseUI parent)
                 {
                     foreach (BaseUI child in parent.Children)
-                    {
                         if (child is BaseView view)
                             list.Add(view);
                         else
                             GetChildView(list, child);
-                    }
                 }
+
                 GetChildView(_childViews, this);
                 return new IndexableCollectionIterator<BaseView, BaseUI>(_childViews);
             }
@@ -88,7 +94,7 @@ namespace UniVue.UI
             else
                 OnOpenInternal(Array.Empty<object>());
         }
-        
+
         public void Open(params object[] args)
         {
             CheckDisposed();
@@ -97,7 +103,7 @@ namespace UniVue.UI
             else
                 OnOpenInternal(args);
         }
-        
+
         /// <summary>
         /// 关闭当前界面
         /// </summary>
@@ -106,7 +112,7 @@ namespace UniVue.UI
             CheckDisposed();
             if (UIMgr.IsRootView(this))
                 UIMgr.Close(Name);
-            else 
+            else
                 OnCloseInternal();
         }
 
@@ -136,14 +142,14 @@ namespace UniVue.UI
                 OnClose();
             }
         }
-        
+
         internal void OnReceiveMessageInternal(object sender, object message)
         {
             if (Disposed) return;
             OnReceiveMessage(sender, message);
         }
-        
-#region 生命周期
+
+        #region 生命周期
 
         /// <summary>
         /// 界面被打开时回调
@@ -159,9 +165,8 @@ namespace UniVue.UI
         /// <param name="args"></param>
         protected virtual void OnReopen(object[] args)
         {
-            
         }
-        
+
         /// <summary>
         /// 界面被关闭时回调
         /// </summary>
@@ -188,9 +193,8 @@ namespace UniVue.UI
         /// <param name="message">外部传递的消息</param>
         protected virtual void OnReceiveMessage(object sender, object message)
         {
-            
         }
-        
-#endregion
+
+        #endregion
     }
 }

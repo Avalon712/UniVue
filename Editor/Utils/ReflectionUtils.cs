@@ -1,6 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+
+#endregion
 
 namespace UniVue.Editor
 {
@@ -16,10 +20,8 @@ namespace UniVue.Editor
             {
                 Type[] types = type.GenericTypeArguments;
                 if (types != null && types.Length == 1)
-                {
                     if (types[0].IsEnum && types[0].GetCustomAttribute<FlagsAttribute>() != null)
                         return true;
-                }
             }
 
             return false;

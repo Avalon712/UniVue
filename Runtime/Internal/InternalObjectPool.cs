@@ -1,6 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+
+#endregion
 
 namespace UniVue.Internal
 {
@@ -13,7 +17,9 @@ namespace UniVue.Internal
 
         private uint _maxCapacity = uint.MaxValue;
 
-        private InternalObjectPool() { }
+        private InternalObjectPool()
+        {
+        }
 
         public InternalObjectPool(Func<T> createFunc, Action<T> disposeFunc)
         {

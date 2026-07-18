@@ -1,8 +1,12 @@
-﻿using System;
+﻿#region
+
+using System;
+using System.Reflection;
 #if UNITY_EDITOR
 using System.Diagnostics;
-using System.Reflection;
 #endif
+
+#endregion
 
 namespace UniVue.Common
 {

@@ -1,15 +1,16 @@
-﻿using System.IO;
+﻿#region
+
+using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using UnityEditor;
 using UnityEngine;
-using UniVue.Utils;
+
+#endregion
 
 namespace UniVue.Editor
 {
     public static class EditorCoreUtils
     {
-
         /// <summary>
         /// 获取项目的根目录
         /// </summary>
@@ -19,7 +20,7 @@ namespace UniVue.Editor
             string dataPath = Application.dataPath;
             return dataPath.Substring(0, dataPath.LastIndexOf("/"));
         }
-        
+
         /// <summary>
         /// 深拷贝一个对象
         /// </summary>

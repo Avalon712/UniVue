@@ -1,11 +1,17 @@
+#region
+
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+
+#endregion
 
 namespace UniVue.Internal
 {
     internal sealed class InternalReferenceComparer<T> : IEqualityComparer<T>
     {
-        private InternalReferenceComparer() { }
+        private InternalReferenceComparer()
+        {
+        }
 
         public static InternalReferenceComparer<T> Shared { get; } = new();
 

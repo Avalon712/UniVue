@@ -1,7 +1,11 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using UniVue.Internal;
 using UniVue.Utils;
+
+#endregion
 
 namespace UniVue.Common
 {
@@ -25,8 +29,8 @@ namespace UniVue.Common
         public int Length { get; }
 
         public Params(int length, in T v0, in T v1 = default, in T v2 = default, in T v3 = default, in T v4 = default,
-                      in T v5 = default,
-                      in T v6 = default, in T v7 = default, in T v8 = default, in T v9 = default)
+            in T v5 = default,
+            in T v6 = default, in T v7 = default, in T v8 = default, in T v9 = default)
         {
             _v0 = v0;
             _v1 = v1;
@@ -46,7 +50,7 @@ namespace UniVue.Common
             get
             {
                 ExceptionUtils.ThrowIfTrue(index < 0 || index >= Length,
-                                           $"Index Out Of Bounds, index = {index}, length = {Length}");
+                    $"Index Out Of Bounds, index = {index}, length = {Length}");
                 return index switch
                 {
                     0 => _v0,
@@ -81,10 +85,8 @@ namespace UniVue.Common
         public int IndexOf(T item)
         {
             for (int i = 0; i < Length; i++)
-            {
                 if (InternalEqualityComparer<T>.Comparer.Equals(this[i], item))
                     return i;
-            }
 
             return -1;
         }
@@ -99,8 +101,8 @@ namespace UniVue.Common
         /// </summary>
         /// <returns></returns>
         public static Params<TClass> _<TClass>(TClass v0, TClass v1 = null, TClass v2 = null, TClass v3 = null,
-                                               TClass v4 = null, TClass v5 = null, TClass v6 = null,
-                                               TClass v7 = null, TClass v8 = null, TClass v9 = null)
+            TClass v4 = null, TClass v5 = null, TClass v6 = null,
+            TClass v7 = null, TClass v8 = null, TClass v9 = null)
             where TClass : class
         {
             int length = 0;
@@ -123,12 +125,12 @@ namespace UniVue.Common
         /// </summary>
         /// <returns></returns>
         public static Params<TStruct> _<TStruct>(int length, in TStruct v0, in TStruct v1 = default,
-                                                 in TStruct v2 = default,
-                                                 in TStruct v3 = default,
-                                                 in TStruct v4 = default, in TStruct v5 = default,
-                                                 in TStruct v6 = default,
-                                                 in TStruct v7 = default, in TStruct v8 = default,
-                                                 in TStruct v9 = default)
+            in TStruct v2 = default,
+            in TStruct v3 = default,
+            in TStruct v4 = default, in TStruct v5 = default,
+            in TStruct v6 = default,
+            in TStruct v7 = default, in TStruct v8 = default,
+            in TStruct v9 = default)
             where TStruct : struct
         {
             return new Params<TStruct>(Math.Clamp(length, 0, 10), v0, v1, v2, v3, v4, v5, v6, v7, v8, v9);
@@ -140,8 +142,8 @@ namespace UniVue.Common
         /// </summary>
         /// <returns></returns>
         public static Params<object> _(object v1, object v2 = null, object v3 = null, object v4 = null,
-                                       object v5 = null, object v6 = null, object v7 = null, object v8 = null,
-                                       object v9 = null)
+            object v5 = null, object v6 = null, object v7 = null, object v8 = null,
+            object v9 = null)
         {
             return _<object>(v1, v2, v3, v4, v5, v6, v7, v8, v9);
         }

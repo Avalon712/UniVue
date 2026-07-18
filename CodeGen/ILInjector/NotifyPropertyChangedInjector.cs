@@ -1,7 +1,11 @@
+#region
+
 using System;
 using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+
+#endregion
 
 namespace UniVue.CodeGen
 {
@@ -30,13 +34,11 @@ namespace UniVue.CodeGen
             if (type == null) return false;
 
             if (IsModelSubclass(type) && !IsNoNotifyType(type))
-            {
                 foreach (PropertyDefinition property in type.Properties)
                 {
                     if (ShouldSkipProperty(type, property)) continue;
                     modified |= InjectPropertySetter(module, type, property);
                 }
-            }
 
             foreach (TypeDefinition nestedType in type.NestedTypes) modified |= InjectType(module, nestedType);
 
@@ -44,7 +46,7 @@ namespace UniVue.CodeGen
         }
 
         private static bool InjectPropertySetter(ModuleDefinition module, TypeDefinition ownerType,
-                                                 PropertyDefinition property)
+            PropertyDefinition property)
         {
             MethodDefinition getter = property.GetMethod;
             MethodDefinition setter = property.SetMethod;
@@ -79,10 +81,8 @@ namespace UniVue.CodeGen
             List<Instruction> returnInstructions = new();
 
             foreach (Instruction instruction in setter.Body.Instructions)
-            {
                 if (instruction.OpCode == OpCodes.Ret)
                     returnInstructions.Add(instruction);
-            }
 
             int valueArgIndex = setter.Parameters.Count;
             foreach (Instruction ret in returnInstructions)
@@ -117,14 +117,10 @@ namespace UniVue.CodeGen
                 if (resolved == null) break;
 
                 if (IsModelRootType(resolved.FullName))
-                {
                     foreach (MethodDefinition method in resolved.Methods)
-                    {
                         if (method.Name == "CheckPropertyChanged" && method.HasGenericParameters &&
                             method.Parameters.Count == 3)
                             return method;
-                    }
-                }
 
                 current = resolved.BaseType;
             }
@@ -200,10 +196,8 @@ namespace UniVue.CodeGen
             if (provider == null || !provider.HasCustomAttributes) return false;
 
             foreach (CustomAttribute attribute in provider.CustomAttributes)
-            {
                 if (attribute.AttributeType.FullName == NoNotifyAttributeFullName)
                     return true;
-            }
 
             return false;
         }

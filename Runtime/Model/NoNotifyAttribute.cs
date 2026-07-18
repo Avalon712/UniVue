@@ -1,10 +1,13 @@
-﻿using System;
+﻿#region
+
+using System;
+
+#endregion
 
 namespace UniVue.Model
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
     public sealed class NoNotifyAttribute : Attribute
     {
-        
     }
 }

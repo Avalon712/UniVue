@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using UnityEngine;
+
+#endregion
 
 namespace UniVue.UI.Widgets
 {
@@ -32,7 +36,7 @@ namespace UniVue.UI.Widgets
                 RefreshViewArea();
         }
 
-#region 滚动算法的实现
+        #region 滚动算法的实现
 
         protected override bool OnMoveItem(Direction direction, Vector3[] viewportCorners, Vector3[] itemCorners)
         {
@@ -205,6 +209,6 @@ namespace UniVue.UI.Widgets
             return true;
         }
 
-#endregion
+        #endregion
     }
 }

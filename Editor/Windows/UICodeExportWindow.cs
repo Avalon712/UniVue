@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +9,9 @@ using UnityEditor;
 using UnityEngine;
 using UniVue.Editor.CodeGen;
 using UniVue.UI;
+using Object = UnityEngine.Object;
+
+#endregion
 
 namespace UniVue.Editor
 {
@@ -15,51 +20,25 @@ namespace UniVue.Editor
         private const string PrefsKeyModules = "UniVue.UICodeExport.Modules";
         private const string PrefsKeyGeneratorPrefix = "UniVue.UICodeExport.Generator.";
         private const char ModulePathSeparator = '|';
+        private readonly List<ModuleNode> _modules = new();
+        private bool _awaitingModuleDrop;
+        private GUIStyle _badgeStyle;
+        private GUIStyle _cardStyle;
+        private GUIStyle _emptyHintStyle;
+        private string[] _generatorDisplayNames = Array.Empty<string>();
 
         private Type[] _generatorTypes = Array.Empty<Type>();
-        private string[] _generatorDisplayNames = Array.Empty<string>();
-        private readonly List<ModuleNode> _modules = new();
+        private GUIStyle _headerLabelStyle;
+        private GUIStyle _prefabDisabledLabelStyle;
+        private GUIStyle _prefabLabelStyle;
         private Vector2 _scroll;
         private string _statusMessage = "";
-        private bool _awaitingModuleDrop;
 
         private bool _stylesReady;
-        private GUIStyle _cardStyle;
-        private GUIStyle _headerLabelStyle;
-        private GUIStyle _badgeStyle;
-        private GUIStyle _prefabLabelStyle;
-        private GUIStyle _prefabDisabledLabelStyle;
         private GUIStyle _typeLabelStyle;
-        private GUIStyle _emptyHintStyle;
 
-        private sealed class PrefabEntry
-        {
-            public string AssetPath;
-            public string DisplayName;
-            public Type ScriptType;
-            public string SourceFileAbsolutePath;
-            public bool CodeGenDisabled;
-        }
-
-        private sealed class ModuleNode
-        {
-            public string FolderPath;
-            public string Name;
-            public bool Foldout = true;
-            public bool IsTopLevel;
-            public Color AccentColor = Color.gray;
-            public string SelectedGeneratorFullName;
-            public readonly List<ModuleNode> Children = new();
-            public readonly List<PrefabEntry> Prefabs = new();
-        }
-
-        [MenuItem("UniVue/Windows/UI Code Export")]
-        public static void ShowWindow()
-        {
-            var window = GetWindow<UICodeExportWindow>("UI Code Export");
-            window.minSize = new Vector2(480, 320);
-            window.Show();
-        }
+        private static Color EditorBg =>
+            EditorGUIUtility.isProSkin ? new Color(0.22f, 0.22f, 0.22f) : new Color(0.78f, 0.78f, 0.78f);
 
         private void OnEnable()
         {
@@ -67,57 +46,9 @@ namespace UniVue.Editor
             RestoreModules();
         }
 
-        private void DiscoverGenerators()
+        private void OnDisable()
         {
-            _generatorTypes = TypeCache.GetTypesDerivedFrom<UICodeGenerator>()
-                .Where(t => !t.IsAbstract && t.GetConstructor(Type.EmptyTypes) != null)
-                .OrderBy(t => t.FullName, StringComparer.Ordinal)
-                .ToArray();
-            _generatorDisplayNames = _generatorTypes.Select(t => t.FullName).ToArray();
-        }
-
-        private void RestoreModules()
-        {
-            _modules.Clear();
-            string saved = EditorPrefs.GetString(PrefsKeyModules, "");
-            if (string.IsNullOrEmpty(saved))
-            {
-                UpdateStatusMessage();
-                return;
-            }
-
-            bool changed = false;
-            foreach (string raw in saved.Split(ModulePathSeparator))
-            {
-                if (string.IsNullOrEmpty(raw) || !AssetDatabase.IsValidFolder(raw))
-                {
-                    changed = true;
-                    continue;
-                }
-
-                string path = raw.Replace('\\', '/');
-
-                // 过滤相互包含的历史数据：若与已加入模块存在祖先/后代关系则丢弃
-                if (_modules.Any(m => IsPathInside(path, m.FolderPath) || IsPathInside(m.FolderPath, path)))
-                {
-                    changed = true;
-                    continue;
-                }
-
-                _modules.Add(BuildModuleNode(path, isTopLevel: true));
-            }
-
-            _modules.Sort((a, b) => string.Compare(a.FolderPath, b.FolderPath, StringComparison.OrdinalIgnoreCase));
-            if (changed)
-                SaveModuleList();
-            UpdateStatusMessage();
-        }
-
-        private void SaveModuleList()
-        {
-            string value = string.Join(ModulePathSeparator.ToString(),
-                _modules.Where(m => m.IsTopLevel).Select(m => m.FolderPath));
-            EditorPrefs.SetString(PrefsKeyModules, value);
+            UniVueEditorPrefs.Save();
         }
 
         private void OnGUI()
@@ -151,6 +82,67 @@ namespace UniVue.Editor
             DrawStatusBar();
         }
 
+        [MenuItem("UniVue/UI Code Export Window")]
+        public static void ShowWindow()
+        {
+            UICodeExportWindow window = GetWindow<UICodeExportWindow>("UI Code Export");
+            window.minSize = new Vector2(480, 320);
+            window.Show();
+        }
+
+        private void DiscoverGenerators()
+        {
+            _generatorTypes = TypeCache.GetTypesDerivedFrom<UICodeGenerator>()
+                .Where(t => !t.IsAbstract && t.GetConstructor(Type.EmptyTypes) != null)
+                .OrderBy(t => t.FullName, StringComparer.Ordinal)
+                .ToArray();
+            _generatorDisplayNames = _generatorTypes.Select(t => t.FullName).ToArray();
+        }
+
+        private void RestoreModules()
+        {
+            _modules.Clear();
+            string saved = UniVueEditorPrefs.GetString(PrefsKeyModules, "");
+            if (string.IsNullOrEmpty(saved))
+            {
+                UpdateStatusMessage();
+                return;
+            }
+
+            bool changed = false;
+            foreach (string raw in saved.Split(ModulePathSeparator))
+            {
+                if (string.IsNullOrEmpty(raw) || !AssetDatabase.IsValidFolder(raw))
+                {
+                    changed = true;
+                    continue;
+                }
+
+                string path = raw.Replace('\\', '/');
+
+                // 过滤相互包含的历史数据：若与已加入模块存在祖先/后代关系则丢弃
+                if (_modules.Any(m => IsPathInside(path, m.FolderPath) || IsPathInside(m.FolderPath, path)))
+                {
+                    changed = true;
+                    continue;
+                }
+
+                _modules.Add(BuildModuleNode(path, true));
+            }
+
+            _modules.Sort((a, b) => string.Compare(a.FolderPath, b.FolderPath, StringComparison.OrdinalIgnoreCase));
+            if (changed)
+                SaveModuleList();
+            UpdateStatusMessage();
+        }
+
+        private void SaveModuleList()
+        {
+            string value = string.Join(ModulePathSeparator.ToString(),
+                _modules.Where(m => m.IsTopLevel).Select(m => m.FolderPath));
+            UniVueEditorPrefs.SetString(PrefsKeyModules, value);
+        }
+
         private void EnsureStyles()
         {
             if (_stylesReady)
@@ -159,42 +151,42 @@ namespace UniVue.Editor
             _cardStyle = new GUIStyle(EditorStyles.helpBox)
             {
                 padding = new RectOffset(0, 6, 4, 6),
-                margin = new RectOffset(4, 4, 2, 6),
+                margin = new RectOffset(4, 4, 2, 6)
             };
 
             _headerLabelStyle = new GUIStyle(EditorStyles.boldLabel)
             {
                 fontSize = 12,
-                alignment = TextAnchor.MiddleLeft,
+                alignment = TextAnchor.MiddleLeft
             };
 
             _badgeStyle = new GUIStyle(EditorStyles.miniLabel)
             {
                 alignment = TextAnchor.MiddleCenter,
-                fontStyle = FontStyle.Bold,
+                fontStyle = FontStyle.Bold
             };
 
             _prefabLabelStyle = new GUIStyle(EditorStyles.label)
             {
-                alignment = TextAnchor.MiddleLeft,
+                alignment = TextAnchor.MiddleLeft
             };
 
             _prefabDisabledLabelStyle = new GUIStyle(EditorStyles.label)
             {
                 alignment = TextAnchor.MiddleLeft,
-                fontStyle = FontStyle.Italic,
+                fontStyle = FontStyle.Italic
             };
             _prefabDisabledLabelStyle.normal.textColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
             _typeLabelStyle = new GUIStyle(EditorStyles.miniLabel)
             {
-                alignment = TextAnchor.MiddleRight,
+                alignment = TextAnchor.MiddleRight
             };
             _typeLabelStyle.normal.textColor = new Color(0.55f, 0.55f, 0.55f, 1f);
 
             _emptyHintStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
             {
-                fontSize = 11,
+                fontSize = 11
             };
 
             _stylesReady = true;
@@ -219,7 +211,8 @@ namespace UniVue.Editor
                     GUI.backgroundColor = new Color(1f, 0.75f, 0.4f);
                 if (GUILayout.Button(
                         new GUIContent(_awaitingModuleDrop ? " 取消添加" : " 添加模块",
-                            EditorGUIUtility.IconContent(_awaitingModuleDrop ? "d_winbtn_win_close" : "Toolbar Plus").image),
+                            EditorGUIUtility.IconContent(_awaitingModuleDrop ? "d_winbtn_win_close" : "Toolbar Plus")
+                                .image),
                         EditorStyles.toolbarButton, GUILayout.Width(84)))
                     _awaitingModuleDrop = !_awaitingModuleDrop;
                 GUI.backgroundColor = prev;
@@ -266,9 +259,9 @@ namespace UniVue.Editor
                 EditorGUI.DrawRect(dropArea, fill);
                 DrawBorder(dropArea, hover ? new Color(0.35f, 0.6f, 1f, 0.9f) : new Color(1f, 1f, 1f, 0.15f));
 
-                var content = new GUIContent("  将目录拖放到此处以添加为模块",
+                GUIContent content = new("  将目录拖放到此处以添加为模块",
                     EditorGUIUtility.IconContent("Folder Icon").image);
-                var centered = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleCenter };
+                GUIStyle centered = new(EditorStyles.label) { alignment = TextAnchor.MiddleCenter };
                 GUI.Label(dropArea, content, centered);
                 HandleAddModuleDragAndDrop(dropArea);
             }
@@ -309,7 +302,7 @@ namespace UniVue.Editor
             if (DragAndDrop.objectReferences == null || DragAndDrop.objectReferences.Length == 0)
                 return false;
 
-            UnityEngine.Object obj = DragAndDrop.objectReferences[0];
+            Object obj = DragAndDrop.objectReferences[0];
             string path = AssetDatabase.GetAssetPath(obj);
             if (string.IsNullOrEmpty(path) || !AssetDatabase.IsValidFolder(path))
                 return false;
@@ -356,7 +349,7 @@ namespace UniVue.Editor
                 }
             }
 
-            _modules.Add(BuildModuleNode(path, isTopLevel: true));
+            _modules.Add(BuildModuleNode(path, true));
             _modules.Sort((a, b) => string.Compare(a.FolderPath, b.FolderPath, StringComparison.OrdinalIgnoreCase));
             _awaitingModuleDrop = false;
             SaveModuleList();
@@ -364,7 +357,7 @@ namespace UniVue.Editor
         }
 
         /// <summary>
-        /// 判断 <paramref name="child"/> 是否等于 <paramref name="parent"/> 或位于其内部（按目录层级，不做前缀误判）。
+        /// 判断 <paramref name="child" /> 是否等于 <paramref name="parent" /> 或位于其内部（按目录层级，不做前缀误判）。
         /// </summary>
         private static bool IsPathInside(string child, string parent)
         {
@@ -397,7 +390,7 @@ namespace UniVue.Editor
             {
                 if (!AssetDatabase.IsValidFolder(path))
                     continue;
-                _modules.Add(BuildModuleNode(path, isTopLevel: true));
+                _modules.Add(BuildModuleNode(path, true));
             }
 
             SaveModuleList();
@@ -407,7 +400,7 @@ namespace UniVue.Editor
         private ModuleNode BuildModuleNode(string folderPath, bool isTopLevel)
         {
             folderPath = folderPath.Replace('\\', '/');
-            var node = new ModuleNode
+            ModuleNode node = new()
             {
                 FolderPath = folderPath,
                 Name = Path.GetFileName(folderPath),
@@ -463,12 +456,13 @@ namespace UniVue.Editor
                 });
             }
 
-            node.Prefabs.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase));
+            node.Prefabs.Sort((a, b) =>
+                string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase));
         }
 
         private static bool IsUICodeGenerationDisabled(Type scriptType)
         {
-            return scriptType.GetCustomAttribute<DisableUICodeGeneratedAttribute>(inherit: true) != null;
+            return scriptType.GetCustomAttribute<DisableUICodeGeneratedAttribute>(true) != null;
         }
 
         private void CollectChildModules(ModuleNode node)
@@ -476,7 +470,7 @@ namespace UniVue.Editor
             string[] subFolders = AssetDatabase.GetSubFolders(node.FolderPath);
             Array.Sort(subFolders, StringComparer.OrdinalIgnoreCase);
             foreach (string subFolder in subFolders)
-                node.Children.Add(BuildModuleNode(subFolder.Replace('\\', '/'), isTopLevel: false));
+                node.Children.Add(BuildModuleNode(subFolder.Replace('\\', '/'), false));
         }
 
         private static string ToAbsolutePath(string assetPath)
@@ -487,7 +481,7 @@ namespace UniVue.Editor
 
         private string LoadSavedGenerator(string folderPath)
         {
-            string saved = EditorPrefs.GetString(PrefsKeyGeneratorPrefix + folderPath, "");
+            string saved = UniVueEditorPrefs.GetString(PrefsKeyGeneratorPrefix + folderPath, "");
             if (string.IsNullOrEmpty(saved))
                 return null;
             if (_generatorDisplayNames.Contains(saved))
@@ -498,9 +492,9 @@ namespace UniVue.Editor
         private static void SaveGeneratorSelection(string folderPath, string generatorFullName)
         {
             if (string.IsNullOrEmpty(generatorFullName))
-                EditorPrefs.DeleteKey(PrefsKeyGeneratorPrefix + folderPath);
+                UniVueEditorPrefs.DeleteKey(PrefsKeyGeneratorPrefix + folderPath);
             else
-                EditorPrefs.SetString(PrefsKeyGeneratorPrefix + folderPath, generatorFullName);
+                UniVueEditorPrefs.SetString(PrefsKeyGeneratorPrefix + folderPath, generatorFullName);
         }
 
         private void DrawModuleNode(ModuleNode node, int depth, Color accent)
@@ -530,7 +524,7 @@ namespace UniVue.Editor
 
             if (node.Prefabs.Count == 0 && node.Children.Count == 0)
             {
-                var r = EditorGUILayout.GetControlRect(false, 18);
+                Rect r = EditorGUILayout.GetControlRect(false, 18);
                 r.xMin += (depth + 1) * 14f + 22f;
                 GUI.Label(r, "（无可导出的预制体）", _emptyHintStyle);
                 return;
@@ -559,11 +553,11 @@ namespace UniVue.Editor
             float indent = depth * 14f;
             float x = row.x + 8f + indent;
 
-            var foldRect = new Rect(x, row.y + 4f, 14f, 16f);
+            Rect foldRect = new(x, row.y + 4f, 14f, 16f);
             node.Foldout = EditorGUI.Foldout(foldRect, node.Foldout, GUIContent.none, true);
             x += 16f;
 
-            var iconRect = new Rect(x, row.y + 4f, 16f, 16f);
+            Rect iconRect = new(x, row.y + 4f, 16f, 16f);
             Texture folderIcon = EditorGUIUtility.IconContent(node.Foldout ? "FolderOpened Icon" : "Folder Icon").image;
             if (folderIcon != null)
                 GUI.DrawTexture(iconRect, folderIcon, ScaleMode.ScaleToFit);
@@ -574,7 +568,7 @@ namespace UniVue.Editor
 
             if (node.IsTopLevel)
             {
-                var delRect = new Rect(rx - 22f, row.y + 3f, 22f, 18f);
+                Rect delRect = new(rx - 22f, row.y + 3f, 22f, 18f);
                 if (GUI.Button(delRect, new GUIContent("✕", "移除此模块"), EditorStyles.miniButton))
                 {
                     RemoveModule(node);
@@ -587,7 +581,7 @@ namespace UniVue.Editor
 
             using (new EditorGUI.DisabledScope(_generatorTypes.Length == 0 || !HasExportablePrefabRecursive(node)))
             {
-                var exportRect = new Rect(rx - 84f, row.y + 3f, 84f, 18f);
+                Rect exportRect = new(rx - 84f, row.y + 3f, 84f, 18f);
                 if (GUI.Button(exportRect, new GUIContent(" 导出模块",
                             EditorGUIUtility.IconContent("SaveActive").image,
                             "导出该模块及其所有子模块的可生成预制体"),
@@ -597,19 +591,19 @@ namespace UniVue.Editor
             }
 
             float popupW = Mathf.Min(240f, Mathf.Max(140f, rx - x - 120f));
-            var popupRect = new Rect(rx - popupW, row.y + 3f, popupW, 18f);
+            Rect popupRect = new(rx - popupW, row.y + 3f, popupW, 18f);
             DrawGeneratorPopup(node, popupRect);
             rx -= popupW + 6f;
 
             // 名称 + 数量徽章
             int prefabCount = CountPrefabs(node);
-            var nameRect = new Rect(x, row.y, rx - x - 6f, row.height);
+            Rect nameRect = new(x, row.y, rx - x - 6f, row.height);
             GUI.Label(nameRect, node.Name, _headerLabelStyle);
 
             if (prefabCount > 0)
             {
                 float nameW = Mathf.Min(_headerLabelStyle.CalcSize(new GUIContent(node.Name)).x + 6f, nameRect.width);
-                var badgeRect = new Rect(x + nameW, row.y + 5f, 34f, 14f);
+                Rect badgeRect = new(x + nameW, row.y + 5f, 34f, 14f);
                 if (badgeRect.xMax < rx)
                 {
                     EditorGUI.DrawRect(badgeRect, Color.Lerp(EditorBg, accent, 0.55f));
@@ -637,7 +631,7 @@ namespace UniVue.Editor
             float indent = depth * 14f;
             float x = row.x + 10f + indent;
 
-            var iconRect = new Rect(x, row.y + 2f, 16f, 16f);
+            Rect iconRect = new(x, row.y + 2f, 16f, 16f);
             Texture icon = AssetDatabase.GetCachedIcon(prefab.AssetPath);
             if (icon != null)
                 GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit);
@@ -647,8 +641,8 @@ namespace UniVue.Editor
             float rx = row.xMax - 6f;
             using (new EditorGUI.DisabledScope(_generatorTypes.Length == 0 || prefab.CodeGenDisabled))
             {
-                var exportRect = new Rect(rx - 52f, row.y + 1f, 52f, 18f);
-                var exportContent = prefab.CodeGenDisabled
+                Rect exportRect = new(rx - 52f, row.y + 1f, 52f, 18f);
+                GUIContent exportContent = prefab.CodeGenDisabled
                     ? new GUIContent("导出", "该类标注了 DisableUICodeGeneratedAttribute，已禁止生成代码")
                     : new GUIContent("导出");
                 if (GUI.Button(exportRect, exportContent, EditorStyles.miniButton))
@@ -659,21 +653,21 @@ namespace UniVue.Editor
             // 禁用标记（右侧灰字，位于导出按钮左侧）
             if (prefab.CodeGenDisabled)
             {
-                var tagRect = new Rect(rx - 44f, row.y, 44f, row.height);
+                Rect tagRect = new(rx - 44f, row.y, 44f, row.height);
                 GUI.Label(tagRect, new GUIContent("已禁用", "该类标注了 DisableUICodeGeneratedAttribute"), _typeLabelStyle);
                 rx -= 48f;
             }
 
             // 脚本类型（右侧灰字）
             float typeW = Mathf.Min(150f, _typeLabelStyle.CalcSize(new GUIContent(prefab.ScriptType.Name)).x + 4f);
-            var typeRect = new Rect(rx - typeW, row.y, typeW, row.height);
+            Rect typeRect = new(rx - typeW, row.y, typeW, row.height);
             GUI.Label(typeRect, new GUIContent(prefab.ScriptType.Name, prefab.ScriptType.FullName), _typeLabelStyle);
             rx -= typeW + 6f;
 
             // 名称（可点击定位）
-            var nameRect = new Rect(x, row.y, rx - x, row.height);
+            Rect nameRect = new(x, row.y, rx - x, row.height);
             EditorGUIUtility.AddCursorRect(nameRect, MouseCursor.Link);
-            var nameStyle = prefab.CodeGenDisabled ? _prefabDisabledLabelStyle : _prefabLabelStyle;
+            GUIStyle nameStyle = prefab.CodeGenDisabled ? _prefabDisabledLabelStyle : _prefabLabelStyle;
             GUI.Label(nameRect, new GUIContent(prefab.DisplayName, "点击在 Project 中定位"), nameStyle);
 
             if (evt.type == EventType.MouseDown && evt.button == 0 && nameRect.Contains(evt.mousePosition))
@@ -685,7 +679,7 @@ namespace UniVue.Editor
 
         private static void PingPrefab(PrefabEntry prefab)
         {
-            var obj = AssetDatabase.LoadAssetAtPath<GameObject>(prefab.AssetPath);
+            GameObject obj = AssetDatabase.LoadAssetAtPath<GameObject>(prefab.AssetPath);
             if (obj == null)
                 return;
             EditorGUIUtility.PingObject(obj);
@@ -704,14 +698,14 @@ namespace UniVue.Editor
             if (index < 0)
                 index = 0;
 
-            var content = new GUIContent(_generatorDisplayNames[index], _generatorDisplayNames[index]);
+            GUIContent content = new(_generatorDisplayNames[index], _generatorDisplayNames[index]);
             if (EditorGUI.DropdownButton(rect, content, FocusType.Keyboard, EditorStyles.miniPullDown))
                 ShowGeneratorMenu(node, index);
         }
 
         private void ShowGeneratorMenu(ModuleNode node, int currentIndex)
         {
-            var menu = new GenericMenu();
+            GenericMenu menu = new();
             for (int i = 0; i < _generatorDisplayNames.Length; i++)
             {
                 int captured = i;
@@ -739,9 +733,6 @@ namespace UniVue.Editor
             }
         }
 
-        private static Color EditorBg =>
-            EditorGUIUtility.isProSkin ? new Color(0.22f, 0.22f, 0.22f) : new Color(0.78f, 0.78f, 0.78f);
-
         private static void DrawBorder(Rect rect, Color color)
         {
             EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, 1f), color);
@@ -756,12 +747,10 @@ namespace UniVue.Editor
             {
                 int h = 17;
                 if (s != null)
-                {
                     for (int i = 0; i < s.Length; i++)
                         h = h * 31 + s[i];
-                }
 
-                float hue = (Mathf.Abs(h) % 360) / 360f;
+                float hue = Mathf.Abs(h) % 360 / 360f;
                 float sat = EditorGUIUtility.isProSkin ? 0.55f : 0.6f;
                 float val = EditorGUIUtility.isProSkin ? 0.95f : 0.8f;
                 return Color.HSVToRGB(hue, sat, val);
@@ -782,16 +771,12 @@ namespace UniVue.Editor
         private static bool HasExportablePrefabRecursive(ModuleNode node)
         {
             for (int i = 0; i < node.Prefabs.Count; i++)
-            {
                 if (!node.Prefabs[i].CodeGenDisabled)
                     return true;
-            }
 
             for (int i = 0; i < node.Children.Count; i++)
-            {
                 if (HasExportablePrefabRecursive(node.Children[i]))
                     return true;
-            }
 
             return false;
         }
@@ -829,7 +814,8 @@ namespace UniVue.Editor
         {
             if (IsUICodeGenerationDisabled(entry.ScriptType))
             {
-                Debug.LogWarning($"类型 {entry.ScriptType.FullName} 标注了 DisableUICodeGeneratedAttribute，已跳过：{entry.AssetPath}");
+                Debug.LogWarning(
+                    $"类型 {entry.ScriptType.FullName} 标注了 DisableUICodeGeneratedAttribute，已跳过：{entry.AssetPath}");
                 return false;
             }
 
@@ -849,7 +835,7 @@ namespace UniVue.Editor
 
             try
             {
-                var generator = (UICodeGenerator)Activator.CreateInstance(generatorType);
+                UICodeGenerator generator = (UICodeGenerator)Activator.CreateInstance(generatorType);
                 generator.PrefabPath = entry.AssetPath;
                 generator.ExportInternal(prefab, entry.SourceFileAbsolutePath, entry.ScriptType, entry.AssetPath);
                 return true;
@@ -870,10 +856,8 @@ namespace UniVue.Editor
                 return _generatorTypes[0];
 
             for (int i = 0; i < _generatorTypes.Length; i++)
-            {
                 if (_generatorTypes[i].FullName == generatorFullName)
                     return _generatorTypes[i];
-            }
 
             return null;
         }
@@ -919,6 +903,27 @@ namespace UniVue.Editor
             foreach (ModuleNode child in node.Children)
                 count += CountPrefabs(child);
             return count;
+        }
+
+        private sealed class PrefabEntry
+        {
+            public string AssetPath;
+            public bool CodeGenDisabled;
+            public string DisplayName;
+            public Type ScriptType;
+            public string SourceFileAbsolutePath;
+        }
+
+        private sealed class ModuleNode
+        {
+            public readonly List<ModuleNode> Children = new();
+            public readonly List<PrefabEntry> Prefabs = new();
+            public Color AccentColor = Color.gray;
+            public string FolderPath;
+            public bool Foldout = true;
+            public bool IsTopLevel;
+            public string Name;
+            public string SelectedGeneratorFullName;
         }
     }
 }

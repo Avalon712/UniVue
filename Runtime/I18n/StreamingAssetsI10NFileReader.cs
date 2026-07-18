@@ -1,130 +1,119 @@
-﻿using System;
-using System.Collections;
+﻿#region
+
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using UniVue.Common;
 using UniVue.Utils;
-using VC;
+
+#endregion
 
 namespace UniVue.I18n
 {
     /// <summary>
-    /// 从Unity的StreamingAssets目录下读取二进制本地化语言文件
+    /// 从 Unity 的 StreamingAssets 目录下读取二进制本地化语言文件
     /// </summary>
     public sealed class StreamingAssetsI10NFileReader : II10NFileReader
     {
         private const string FileExtensionName = "bytes";
-        private string _languageType;
         private readonly string _relativeDirectory;
-        private bool _isLoading;
-        private List<string> _texts;
+        private string _cachedLanguageType;
+        private Dictionary<long, string> _cachedTexts;
         private bool _disposed;
-        private CoroutineID _loadingTask;
-        private Action<bool> _completed;
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="defaultLanguage">默认语言</param>
-        /// <param name="relativeDirectory">相对<see cref="Application.streamingAssetsPath"/>的子目录，此目录存放所有的本地化语言二进制文本</param>
-        public StreamingAssetsI10NFileReader(string defaultLanguage, string relativeDirectory)
+
+        public StreamingAssetsI10NFileReader()
         {
-            _relativeDirectory = relativeDirectory;
-            if (!string.IsNullOrEmpty(defaultLanguage))
-            {
-                _isLoading = true;
-                _loadingTask = VCoroutine.Run(LoadI10NFile(defaultLanguage));
-            }
-        }
-        
-        private string GetURL(string languageType)
-        {
-            string fileName = $"{languageType}.{FileExtensionName}";
-            string filePath = string.IsNullOrEmpty(_relativeDirectory) ? fileName : Path.Combine(_relativeDirectory, fileName);
-            return CoreUtils.GetStreamingAssetsURL(filePath);
         }
 
-        private IEnumerator LoadI10NFile(string languageType)
+        /// <param name="relativeDirectory">相对 <see cref="Application.streamingAssetsPath" /> 的子目录</param>
+        public StreamingAssetsI10NFileReader(string relativeDirectory)
         {
-            if(_languageType == languageType || _disposed)
-            {
-                _completed?.Invoke(false);
-                yield break;
-            } 
-            using UnityWebRequest req = UnityWebRequest.Get(GetURL(languageType));
-            yield return req.SendWebRequest();
-            
-            if (req.result == UnityWebRequest.Result.Success)
-            {
-                using BinaryReader reader = new BinaryReader(new MemoryStream(req.downloadHandler.data));
-                if (_texts == null)
-                {
-                    _texts = new List<string>(Mathf.NextPowerOfTwo((int)(reader.BaseStream.Length / 64L)));
-                }
-                _texts.Clear();
-                while (reader.BaseStream.Position < reader.BaseStream.Length)
-                {
-                    _texts.Add(reader.ReadString());
-                }
-                _languageType = languageType;
-                _completed?.Invoke(true);
-            }
-            else
-            {
-                LogUtil.Error($"Failed to load {languageType} localization file: {req.error}");
-                _completed?.Invoke(false);
-            }
-            
-            _isLoading = false;
-            _loadingTask = 0;
-            _completed = null;
+            _relativeDirectory = relativeDirectory;
         }
-        
-        public void ReadLanguageFile(string languageType, Action<bool> completed)
+
+        public Task<IReadOnlyDictionary<long, string>> ReadFileAsync(string languageType,
+            CancellationToken token = default)
         {
             if (_disposed)
             {
-                completed?.Invoke(false);
-                return;
+                LogUtil.Error("StreamingAssetsI10NFileReader is disposed!");
+                return Task.FromResult<IReadOnlyDictionary<long, string>>(null);
             }
-            if(_languageType == languageType)
-            {
-                completed?.Invoke(true);
-                return;
-            }
-            if (_isLoading)
-            {
-                VCoroutine.Kill(_loadingTask);
-                _texts?.Clear();
-            }
-            _isLoading = true;
-            _loadingTask = VCoroutine.Run(LoadI10NFile(languageType));
-            _completed = completed;
-        }
 
-        public string Read(long id, string languageType)
-        {
-            if(_isLoading || _disposed) return string.Empty;
-            
-            if (languageType != _languageType)
+            if (string.IsNullOrEmpty(languageType)) return Task.FromResult<IReadOnlyDictionary<long, string>>(null);
+
+            if (_cachedLanguageType == languageType && _cachedTexts != null)
+                return Task.FromResult<IReadOnlyDictionary<long, string>>(_cachedTexts);
+
+            if (token.IsCancellationRequested) return Task.FromCanceled<IReadOnlyDictionary<long, string>>(token);
+
+            UnityWebRequest req = UnityWebRequest.Get(GetURL(languageType));
+            UnityWebRequestAsyncOperation operation = req.SendWebRequest();
+            TaskCompletionSource<IReadOnlyDictionary<long, string>> tcs = new();
+
+            CancellationTokenRegistration ctr = default;
+            if (token.CanBeCanceled)
+                ctr = token.Register(() =>
+                {
+                    req.Abort();
+                    tcs.TrySetCanceled(token);
+                });
+
+            operation.completed += _ =>
             {
-                VCoroutine.Run(LoadI10NFile(languageType));
-                _isLoading = true;
-                return string.Empty;
-            }
-            
-            if(id <= 0 || id >= _texts.Count) return string.Empty;
-            
-            return _texts[(int)id];
+                try
+                {
+                    ctr.Dispose();
+
+                    if (token.IsCancellationRequested)
+                    {
+                        tcs.TrySetCanceled(token);
+                        return;
+                    }
+
+                    if (req.result != UnityWebRequest.Result.Success)
+                    {
+                        LogUtil.Error($"Failed to load {languageType} localization file: {req.error}");
+                        tcs.TrySetResult(null);
+                        return;
+                    }
+
+                    using BinaryReader reader = new(new MemoryStream(req.downloadHandler.data));
+                    int totalCount = reader.ReadInt32();
+                    Dictionary<long, string> texts = new(totalCount);
+                    for (int i = 0; i < totalCount; i++) texts.Add(reader.ReadInt64(), reader.ReadString());
+
+                    _cachedTexts = texts;
+                    _cachedLanguageType = languageType;
+                    tcs.TrySetResult(texts);
+                }
+                finally
+                {
+                    req.Dispose();
+                }
+            };
+
+            return tcs.Task;
         }
 
         public void Dispose()
         {
-            if(_disposed) return;
+            if (_disposed) return;
             _disposed = true;
-            _texts.Clear();
+            _cachedTexts = null;
+            _cachedLanguageType = null;
+        }
+
+        private string GetURL(string languageType)
+        {
+            string fileName = $"{languageType}.{FileExtensionName}";
+            string filePath = string.IsNullOrEmpty(_relativeDirectory)
+                ? fileName
+                : Path.Combine(_relativeDirectory, fileName);
+            return CoreUtils.GetStreamingAssetsURL(filePath);
         }
     }
 }

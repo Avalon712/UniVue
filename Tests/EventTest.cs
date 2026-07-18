@@ -1,8 +1,12 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using UniVue.Event;
+
+#endregion
 
 namespace UniVue.Test
 {
@@ -32,6 +36,180 @@ namespace UniVue.Test
             t.GetField("OnEvent", flags)?.SetValue(null, null);
             t.GetField("OnDeadLoop", flags)?.SetValue(null, null);
         }
+
+        #region 死循环检测
+
+        /// <summary>
+        /// 多种嵌套环：长链、三角、自环、菱形汇交、桥接跳回。重复进入已在栈上的 Key 时应被拦截（控制台 Warn），
+        /// 链路上每个监听体各执行一次，不会卡死或重复执行。
+        /// </summary>
+        [Test]
+        public void Dispatch_DeadLoopChains_DetectedAndEachListenerRunsOnce()
+        {
+            // 1) 长链：A→B→C→D→E→F→B
+            EventKey kA = "A", kB = "B", kC = "C", kD = "D", kE = "E", kF = "F";
+            int cA = 0, cB = 0, cC = 0, cD = 0, cE = 0, cF = 0;
+
+            EventMgr.On(kA, () =>
+            {
+                cA++;
+                EventMgr.Dispatch(kB);
+            });
+            EventMgr.On(kB, () =>
+            {
+                cB++;
+                EventMgr.Dispatch(kC);
+            });
+            EventMgr.On(kC, () =>
+            {
+                cC++;
+                EventMgr.Dispatch(kD);
+            });
+            EventMgr.On(kD, () =>
+            {
+                cD++;
+                EventMgr.Dispatch(kE);
+            });
+            EventMgr.On(kE, () =>
+            {
+                cE++;
+                EventMgr.Dispatch(kF);
+            });
+            EventMgr.On(kF, () =>
+            {
+                cF++;
+                EventMgr.Dispatch(kB);
+            });
+
+            EventMgr.Dispatch(kA);
+
+            Assert.IsTrue(cA == 1 && cB == 1 && cC == 1 && cD == 1 && cE == 1 && cF == 1,
+                "长链上各监听各执行一次，第二次 Dispatch(B) 不重复执行");
+
+            ResetCallbacks();
+
+            // 2) 三角：A→B→C→D→B
+            cA = cB = cC = cD = 0;
+            EventMgr.On(kA, () =>
+            {
+                cA++;
+                EventMgr.Dispatch(kB);
+            });
+            EventMgr.On(kB, () =>
+            {
+                cB++;
+                EventMgr.Dispatch(kC);
+            });
+            EventMgr.On(kC, () =>
+            {
+                cC++;
+                EventMgr.Dispatch(kD);
+            });
+            EventMgr.On(kD, () =>
+            {
+                cD++;
+                EventMgr.Dispatch(kB);
+            });
+
+            EventMgr.Dispatch(kA);
+
+            Assert.IsTrue(cA == 1 && cB == 1 && cC == 1 && cD == 1,
+                "三角链上各监听各执行一次，第二次 Dispatch(B) 不重复执行");
+
+            ResetCallbacks();
+
+            // 3) 自环：A→A
+            cA = 0;
+            EventMgr.On(kA, () =>
+            {
+                cA++;
+                EventMgr.Dispatch(kA);
+            });
+            EventMgr.Dispatch(kA);
+            Assert.AreEqual(1, cA, "自环只触发一次监听体");
+
+            ResetCallbacks();
+
+            // 4) 菱形汇交：A→B→C→D→E→F→D
+            cA = cB = cC = cD = cE = cF = 0;
+            EventMgr.On(kA, () =>
+            {
+                cA++;
+                EventMgr.Dispatch(kB);
+            });
+            EventMgr.On(kB, () =>
+            {
+                cB++;
+                EventMgr.Dispatch(kC);
+            });
+            EventMgr.On(kC, () =>
+            {
+                cC++;
+                EventMgr.Dispatch(kD);
+            });
+            EventMgr.On(kD, () =>
+            {
+                cD++;
+                EventMgr.Dispatch(kE);
+            });
+            EventMgr.On(kE, () =>
+            {
+                cE++;
+                EventMgr.Dispatch(kF);
+            });
+            EventMgr.On(kF, () =>
+            {
+                cF++;
+                EventMgr.Dispatch(kD);
+            });
+
+            EventMgr.Dispatch(kA);
+
+            Assert.IsTrue(cA == 1 && cB == 1 && cC == 1 && cD == 1 && cE == 1 && cF == 1,
+                "汇交菱形链上各监听各执行一次，第二次 Dispatch(D) 不重复");
+
+            ResetCallbacks();
+
+            // 5) 桥接跳回：A→B→C→D→E→F→B
+            cA = cB = cC = cD = cE = cF = 0;
+            EventMgr.On(kA, () =>
+            {
+                cA++;
+                EventMgr.Dispatch(kB);
+            });
+            EventMgr.On(kB, () =>
+            {
+                cB++;
+                EventMgr.Dispatch(kC);
+            });
+            EventMgr.On(kC, () =>
+            {
+                cC++;
+                EventMgr.Dispatch(kD);
+            });
+            EventMgr.On(kD, () =>
+            {
+                cD++;
+                EventMgr.Dispatch(kE);
+            });
+            EventMgr.On(kE, () =>
+            {
+                cE++;
+                EventMgr.Dispatch(kF);
+            });
+            EventMgr.On(kF, () =>
+            {
+                cF++;
+                EventMgr.Dispatch(kB);
+            });
+
+            EventMgr.Dispatch(kA);
+
+            Assert.IsTrue(cA == 1 && cB == 1 && cC == 1 && cD == 1 && cE == 1 && cF == 1,
+                "交叉跳回链上各监听各执行一次，经 F 的第二次 Dispatch(B) 不重复");
+        }
+
+        #endregion
 
         #region 基本注册与分发
 
@@ -391,7 +569,7 @@ namespace UniVue.Test
 
             Assert.IsTrue(captured.Equals(key), "分发过程中 CurrentTriggeredEvent 应与分发的 Key 一致");
             Assert.AreEqual(EventKeyType.NotEventKey, EventMgr.CurrentTriggeredEvent.Type,
-                            "分发结束后 CurrentTriggeredEvent 应重置为 NotEventKey");
+                "分发结束后 CurrentTriggeredEvent 应重置为 NotEventKey");
         }
 
         [Test]
@@ -406,88 +584,6 @@ namespace UniVue.Test
             EventMgr.Dispatch(key);
 
             Assert.IsTrue(receivedKey.Equals(key), "OnEvent 应收到正确的 EventKey");
-        }
-
-        #endregion
-
-        #region 死循环检测
-
-        /// <summary>
-        /// 多种嵌套环：长链、三角、自环、菱形汇交、桥接跳回。重复进入已在栈上的 Key 时应被拦截（控制台 Warn），
-        /// 链路上每个监听体各执行一次，不会卡死或重复执行。
-        /// </summary>
-        [Test]
-        public void Dispatch_DeadLoopChains_DetectedAndEachListenerRunsOnce()
-        {
-            // 1) 长链：A→B→C→D→E→F→B
-            EventKey kA = "A", kB = "B", kC = "C", kD = "D", kE = "E", kF = "F";
-            int cA = 0, cB = 0, cC = 0, cD = 0, cE = 0, cF = 0;
-
-            EventMgr.On(kA, () => { cA++; EventMgr.Dispatch(kB); });
-            EventMgr.On(kB, () => { cB++; EventMgr.Dispatch(kC); });
-            EventMgr.On(kC, () => { cC++; EventMgr.Dispatch(kD); });
-            EventMgr.On(kD, () => { cD++; EventMgr.Dispatch(kE); });
-            EventMgr.On(kE, () => { cE++; EventMgr.Dispatch(kF); });
-            EventMgr.On(kF, () => { cF++; EventMgr.Dispatch(kB); });
-
-            EventMgr.Dispatch(kA);
-
-            Assert.IsTrue(cA == 1 && cB == 1 && cC == 1 && cD == 1 && cE == 1 && cF == 1,
-                          "长链上各监听各执行一次，第二次 Dispatch(B) 不重复执行");
-
-            ResetCallbacks();
-
-            // 2) 三角：A→B→C→D→B
-            cA = cB = cC = cD = 0;
-            EventMgr.On(kA, () => { cA++; EventMgr.Dispatch(kB); });
-            EventMgr.On(kB, () => { cB++; EventMgr.Dispatch(kC); });
-            EventMgr.On(kC, () => { cC++; EventMgr.Dispatch(kD); });
-            EventMgr.On(kD, () => { cD++; EventMgr.Dispatch(kB); });
-
-            EventMgr.Dispatch(kA);
-
-            Assert.IsTrue(cA == 1 && cB == 1 && cC == 1 && cD == 1,
-                          "三角链上各监听各执行一次，第二次 Dispatch(B) 不重复执行");
-
-            ResetCallbacks();
-
-            // 3) 自环：A→A
-            cA = 0;
-            EventMgr.On(kA, () => { cA++; EventMgr.Dispatch(kA); });
-            EventMgr.Dispatch(kA);
-            Assert.AreEqual(1, cA, "自环只触发一次监听体");
-
-            ResetCallbacks();
-
-            // 4) 菱形汇交：A→B→C→D→E→F→D
-            cA = cB = cC = cD = cE = cF = 0;
-            EventMgr.On(kA, () => { cA++; EventMgr.Dispatch(kB); });
-            EventMgr.On(kB, () => { cB++; EventMgr.Dispatch(kC); });
-            EventMgr.On(kC, () => { cC++; EventMgr.Dispatch(kD); });
-            EventMgr.On(kD, () => { cD++; EventMgr.Dispatch(kE); });
-            EventMgr.On(kE, () => { cE++; EventMgr.Dispatch(kF); });
-            EventMgr.On(kF, () => { cF++; EventMgr.Dispatch(kD); });
-
-            EventMgr.Dispatch(kA);
-
-            Assert.IsTrue(cA == 1 && cB == 1 && cC == 1 && cD == 1 && cE == 1 && cF == 1,
-                          "汇交菱形链上各监听各执行一次，第二次 Dispatch(D) 不重复");
-
-            ResetCallbacks();
-
-            // 5) 桥接跳回：A→B→C→D→E→F→B
-            cA = cB = cC = cD = cE = cF = 0;
-            EventMgr.On(kA, () => { cA++; EventMgr.Dispatch(kB); });
-            EventMgr.On(kB, () => { cB++; EventMgr.Dispatch(kC); });
-            EventMgr.On(kC, () => { cC++; EventMgr.Dispatch(kD); });
-            EventMgr.On(kD, () => { cD++; EventMgr.Dispatch(kE); });
-            EventMgr.On(kE, () => { cE++; EventMgr.Dispatch(kF); });
-            EventMgr.On(kF, () => { cF++; EventMgr.Dispatch(kB); });
-
-            EventMgr.Dispatch(kA);
-
-            Assert.IsTrue(cA == 1 && cB == 1 && cC == 1 && cD == 1 && cE == 1 && cF == 1,
-                          "交叉跳回链上各监听各执行一次，经 F 的第二次 Dispatch(B) 不重复");
         }
 
         #endregion

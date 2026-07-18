@@ -1,6 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using UnityEngine;
 using UniVue.Internal;
+
+#endregion
 
 namespace UniVue.Model
 {

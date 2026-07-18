@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -7,18 +9,20 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UniVue.Timer;
 
+#endregion
+
 namespace UniVue.Test
 {
     /// <summary>
-    /// <see cref="TimerMgr"/> 的行为单元测试。
+    /// <see cref="TimerMgr" /> 的行为单元测试。
     /// <para>
-    /// <see cref="TimerMgr"/> 依赖 <c>VCoroutine</c> 的 MonoBehaviour 更新循环来推进时间，
-    /// 因此所有用例都必须以 PlayMode 协程测试（<see cref="UnityTestAttribute"/>）方式运行，
+    /// <see cref="TimerMgr" /> 依赖 <c>VCoroutine</c> 的 MonoBehaviour 更新循环来推进时间，
+    /// 因此所有用例都必须以 PlayMode 协程测试（<see cref="UnityTestAttribute" />）方式运行，
     /// 只有在 Play 模式下逐帧驱动 <c>Update</c> 时定时器回调才会被触发。
     /// </para>
     /// <para>
-    /// 由于 <see cref="TimerMgr"/> 是全局静态状态，所有断言都通过回调（可观察行为）进行，
-    /// 并在 <see cref="TearDown"/> 中回收本用例创建的所有定时器，避免用例间相互污染。
+    /// 由于 <see cref="TimerMgr" /> 是全局静态状态，所有断言都通过回调（可观察行为）进行，
+    /// 并在 <see cref="TearDown" /> 中回收本用例创建的所有定时器，避免用例间相互污染。
     /// </para>
     /// </summary>
     internal sealed class TimerTest
@@ -44,6 +48,31 @@ namespace UniVue.Test
             _createdTimers.Clear();
         }
 
+        #region 参数校验
+
+#if UNITY_EDITOR
+        [UnityTest]
+        public IEnumerator Build_WithZeroDelayAndInterval_LogsAssertion()
+        {
+            // Build 内部使用 LogUtil.Assert（Debug.Assert），当 delay/interval 均无效时会记录断言日志。
+            // 该断言仅在 UNITY_EDITOR 下编译生效。
+            LogAssert.Expect(LogType.Assert, new Regex("Callback or delay/interval must be set"));
+
+            int fireCount = 0;
+            // 提供合法回调但 delay/interval 均为 0，触发断言日志；避免空回调导致的 NRE。
+            Track(TimerMgr.Create()
+                .OfDelay(0f)
+                .OfInterval(0f)
+                .OfCallback(() => fireCount++)
+                .Build());
+
+            // 让全局定时循环推进若干帧以处理（并回收）该非法任务，保持后续用例状态干净。
+            yield return WaitRealSeconds(0.2f);
+        }
+#endif
+
+        #endregion
+
         #region Helpers
 
         private ulong Track(ulong timerId)
@@ -52,7 +81,7 @@ namespace UniVue.Test
             return timerId;
         }
 
-        /// <summary>逐帧等待直到 <paramref name="predicate"/> 为 true，超时则失败。</summary>
+        /// <summary>逐帧等待直到 <paramref name="predicate" /> 为 true，超时则失败。</summary>
         private static IEnumerator WaitUntil(Func<bool> predicate, string message)
         {
             float start = Time.realtimeSinceStartup;
@@ -85,9 +114,9 @@ namespace UniVue.Test
         {
             int fireCount = 0;
             Track(TimerMgr.Create()
-                          .OfDelay(0.1f)
-                          .OfCallback(() => fireCount++)
-                          .Build());
+                .OfDelay(0.1f)
+                .OfCallback(() => fireCount++)
+                .Build());
 
             // 构建后、推进帧之前不应触发。
             Assert.That(fireCount, Is.EqualTo(0), "定时器不应在构建时同步触发");
@@ -106,10 +135,10 @@ namespace UniVue.Test
             const int repeat = 3;
             int fireCount = 0;
             Track(TimerMgr.Create()
-                          .OfInterval(0.05f)
-                          .OfCount(repeat)
-                          .OfCallback(() => fireCount++)
-                          .Build());
+                .OfInterval(0.05f)
+                .OfCount(repeat)
+                .OfCallback(() => fireCount++)
+                .Build());
 
             yield return WaitUntil(() => fireCount >= repeat, "间隔定时器应触发指定次数");
 
@@ -127,16 +156,16 @@ namespace UniVue.Test
             float start = Time.realtimeSinceStartup;
 
             Track(TimerMgr.Create()
-                          .OfDelay(delay)
-                          .OfInterval(0.05f)
-                          .OfCount(3)
-                          .OfCallback(() =>
-                          {
-                              if (fireCount == 0)
-                                  firstFireElapsed = Time.realtimeSinceStartup - start;
-                              fireCount++;
-                          })
-                          .Build());
+                .OfDelay(delay)
+                .OfInterval(0.05f)
+                .OfCount(3)
+                .OfCallback(() =>
+                {
+                    if (fireCount == 0)
+                        firstFireElapsed = Time.realtimeSinceStartup - start;
+                    fireCount++;
+                })
+                .Build());
 
             yield return WaitUntil(() => fireCount >= 3, "延时+间隔定时器应触发 3 次");
 
@@ -157,10 +186,10 @@ namespace UniVue.Test
         {
             int fireCount = 0;
             ulong timerId = Track(TimerMgr.Create()
-                                          .OfInterval(0.05f)
-                                          .OfCount(-1) // 负数表示无限执行
-                                          .OfCallback(() => fireCount++)
-                                          .Build());
+                .OfInterval(0.05f)
+                .OfCount(-1) // 负数表示无限执行
+                .OfCallback(() => fireCount++)
+                .Build());
 
             yield return WaitUntil(() => fireCount >= 2, "无限定时器应持续触发");
 
@@ -177,9 +206,9 @@ namespace UniVue.Test
         {
             int fireCount = 0;
             ulong timerId = Track(TimerMgr.Create()
-                                          .OfDelay(0.5f)
-                                          .OfCallback(() => fireCount++)
-                                          .Build());
+                .OfDelay(0.5f)
+                .OfCallback(() => fireCount++)
+                .Build());
 
             // 在延时到达之前立即杀死。
             yield return null;
@@ -200,11 +229,11 @@ namespace UniVue.Test
             int fireCount = 0;
 
             Track(TimerMgr.Create()
-                          .OfInterval(0.05f)
-                          .OfCount(1)
-                          .OfExecuteCondition(() => allowExecute)
-                          .OfCallback(() => fireCount++)
-                          .Build());
+                .OfInterval(0.05f)
+                .OfCount(1)
+                .OfExecuteCondition(() => allowExecute)
+                .OfCallback(() => fireCount++)
+                .Build());
 
             // 条件为 false：应跳过回调，但定时器不被移除（继续等待）。
             yield return WaitRealSeconds(0.4f);
@@ -226,10 +255,10 @@ namespace UniVue.Test
             int fireCount = 0;
 
             Track(TimerMgr.Create()
-                          .OfDelay(0.1f)
-                          .OfCancelCondition(() => true) // 一开始就满足取消条件
-                          .OfCallback(() => fireCount++)
-                          .Build());
+                .OfDelay(0.1f)
+                .OfCancelCondition(() => true) // 一开始就满足取消条件
+                .OfCallback(() => fireCount++)
+                .Build());
 
             yield return WaitRealSeconds(0.4f);
             Assert.That(fireCount, Is.EqualTo(0), "满足取消条件时不应执行回调且定时器被移除");
@@ -242,11 +271,11 @@ namespace UniVue.Test
             int fireCount = 0;
 
             Track(TimerMgr.Create()
-                          .OfInterval(0.05f)
-                          .OfCount(-1)
-                          .OfCancelCondition(() => cancel)
-                          .OfCallback(() => fireCount++)
-                          .Build());
+                .OfInterval(0.05f)
+                .OfCount(-1)
+                .OfCancelCondition(() => cancel)
+                .OfCallback(() => fireCount++)
+                .Build());
 
             yield return WaitUntil(() => fireCount >= 1, "取消条件为 false 时应正常触发");
 
@@ -280,10 +309,10 @@ namespace UniVue.Test
             int b = 0;
 
             Track(TimerMgr.Create()
-                          .OfDelay(0.1f)
-                          .OfCallback(() => a++)
-                          .OfCallback(() => b++) // 追加而非覆盖
-                          .Build());
+                .OfDelay(0.1f)
+                .OfCallback(() => a++)
+                .OfCallback(() => b++) // 追加而非覆盖
+                .Build());
 
             yield return WaitUntil(() => a >= 1, "第一个回调应被触发");
             Assert.That(a, Is.EqualTo(1));
@@ -297,16 +326,16 @@ namespace UniVue.Test
             int slow = 0;
 
             Track(TimerMgr.Create()
-                          .OfInterval(0.05f)
-                          .OfCount(4)
-                          .OfCallback(() => fast++)
-                          .Build());
+                .OfInterval(0.05f)
+                .OfCount(4)
+                .OfCallback(() => fast++)
+                .Build());
 
             Track(TimerMgr.Create()
-                          .OfInterval(0.1f)
-                          .OfCount(2)
-                          .OfCallback(() => slow++)
-                          .Build());
+                .OfInterval(0.1f)
+                .OfCount(2)
+                .OfCallback(() => slow++)
+                .Build());
 
             yield return WaitUntil(() => fast >= 4 && slow >= 2, "两个定时器应各自独立完成");
 
@@ -314,31 +343,6 @@ namespace UniVue.Test
             Assert.That(fast, Is.EqualTo(4), "第一个定时器应恰好触发 4 次");
             Assert.That(slow, Is.EqualTo(2), "第二个定时器应恰好触发 2 次");
         }
-
-        #endregion
-
-        #region 参数校验
-
-#if UNITY_EDITOR
-        [UnityTest]
-        public IEnumerator Build_WithZeroDelayAndInterval_LogsAssertion()
-        {
-            // Build 内部使用 LogUtil.Assert（Debug.Assert），当 delay/interval 均无效时会记录断言日志。
-            // 该断言仅在 UNITY_EDITOR 下编译生效。
-            LogAssert.Expect(LogType.Assert, new Regex("Callback or delay/interval must be set"));
-
-            int fireCount = 0;
-            // 提供合法回调但 delay/interval 均为 0，触发断言日志；避免空回调导致的 NRE。
-            Track(TimerMgr.Create()
-                          .OfDelay(0f)
-                          .OfInterval(0f)
-                          .OfCallback(() => fireCount++)
-                          .Build());
-
-            // 让全局定时循环推进若干帧以处理（并回收）该非法任务，保持后续用例状态干净。
-            yield return WaitRealSeconds(0.2f);
-        }
-#endif
 
         #endregion
     }

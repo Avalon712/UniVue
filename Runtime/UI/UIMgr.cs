@@ -1,6 +1,7 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UniVue.Common;
 using UniVue.Event;
@@ -9,49 +10,12 @@ using UniVue.Timer;
 using UniVue.Utils;
 using Object = UnityEngine.Object;
 
+#endregion
+
 namespace UniVue.UI
 {
     public static class UIMgr
     {
-        private readonly struct LazyDisposeInfo : IEquatable<LazyDisposeInfo>, IComparable<LazyDisposeInfo>
-        {
-            public readonly string viewName;
-            public readonly float closedTimeTick;
-            public readonly float liveTime;
-
-            public LazyDisposeInfo(string viewName, float liveTime)
-            {
-                this.viewName = viewName;
-                closedTimeTick = Time.realtimeSinceStartup;
-                this.liveTime = liveTime;
-            }
-            
-            public bool Equals(LazyDisposeInfo other)
-            {
-                return viewName == other.viewName;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is LazyDisposeInfo other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return viewName.GetHashCode();
-            }
-
-            public int CompareTo(LazyDisposeInfo other)
-            {
-                return closedTimeTick.CompareTo(other.closedTimeTick);
-            }
-            
-            public static implicit operator LazyDisposeInfo(string viewName)
-            {
-                return new LazyDisposeInfo(viewName, 0);
-            }
-        }
-        
         /// <summary>
         /// 根视图打开事件，事件参数-界面名称
         /// </summary>
@@ -67,24 +31,25 @@ namespace UniVue.UI
         /// </summary>
         public const string EVENT_DISPOSE_VIEW = nameof(EVENT_DISPOSE_VIEW);
 
+        private const float AllowDisposeErrorTime = 0.1f; //在0.1f秒的误差内都认为可以进行释放
+
         private static bool _initialized;
         private static readonly Dictionary<string, BaseView> _closedViews = new(16);
         private static readonly List<LazyDisposeInfo> _disposeQueue = new(16);
         private static readonly Dictionary<string, Action<bool>> _loadingViews = new(16);
         private static readonly Dictionary<string, BaseView> _openedViews = new(16);
-        
-        private static uint _liveTimeAfterClosed = 30;
-        private const float AllowDisposeErrorTime = 0.1f; //在0.1f秒的误差内都认为可以进行释放
 
-        internal static IUIPrefabLoader Loader { get; private set; }
+        private static uint _liveTimeAfterClosed = 30;
+
+        internal static IUIObjectLoader Loader { get; private set; }
 
         private static IUILayerMgr LayerMgr { get; set; }
 
         public static RGraphs Renderer { get; private set; }
 
         public static RedPointMgr RedPointMgr { get; private set; }
-        
-        
+
+
         /// <summary>
         /// 初始化UIMgr(包括红点系统)
         /// </summary>
@@ -92,8 +57,8 @@ namespace UniVue.UI
         /// <param name="loader">加载UI预制体</param>
         /// <param name="layerMgr">层级管理接口，如果为Null则使用默认的管理器</param>
         /// <param name="liveTimeAfterClosed">当界面被关闭后仍可存活的时间（秒，仅对根界面生效，默认为30秒，小于0则立即销毁）</param>
-        public static void Initialize(Type redPointKeyEnumType, IUIPrefabLoader loader, IUILayerMgr layerMgr = null,
-                                      uint liveTimeAfterClosed = 30)
+        public static void Initialize(Type redPointKeyEnumType, IUIObjectLoader loader, IUILayerMgr layerMgr = null,
+            uint liveTimeAfterClosed = 30)
         {
             if (_initialized)
             {
@@ -117,7 +82,7 @@ namespace UniVue.UI
         /// <param name="loader">加载UI预制体</param>
         /// <param name="layerMgr">层级管理接口，如果为Null则使用默认的管理器</param>
         /// <param name="liveTimeAfterClosed">当界面被关闭后仍可存活的时间（秒，仅对根界面生效，默认为30秒）</param>
-        public static void Initialize(IUIPrefabLoader loader, IUILayerMgr layerMgr, uint liveTimeAfterClosed = 30)
+        public static void Initialize(IUIObjectLoader loader, IUILayerMgr layerMgr, uint liveTimeAfterClosed = 30)
         {
             if (_initialized)
             {
@@ -145,7 +110,7 @@ namespace UniVue.UI
 
         private static void LazyDispose()
         {
-            if(_disposeQueue.Count <= 0) return;
+            if (_disposeQueue.Count <= 0) return;
             float currentTime = Time.realtimeSinceStartup;
             int disposeEndIndex = -1;
             for (int i = 0; i < _disposeQueue.Count; i++)
@@ -158,11 +123,15 @@ namespace UniVue.UI
                         DisposeUI(closedView);
                         EventMgr.Dispatch(EVENT_DISPOSE_VIEW, lazy.viewName);
                     }
+
                     disposeEndIndex = i;
                 }
                 else
+                {
                     break; //_disposeQueue一定是按closedTimeTick升序排序的
+                }
             }
+
             if (disposeEndIndex >= 0)
                 _disposeQueue.RemoveRange(0, disposeEndIndex + 1);
         }
@@ -171,7 +140,7 @@ namespace UniVue.UI
         {
             Object.Destroy(ui.gameObject);
         }
-        
+
         public static T GetView<T>(string viewName) where T : BaseView
         {
             if (_openedViews.TryGetValue(viewName, out BaseView view) && view is T typedView) return typedView;
@@ -232,7 +201,7 @@ namespace UniVue.UI
 
         /// <summary>
         /// 打开指定名称的界面
-        /// <para>这种方式必须保证预制体身上已经挂载了BaseView的脚本</para>
+        /// <para>这种方式必须保证加载的GameObject身上已经挂载了BaseView的脚本</para>
         /// </summary>
         /// <param name="viewName">界面名称</param>
         /// <param name="callback">界面打开完成后回调，参数true-界面打开成功，false-界面打开失败</param>
@@ -270,15 +239,15 @@ namespace UniVue.UI
                 //界面没有加载完成就关闭了界面
                 if (_closedViews.Remove(viewName))
                 {
-                    if (_loadingViews.Remove(viewName, out Action<bool> callbacks))
-                        callbacks?.Invoke(false);
+                    if (_loadingViews.Remove(viewName, out Action<bool> loadCompletedCallbacks))
+                        loadCompletedCallbacks?.Invoke(false);
                     return;
                 }
 
                 if (!loadedUIObj)
                 {
-                    if (_loadingViews.Remove(viewName, out Action<bool> callbacks))
-                        callbacks?.Invoke(false);
+                    if (_loadingViews.Remove(viewName, out Action<bool> loadCompletedCallbacks))
+                        loadCompletedCallbacks?.Invoke(false);
                     _openedViews.Remove(viewName);
                     LogUtil.Exception(new Exception($"加载UI对象失败，界面类型：{viewName}"));
                     return;
@@ -290,24 +259,28 @@ namespace UniVue.UI
                 {
                     BaseView viewOnPrefab = loadedUIObj.GetComponent<BaseView>();
                     if (!viewOnPrefab)
-                    { 
+                    {
                         LogUtil.Exception(new Exception($"UI预制体身上没有挂载任何BaseView脚本，无法正常完成初始化流程，界面类型：{viewName}"));
                         if (_loadingViews.Remove(viewName, out callbacks)) callbacks?.Invoke(false);
                         return;
                     }
-                    viewObj = CoreUtils.RectTransformClone(loadedUIObj, LayerMgr.GetLayerRoot(viewOnPrefab.Layer).transform);
-                    CoreUtils.KeepTheSameWithPrefab(loadedUIObj.transform as RectTransform, viewObj.transform as RectTransform);
+
+                    viewObj = CoreUtils.RectTransformClone(loadedUIObj,
+                        LayerMgr.GetLayerRoot(viewOnPrefab.Layer).transform);
+                    CoreUtils.KeepTheSameWithPrefab(loadedUIObj.transform as RectTransform,
+                        viewObj.transform as RectTransform);
                 }
 
                 BaseView newView = viewObj.GetComponent<BaseView>();
                 Transform layer = LayerMgr.GetLayerRoot(newView.Layer).transform;
                 if (viewObj.transform.parent != layer)
                     viewObj.transform.SetParent(layer);
-                
+
                 _openedViews[viewName] = newView;
                 viewObj.name = viewName;
                 newView.OnCreateInternal();
                 newView.OnOpenInternal(args);
+                EventMgr.Dispatch(EVENT_OPEN_VIEW, viewName);
                 if (_loadingViews.Remove(viewName, out callbacks)) callbacks?.Invoke(true);
             });
         }
@@ -342,7 +315,8 @@ namespace UniVue.UI
         /// <param name="callback">创建完成后的回调，参数1-true-创建成功 false-创建失败  参数2-创建好的UI对象 </param>
         /// <param name="parent">父物体</param>
         /// <typeparam name="T"></typeparam>
-        public static void CreateUI<T>(string uiName, Action<bool, T> callback, GameObject parent = null) where T : BaseUI
+        public static void CreateUI<T>(string uiName, Action<bool, T> callback, GameObject parent = null)
+            where T : BaseUI
         {
             Loader.LoadUIObjectAsync(uiName, loadedUIObj =>
             {
@@ -351,22 +325,24 @@ namespace UniVue.UI
                     callback?.Invoke(false, null);
                     return;
                 }
+
                 bool isPrefab = !loadedUIObj.scene.IsValid();
 
                 GameObject uiObj = loadedUIObj;
-                
+
                 if (isPrefab)
                     uiObj = CoreUtils.RectTransformClone(loadedUIObj, null);
-                
+
                 if (parent)
                     uiObj.transform.SetParent(parent.transform);
 
                 if (isPrefab)
-                    CoreUtils.KeepTheSameWithPrefab(loadedUIObj.transform as RectTransform, uiObj.transform as RectTransform);
-                
+                    CoreUtils.KeepTheSameWithPrefab(loadedUIObj.transform as RectTransform,
+                        uiObj.transform as RectTransform);
+
                 if (!uiObj.TryGetComponent(out T ui))
                     ui = uiObj.AddComponent<T>();
-                
+
                 ui.OnCreateInternal();
                 callback?.Invoke(true, ui);
             });
@@ -382,7 +358,7 @@ namespace UniVue.UI
             return (_openedViews.TryGetValue(view.Name, out BaseView openedView) && openedView == view) ||
                    (_closedViews.TryGetValue(view.Name, out BaseView closedView) && closedView == view);
         }
-        
+
         /// <summary>
         /// 创建UI
         /// </summary>
@@ -419,11 +395,13 @@ namespace UniVue.UI
                 openedView.OnReceiveMessageInternal(sender, message);
                 return true;
             }
-            else if (sendIfClosed && _closedViews.TryGetValue(viewName, out BaseView closedView) && closedView)
+
+            if (sendIfClosed && _closedViews.TryGetValue(viewName, out BaseView closedView) && closedView)
             {
                 closedView.OnReceiveMessageInternal(sender, message);
                 return true;
             }
+
             return false;
         }
 
@@ -447,21 +425,19 @@ namespace UniVue.UI
         /// <param name="includeClosedViews">是否包含被关闭的界面，默认为false</param>
         public static void BroadcastMessage(object sender, object message, bool includeClosedViews = false)
         {
-            using InternalTempCollection<Dictionary<string, BaseView>, KeyValuePair<string, BaseView>> openedViews = new(_openedViews);
-            foreach (var kv in openedViews)
-            {
+            using InternalTempCollection<Dictionary<string, BaseView>, KeyValuePair<string, BaseView>> openedViews =
+                new(_openedViews);
+            foreach (KeyValuePair<string, BaseView> kv in openedViews)
                 if (kv.Value)
                     kv.Value.OnReceiveMessageInternal(sender, message);
-            }
 
             if (!includeClosedViews) return;
 
-            using InternalTempCollection<Dictionary<string, BaseView>, KeyValuePair<string, BaseView>> closedViews = new(_closedViews);
-            foreach (var kv in closedViews)
-            {
+            using InternalTempCollection<Dictionary<string, BaseView>, KeyValuePair<string, BaseView>> closedViews =
+                new(_closedViews);
+            foreach (KeyValuePair<string, BaseView> kv in closedViews)
                 if (kv.Value)
                     kv.Value.OnReceiveMessageInternal(sender, message);
-            }
         }
 
         /// <summary>
@@ -471,14 +447,47 @@ namespace UniVue.UI
         /// <param name="includeClosedView">true-包含已经关闭的界面（默认为false）</param>
         public static void RefreshAllUI(bool force = false, bool includeClosedView = false)
         {
-            foreach (BaseView view in _openedViews.Values)
-            {
-                view.RefreshUIInternal(force);
-            }
+            foreach (BaseView view in _openedViews.Values) view.RefreshUIInternal(force);
             if (!includeClosedView) return;
-            foreach (BaseView closedView in _closedViews.Values)
+            foreach (BaseView closedView in _closedViews.Values) closedView.RefreshUIInternal(force);
+        }
+
+        private readonly struct LazyDisposeInfo : IEquatable<LazyDisposeInfo>, IComparable<LazyDisposeInfo>
+        {
+            public readonly string viewName;
+            public readonly float closedTimeTick;
+            public readonly float liveTime;
+
+            public LazyDisposeInfo(string viewName, float liveTime)
             {
-                closedView.RefreshUIInternal(force);
+                this.viewName = viewName;
+                closedTimeTick = Time.realtimeSinceStartup;
+                this.liveTime = liveTime;
+            }
+
+            public bool Equals(LazyDisposeInfo other)
+            {
+                return viewName == other.viewName;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is LazyDisposeInfo other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return viewName.GetHashCode();
+            }
+
+            public int CompareTo(LazyDisposeInfo other)
+            {
+                return closedTimeTick.CompareTo(other.closedTimeTick);
+            }
+
+            public static implicit operator LazyDisposeInfo(string viewName)
+            {
+                return new LazyDisposeInfo(viewName, 0);
             }
         }
     }

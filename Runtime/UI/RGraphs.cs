@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +10,8 @@ using UniVue.Internal;
 using UniVue.Model;
 using UniVue.Utils;
 using VC;
+
+#endregion
 
 namespace UniVue.UI
 {
@@ -76,10 +80,8 @@ namespace UniVue.UI
                 //清空那些已经被释放的RGraph
                 queue.Collection.Clear();
                 foreach (RNode g in _disableGraphs.Keys)
-                {
                     if (!g.Reachable)
                         queue.Collection.Add(g);
-                }
 
                 foreach (RNode g in queue) _disableGraphs.Remove(g);
             }
@@ -90,7 +92,6 @@ namespace UniVue.UI
             if (Entry.g == null || !Entry.g.next.TryGetValue(eventKey, out RNode mGraphs)) return;
             using InternalTempCollection<Dictionary<RKey, RNode>, KeyValuePair<RKey, RNode>> graphs = new(mGraphs.next);
             foreach (RNode graph in graphs.Collection.Values)
-            {
                 graph.Visit(node =>
                 {
                     if (node.Key.type != RKeyType.Event || !node.Key.Equals(eventKey))
@@ -108,7 +109,6 @@ namespace UniVue.UI
 
                     return node.Key.type == RKeyType.Event || node.Key.type == RKeyType.Graph;
                 });
-            }
 
             if (_coroutineId == 0) _coroutineId = VCoroutine.Run(Render(), _renderCtx);
         }
@@ -119,14 +119,12 @@ namespace UniVue.UI
             using InternalTempCollection<Dictionary<RKey, RNode>, KeyValuePair<RKey, RNode>> graphs = new(mGraphs.next);
 
             foreach (RNode graph in graphs.Collection.Values)
-            {
                 graph.Visit(node =>
                 {
                     if (node.Key.type != RKeyType.Model || !node.Key.Equals(new RKey(model)))
                         return node.Key.type == RKeyType.Model || node.Key.type == RKeyType.Graph;
 
                     if (node.next.TryGetValue(propertyName, out RNode pNode))
-                    {
                         foreach (RKey key in pNode.next.Keys)
                         {
                             if (key.type != RKeyType.Rendering || key.As<Action>() == null) continue;
@@ -136,7 +134,6 @@ namespace UniVue.UI
                             else
                                 _renderQueue.Add(pNode.next[key]);
                         }
-                    }
 
                     foreach (RKey key in node.next.Keys)
                     {
@@ -150,7 +147,6 @@ namespace UniVue.UI
 
                     return node.Key.type == RKeyType.Model || node.Key.type == RKeyType.Graph;
                 });
-            }
 
             if (_coroutineId == 0) _coroutineId = VCoroutine.Run(Render(), _renderCtx);
         }
@@ -376,10 +372,8 @@ namespace UniVue.UI
             //收集那些从Entry不可达的节点进行回收
             keys.Collection.Clear();
             foreach (RNode node in Entry.g.next.Values)
-            {
                 if (!node.Reachable)
                     keys.Collection.Add(node.Key);
-            }
 
             foreach (RKey key in keys)
             {
@@ -423,7 +417,7 @@ namespace UniVue.UI
                 --graph.In;
                 if (graph.Reachable)
                     RNode.SafeDispose(graph.next[model]); //说明此Graph还可通过其他节点可达，不能强制释放   
-                else     
+                else
                     RNode.ForceDispose(graph);
             }
 
@@ -486,10 +480,8 @@ namespace UniVue.UI
                 if (!graph.g.next.TryGetValue(model, out RNode mNode)) return;
 
                 foreach (string propertyName in propertyNames)
-                {
                     if (mNode.next.Remove(propertyName, out RNode pNode))
                         RNode.SafeDispose(pNode);
-                }
 
                 if (mNode.Out <= 0)
                     Clear(ref graph, model);
@@ -517,10 +509,8 @@ namespace UniVue.UI
                 if (!graph.g.next.TryGetValue(model, out RNode mNode)) return;
 
                 foreach (string propertyName in propertyNames)
-                {
                     if (mNode.next.Remove(propertyName, out RNode pNode))
                         RNode.SafeDispose(pNode);
-                }
 
                 if (mNode.Out <= 0)
                     Clear(ref graph, model);
@@ -640,14 +630,12 @@ namespace UniVue.UI
             if (!graph.g.next.Remove(oldModel, out RNode mNode)) return;
 
             if (Entry.g.next.TryGetValue(oldModel, out RNode mGraphs))
-            {
                 if (mGraphs.next.Remove(graph) && mGraphs.Out <= 0)
                 {
                     Entry.g.next.Remove(oldModel);
                     oldModel.OnPropertyChanged -= OnNotifyPropertyChanged;
                     RNode.ForceDispose(mGraphs);
                 }
-            }
 
             if (!Entry.g.next.TryGetValue(newModel, out mGraphs))
             {

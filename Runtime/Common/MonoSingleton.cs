@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿#region
+
+using UnityEngine;
+
+#endregion
 
 namespace UniVue.Common
 {
@@ -40,6 +44,8 @@ namespace UniVue.Common
             _instance = null;
         }
 
-        protected virtual void OnInitialize() { }
+        protected virtual void OnInitialize()
+        {
+        }
     }
 }

@@ -1,8 +1,12 @@
+#region
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Utils;
 using Object = UnityEngine.Object;
+
+#endregion
 
 namespace UniVue.UI
 {
@@ -36,9 +40,9 @@ namespace UniVue.UI
 
         public static DefaultLayerMgr Default { get; } = new();
 
-        public GameObject Root { get; }
-
         public GameObject HideLayer { get; }
+
+        public GameObject Root { get; }
 
         public string GetLayerName(int layer)
         {
@@ -49,10 +53,8 @@ namespace UniVue.UI
         {
             string layerName = GetLayerName(layer);
             foreach (Transform transform in _layers)
-            {
                 if (transform.name == layerName)
                     return transform.gameObject;
-            }
 
             return CreateNewLayer(layerName);
         }

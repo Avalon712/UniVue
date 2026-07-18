@@ -1,9 +1,13 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
 using UniVue.UI;
+
+#endregion
 
 namespace UniVue.Editor.CodeGen
 {
@@ -13,24 +17,6 @@ namespace UniVue.Editor.CodeGen
     /// </summary>
     public sealed class BuiltinCodeGenerator : UICodeGenerator
     {
-        private enum UIType : byte
-        {
-            GameObject = 0,
-            RectTransform = 1,
-            Image = 2,
-            RawImage = 3,
-            Text = 4,
-            Button = 5,
-            Toggle = 6,
-            Slider = 7,
-            Scrollbar = 8,
-            ScrollRect = 9,
-            Dropdown = 10,
-            InputField = 11,
-            Canvas = 12,
-            BaseUI = 13,
-        }
-
         private const char Separator = '&';
         private const int IndentSize = 4;
         private const string BaseCommentPrefix = "// Base: ";
@@ -47,7 +33,7 @@ namespace UniVue.Editor.CodeGen
             "null", "object", "operator", "out", "override", "params", "private", "protected", "public",
             "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static",
             "string", "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong",
-            "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while",
+            "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while"
         };
 
         // 长后缀优先，避免 Input 抢在 InputField 之前匹配等
@@ -86,62 +72,53 @@ namespace UniVue.Editor.CodeGen
             ("Obj", UIType.GameObject),
             ("Ipt", UIType.InputField),
             ("Go", UIType.GameObject),
-            ("Sr", UIType.ScrollRect),
+            ("Sr", UIType.ScrollRect)
         };
 
         private static readonly string[] DeclaredTypeNames =
         {
-            "UnityEngine.GameObject",          // GameObject
-            "UnityEngine.RectTransform",       // RectTransform
-            "UnityEngine.UI.Image",            // Image
-            "UnityEngine.UI.RawImage",         // RawImage
+            "UnityEngine.GameObject", // GameObject
+            "UnityEngine.RectTransform", // RectTransform
+            "UnityEngine.UI.Image", // Image
+            "UnityEngine.UI.RawImage", // RawImage
             // Text / Dropdown / InputField：声明为 TMP 与 Legacy 的公共基类，避免回退赋值类型不兼容
-            "UnityEngine.UI.MaskableGraphic",  // Text (TMP_Text / UI.Text)
-            "UnityEngine.UI.Button",           // Button
-            "UnityEngine.UI.Toggle",           // Toggle
-            "UnityEngine.UI.Slider",           // Slider
-            "UnityEngine.UI.Scrollbar",        // Scrollbar
-            "UnityEngine.UI.ScrollRect",       // ScrollRect
-            "UnityEngine.UI.Selectable",       // Dropdown (TMP_Dropdown / UI.Dropdown)
-            "UnityEngine.UI.Selectable",       // InputField (TMP_InputField / UI.InputField)
-            "UnityEngine.Canvas",              // Canvas
+            "UnityEngine.UI.MaskableGraphic", // Text (TMP_Text / UI.Text)
+            "UnityEngine.UI.Button", // Button
+            "UnityEngine.UI.Toggle", // Toggle
+            "UnityEngine.UI.Slider", // Slider
+            "UnityEngine.UI.Scrollbar", // Scrollbar
+            "UnityEngine.UI.ScrollRect", // ScrollRect
+            "UnityEngine.UI.Selectable", // Dropdown (TMP_Dropdown / UI.Dropdown)
+            "UnityEngine.UI.Selectable", // InputField (TMP_InputField / UI.InputField)
+            "UnityEngine.Canvas" // Canvas
         };
 
         // 单类型组件的 GetComponent 目标（与 DeclaredTypeNames 对齐；多类型链单独处理）
         private static readonly string[] SingleComponentTypes =
         {
-            null,                              // GameObject
+            null, // GameObject
             "UnityEngine.RectTransform",
             "UnityEngine.UI.Image",
             "UnityEngine.UI.RawImage",
-            null,                              // Text → 链
+            null, // Text → 链
             "UnityEngine.UI.Button",
             "UnityEngine.UI.Toggle",
             "UnityEngine.UI.Slider",
             "UnityEngine.UI.Scrollbar",
             "UnityEngine.UI.ScrollRect",
-            null,                              // Dropdown → 链
-            null,                              // InputField → 链
-            "UnityEngine.Canvas",
+            null, // Dropdown → 链
+            null, // InputField → 链
+            "UnityEngine.Canvas"
         };
 
         private static readonly string[] TextComponentChain = { "TMPro.TMP_Text", "UnityEngine.UI.Text" };
-        private static readonly string[] InputFieldComponentChain = { "TMPro.TMP_InputField", "UnityEngine.UI.InputField" };
+
+        private static readonly string[] InputFieldComponentChain =
+            { "TMPro.TMP_InputField", "UnityEngine.UI.InputField" };
+
         private static readonly string[] DropdownComponentChain = { "TMPro.TMP_Dropdown", "UnityEngine.UI.Dropdown" };
 
-        private struct BindingInfo
-        {
-            public string PropertyName;
-            public string UIPath;
-            public UIType UIType;
-            public string CustomTypeFullName;
-        }
-
-        private sealed class ExtraData
-        {
-            public readonly List<BindingInfo> Bindings = new(16);
-            public readonly HashSet<string> PropertyNames = new(16, StringComparer.Ordinal);
-        }
+        private static readonly char[] EscapeChars = { '\\', '"' };
 
         private ExtraData Extra => (ExtraData)File.customExtraData;
 
@@ -208,7 +185,7 @@ namespace UniVue.Editor.CodeGen
         }
 
         private static void TryProcessSegment(ExtraData extra, GameObject ui, string uiPath, string source, int start,
-                                             int count)
+            int count)
         {
             // 去首尾空白后得到子串（仅在需要时分配）
             int end = start + count;
@@ -239,13 +216,11 @@ namespace UniVue.Editor.CodeGen
 
             Component[] comps = ui.GetComponents<Component>();
             for (int c = 0; c < chain.Length; c++)
+            for (int i = 0; i < comps.Length; i++)
             {
-                for (int i = 0; i < comps.Length; i++)
-                {
-                    Component comp = comps[i];
-                    if (comp != null && TypeInheritsFullName(comp.GetType(), chain[c]))
-                        return chain[c];
-                }
+                Component comp = comps[i];
+                if (comp != null && TypeInheritsFullName(comp.GetType(), chain[c]))
+                    return chain[c];
             }
 
             return null;
@@ -254,10 +229,8 @@ namespace UniVue.Editor.CodeGen
         private static bool TypeInheritsFullName(Type type, string fullName)
         {
             for (Type t = type; t != null; t = t.BaseType)
-            {
                 if (t.FullName == fullName)
                     return true;
-            }
 
             return false;
         }
@@ -283,7 +256,7 @@ namespace UniVue.Editor.CodeGen
         }
 
         private static void TryAddBinding(ExtraData extra, GameObject ui, string uiPath, string propertyName,
-                                          UIType uiType, string customTypeFullName)
+            UIType uiType, string customTypeFullName)
         {
             if (string.IsNullOrEmpty(propertyName))
                 return;
@@ -301,7 +274,7 @@ namespace UniVue.Editor.CodeGen
                 PropertyName = propertyName,
                 UIPath = uiPath,
                 UIType = uiType,
-                CustomTypeFullName = customTypeFullName,
+                CustomTypeFullName = customTypeFullName
             });
         }
 
@@ -361,7 +334,7 @@ namespace UniVue.Editor.CodeGen
 
             AppendIndent(sb, indent);
             sb.Append("public abstract class ").Append(file.FileName).Append(" : ")
-              .Append(baseTypeName).AppendLine();
+                .Append(baseTypeName).AppendLine();
             AppendLine(sb, indent, "{");
             indent++;
 
@@ -373,7 +346,7 @@ namespace UniVue.Editor.CodeGen
                 sb.Append("private ").Append(typeName).Append(" _g").Append(binding.PropertyName).AppendLine(";");
                 AppendIndent(sb, indent);
                 sb.Append("protected ").Append(typeName).Append(' ').Append(binding.PropertyName)
-                  .Append(" => _g").Append(binding.PropertyName).AppendLine(";");
+                    .Append(" => _g").Append(binding.PropertyName).AppendLine(";");
                 sb.AppendLine();
             }
 
@@ -406,7 +379,7 @@ namespace UniVue.Editor.CodeGen
         /// 解析本次生成应继承的基类：
         /// 1) 源类型尚未继承生成类时，直接取源类型的当前基类；
         /// 2) 源类型已继承上次生成的类时，沿用上次记录（读取 .g.cs 中的 "// Base:" 注释），
-        ///    读取失败则回退为生成类的基类（等价于原始基类），避免出现自继承。
+        /// 读取失败则回退为生成类的基类（等价于原始基类），避免出现自继承。
         /// </summary>
         private static string ResolveBaseTypeName(Type sourceType, string generatedFullName, string filePath)
         {
@@ -489,18 +462,18 @@ namespace UniVue.Editor.CodeGen
 
                 AppendIndent(sb, indent);
                 sb.Append("_g").Append(binding.PropertyName).Append(" = ").Append(goVar)
-                  .Append(" != null ? ").Append(goVar).Append(".GetComponent<").Append(chain[0])
-                  .AppendLine(">() : null;");
+                    .Append(" != null ? ").Append(goVar).Append(".GetComponent<").Append(chain[0])
+                    .AppendLine(">() : null;");
 
                 for (int i = 1; i < chain.Length; i++)
                 {
                     AppendIndent(sb, indent);
                     sb.Append("if (_g").Append(binding.PropertyName).Append(" == null && ").Append(goVar)
-                      .AppendLine(" != null)");
+                        .AppendLine(" != null)");
                     AppendLine(sb, indent, "{");
                     AppendIndent(sb, indent + 1);
                     sb.Append("_g").Append(binding.PropertyName).Append(" = ").Append(goVar)
-                      .Append(".GetComponent<").Append(chain[i]).AppendLine(">();");
+                        .Append(".GetComponent<").Append(chain[i]).AppendLine(">();");
                     AppendLine(sb, indent, "}");
                 }
 
@@ -585,7 +558,7 @@ namespace UniVue.Editor.CodeGen
                 name = name.Replace('+', '.');
 
             Type[] args = type.GetGenericArguments();
-            var sb = new StringBuilder(name.Length + 16 * args.Length);
+            StringBuilder sb = new(name.Length + 16 * args.Length);
             sb.Append(name).Append('<');
             for (int i = 0; i < args.Length; i++)
             {
@@ -660,7 +633,7 @@ namespace UniVue.Editor.CodeGen
                 end++;
             }
 
-            string result = new string(buffer, start, end - start);
+            string result = new(buffer, start, end - start);
             if (CSharpKeywords.Contains(result))
                 return string.Concat(result, "_");
             return result;
@@ -705,8 +678,6 @@ namespace UniVue.Editor.CodeGen
             }
         }
 
-        private static readonly char[] EscapeChars = { '\\', '"' };
-
         private static void AppendIndent(StringBuilder sb, int indent)
         {
             if (indent > 0)
@@ -717,6 +688,38 @@ namespace UniVue.Editor.CodeGen
         {
             AppendIndent(sb, indent);
             sb.AppendLine(line);
+        }
+
+        private enum UIType : byte
+        {
+            GameObject = 0,
+            RectTransform = 1,
+            Image = 2,
+            RawImage = 3,
+            Text = 4,
+            Button = 5,
+            Toggle = 6,
+            Slider = 7,
+            Scrollbar = 8,
+            ScrollRect = 9,
+            Dropdown = 10,
+            InputField = 11,
+            Canvas = 12,
+            BaseUI = 13
+        }
+
+        private struct BindingInfo
+        {
+            public string PropertyName;
+            public string UIPath;
+            public UIType UIType;
+            public string CustomTypeFullName;
+        }
+
+        private sealed class ExtraData
+        {
+            public readonly List<BindingInfo> Bindings = new(16);
+            public readonly HashSet<string> PropertyNames = new(16, StringComparer.Ordinal);
         }
     }
 }

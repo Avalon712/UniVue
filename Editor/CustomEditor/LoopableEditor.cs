@@ -1,9 +1,13 @@
+#region
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 using UniVue.UI.Widgets;
 using UniVue.Utils;
+
+#endregion
 
 namespace UniVue.Editor
 {
@@ -16,9 +20,7 @@ namespace UniVue.Editor
             get
             {
                 if (target is Loopable loopable && loopable.Scroller.content.childCount > 0)
-                {
                     return loopable.Scroller.content.GetChild(0).GetComponent<LoopItem>();
-                }
 
                 return null;
             }
@@ -160,17 +162,11 @@ namespace UniVue.Editor
             if (needCount > 0)
             {
                 GameObject prefab = Prefab.gameObject;
-                for (int i = 0; i < needCount; i++)
-                {
-                    CoreUtils.RectTransformClone(prefab, content);
-                }
+                for (int i = 0; i < needCount; i++) CoreUtils.RectTransformClone(prefab, content);
             }
             else if (needCount < 0) //删除多余的
             {
-                for (int i = needCount; i < 0; i++)
-                {
-                    DestroyImmediate(content.GetChild(0).gameObject);
-                }
+                for (int i = needCount; i < 0; i++) DestroyImmediate(content.GetChild(0).gameObject);
             }
         }
 
@@ -213,11 +209,10 @@ namespace UniVue.Editor
             Vector2 distance = cellSize * (gap / Vector2.Max(gap, Vector2.one)) + gap;
             float temp = direction == ScrollDirection.Vertical ? rows : cols;
             content.sizeDelta = temp * distance * new Vector2(direction == ScrollDirection.Vertical ? 0 : 1,
-                                                              direction == ScrollDirection.Vertical ? 1 : 0);
+                direction == ScrollDirection.Vertical ? 1 : 0);
 
             //按下面的方法确保content的前面rows个为第一列或前cols个为第一行
             if (direction == ScrollDirection.Vertical) //垂直滚动时位置按行一行一行的设置
-            {
                 for (int i = 0; i < rows; i++)
                 {
                     for (int j = 0; j < cols; j++)
@@ -229,9 +224,7 @@ namespace UniVue.Editor
                     itemPos.y -= yDeltaPos; //下一行
                     itemPos.x -= xDeltaPos * cols;
                 }
-            }
             else //水平滚动时位置按列一列一列的设置
-            {
                 for (int i = 0; i < cols; ++i)
                 {
                     for (int j = 0; j < rows; ++j)
@@ -243,7 +236,6 @@ namespace UniVue.Editor
                     itemPos.x += xDeltaPos; //下一列
                     itemPos.y += yDeltaPos * rows;
                 }
-            }
         }
     }
 }

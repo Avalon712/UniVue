@@ -1,8 +1,12 @@
+#region
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UniVue.Utils;
+
+#endregion
 
 namespace UniVue.UI.Widgets
 {
@@ -19,20 +23,19 @@ namespace UniVue.UI.Widgets
         Horizontal
     }
 
-    public abstract class LoopItem : BaseComponent { }
+    public abstract class LoopItem : BaseComponent
+    {
+    }
 
     [DisableUICodeGenerated]
     [RequireComponent(typeof(ScrollRect))]
     public abstract class Loopable : BaseComponent
     {
-        [SerializeField]
-        protected ScrollDirection scrollDir;
+        [SerializeField] protected ScrollDirection scrollDir;
 
-        [SerializeField]
-        protected Vector2 gap;
+        [SerializeField] protected Vector2 gap;
 
-        [SerializeField]
-        protected Vector2Int grid;
+        [SerializeField] protected Vector2Int grid;
 
         private LinkedList<RectTransform> _children;
 
@@ -98,34 +101,6 @@ namespace UniVue.UI.Widgets
 
         protected Vector2 Distance { get; private set; }
 
-        protected sealed override void OnCreate()
-        {
-            _scrollRect = GetComponent<ScrollRect>();
-            
-            //防止BaseComponent的Show回调
-            RectTransform content = _scrollRect.content;
-            ChildCount = content.childCount;
-            int childCount = ChildCount;
-            _children = new LinkedList<RectTransform>();
-            for (int i = 0; i < childCount; i++)
-            {
-                Transform child = content.GetChild(i);
-                child.gameObject.SetActive(false);
-                _children.AddLast(child as RectTransform);
-            }
-
-            Distance = FirstChild.Value.sizeDelta * (gap / Vector2.Max(gap, Vector2.one)) + gap;
-
-            //绑定滚动事件
-            _itemCorners = new Vector3[4];
-            _viewportCorners = new Vector3[4];
-            _scrollRect.onValueChanged.AddListener(OnScroll);
-            Scrollbar?.onValueChanged.AddListener(OnScroll);
-            Scroller.vertical = scrollDir == ScrollDirection.Vertical;
-            Scroller.horizontal = scrollDir == ScrollDirection.Horizontal;
-            Count = 0;
-        }
-
         protected virtual void Update()
         {
             if (!_isDirty) return;
@@ -148,18 +123,14 @@ namespace UniVue.UI.Widgets
                 {
                     GetChild(LastIndex).Value.GetWorldCorners(_itemCorners);
                     if (_itemCorners[0].y < _viewportCorners[0].y)
-                    {
                         while (_isDirty && maxUpdateSteps-- > 0)
                         {
                             GetChild(LastIndex).Value.GetWorldCorners(_itemCorners);
                             _isDirty = _itemCorners[0].y < _viewportCorners[0].y &&
                                        OnMoveItem(Direction.Down, _viewportCorners, _itemCorners);
                         }
-                    }
                     else
-                    {
                         _isDirty = false;
-                    }
                 }
             }
             else
@@ -178,20 +149,44 @@ namespace UniVue.UI.Widgets
                 {
                     GetChild(LastIndex).Value.GetWorldCorners(_itemCorners);
                     if (_itemCorners[3].x > _viewportCorners[3].x)
-                    {
                         while (_isDirty && maxUpdateSteps-- > 0)
                         {
                             GetChild(LastIndex).Value.GetWorldCorners(_itemCorners);
                             _isDirty = _itemCorners[3].x > _viewportCorners[3].x &&
                                        OnMoveItem(Direction.Right, _viewportCorners, _itemCorners);
                         }
-                    }
                     else
-                    {
                         _isDirty = false;
-                    }
                 }
             }
+        }
+
+        protected sealed override void OnCreate()
+        {
+            _scrollRect = GetComponent<ScrollRect>();
+
+            //防止BaseComponent的Show回调
+            RectTransform content = _scrollRect.content;
+            ChildCount = content.childCount;
+            int childCount = ChildCount;
+            _children = new LinkedList<RectTransform>();
+            for (int i = 0; i < childCount; i++)
+            {
+                Transform child = content.GetChild(i);
+                child.gameObject.SetActive(false);
+                _children.AddLast(child as RectTransform);
+            }
+
+            Distance = FirstChild.Value.sizeDelta * (gap / Vector2.Max(gap, Vector2.one)) + gap;
+
+            //绑定滚动事件
+            _itemCorners = new Vector3[4];
+            _viewportCorners = new Vector3[4];
+            _scrollRect.onValueChanged.AddListener(OnScroll);
+            Scrollbar?.onValueChanged.AddListener(OnScroll);
+            Scroller.vertical = scrollDir == ScrollDirection.Vertical;
+            Scroller.horizontal = scrollDir == ScrollDirection.Horizontal;
+            Count = 0;
         }
 
         protected sealed override void OnDispose()
@@ -271,7 +266,6 @@ namespace UniVue.UI.Widgets
 
             //按下面的方法确保content的前面rows个为第一列或前cols个为第一行
             if (scrollDir == ScrollDirection.Vertical) //垂直滚动时位置按行一行一行的设置
-            {
                 for (int i = 0; i < rows; i++)
                 {
                     for (int j = 0; j < cols; j++)
@@ -283,9 +277,7 @@ namespace UniVue.UI.Widgets
                     itemPos.y -= yDeltaPos; //下一行
                     itemPos.x -= xDeltaPos * cols;
                 }
-            }
             else //水平滚动时位置按列一列一列的设置
-            {
                 for (int i = 0; i < cols; ++i)
                 {
                     for (int j = 0; j < rows; ++j)
@@ -297,7 +289,6 @@ namespace UniVue.UI.Widgets
                     itemPos.x += xDeltaPos; //下一列
                     itemPos.y += yDeltaPos * rows;
                 }
-            }
         }
 
         /// <summary>
@@ -336,20 +327,14 @@ namespace UniVue.UI.Widgets
             {
                 index = _children.Count - 1 - index;
                 LinkedListNode<RectTransform> node = _children.Last;
-                for (int i = 0; i < index; i++)
-                {
-                    node = node.Previous;
-                }
+                for (int i = 0; i < index; i++) node = node.Previous;
 
                 return node;
             }
             else
             {
                 LinkedListNode<RectTransform> node = _children.First;
-                for (int i = 0; i < index; i++)
-                {
-                    node = node.Next;
-                }
+                for (int i = 0; i < index; i++) node = node.Next;
 
                 return node;
             }

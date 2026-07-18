@@ -1,6 +1,9 @@
-using System.Collections.Generic;
+#region
+
 using UnityEditor;
 using UniVue.I18n;
+
+#endregion
 
 namespace UniVue.Editor
 {
@@ -20,13 +23,16 @@ namespace UniVue.Editor
         /// <summary>
         /// 多语言配置
         /// </summary>
-        public I18NConfig languageConfig;
+        public I18NFontConfig languageConfig;
+
+        /// <summary>
+        /// 预设
+        /// </summary>
+        public string prefs;
 
         public void SaveSettings()
         {
             Save(true);
         }
     }
-
-
 }

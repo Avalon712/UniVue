@@ -1,4 +1,8 @@
+#region
+
 using UnityEngine;
+
+#endregion
 
 namespace UniVue.UI
 {
@@ -15,10 +19,11 @@ namespace UniVue.UI
                 BaseUI parent = Parent;
                 while (parent)
                 {
-                    if(parent is BaseView view)
+                    if (parent is BaseView view)
                         return view;
                     parent = parent.Parent;
                 }
+
                 return null;
             }
         }

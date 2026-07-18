@@ -1,9 +1,13 @@
+#region
+
 using System;
 using UnityEngine;
 
+#endregion
+
 namespace UniVue.UI
 {
-    public interface IUIPrefabLoader
+    public interface IUIObjectLoader
     {
         /// <summary>
         /// 加载UI对象

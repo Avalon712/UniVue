@@ -1,12 +1,16 @@
-﻿using System.Collections.Generic;
+﻿#region
+
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UniVue.I18n;
 
+#endregion
+
 namespace UniVue.Editor
 {
-    [CustomEditor(typeof(I18NConfig))]
+    [CustomEditor(typeof(I18NFontConfig))]
     public sealed class I18NConfigEditor : UnityEditor.Editor
     {
         private SerializedProperty _defaultLanguageProp;
@@ -38,10 +42,7 @@ namespace UniVue.Editor
         {
             // 默认语言只读，数据来自 LanguageTable
             string tableDefault = table.defaultLanguage ?? string.Empty;
-            if (_defaultLanguageProp.stringValue != tableDefault)
-            {
-                _defaultLanguageProp.stringValue = tableDefault;
-            }
+            if (_defaultLanguageProp.stringValue != tableDefault) _defaultLanguageProp.stringValue = tableDefault;
 
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
@@ -65,10 +66,7 @@ namespace UniVue.Editor
                     GUILayout.FlexibleSpace();
                     using (new EditorGUI.DisabledScope(_fontsProp.arraySize >= languageTypes.Count))
                     {
-                        if (GUILayout.Button("＋ 添加", GUILayout.Width(70)))
-                        {
-                            AddFontElement(languageTypes);
-                        }
+                        if (GUILayout.Button("＋ 添加", GUILayout.Width(70))) AddFontElement(languageTypes);
                     }
                 }
 
@@ -86,17 +84,10 @@ namespace UniVue.Editor
 
                 int removeIndex = -1;
                 for (int i = 0; i < _fontsProp.arraySize; i++)
-                {
                     if (DrawFontElement(i, languageTypes))
-                    {
                         removeIndex = i;
-                    }
-                }
 
-                if (removeIndex >= 0)
-                {
-                    _fontsProp.DeleteArrayElementAtIndex(removeIndex);
-                }
+                if (removeIndex >= 0) _fontsProp.DeleteArrayElementAtIndex(removeIndex);
             }
         }
 
@@ -114,7 +105,7 @@ namespace UniVue.Editor
             using (new EditorGUILayout.HorizontalScope())
             {
                 // 该项可选择的语种 = 全部语种 - 其他项已占用的语种（不允许一个语种多个字体）
-                HashSet<string> usedByOthers = new HashSet<string>();
+                HashSet<string> usedByOthers = new();
                 for (int j = 0; j < _fontsProp.arraySize; j++)
                 {
                     if (j == index) continue;
@@ -128,14 +119,12 @@ namespace UniVue.Editor
                 if (selected < 0) selected = 0;
 
                 int next = EditorGUILayout.Popup(selected, options.ToArray(), GUILayout.Width(160));
-                languageProp.stringValue = options.Count > 0 ? options[Mathf.Clamp(next, 0, options.Count - 1)] : string.Empty;
+                languageProp.stringValue =
+                    options.Count > 0 ? options[Mathf.Clamp(next, 0, options.Count - 1)] : string.Empty;
 
                 EditorGUILayout.PropertyField(fontProp, GUIContent.none);
 
-                if (GUILayout.Button("×", GUILayout.Width(22)))
-                {
-                    requestRemove = true;
-                }
+                if (GUILayout.Button("×", GUILayout.Width(22))) requestRemove = true;
             }
 
             return requestRemove;
@@ -143,7 +132,7 @@ namespace UniVue.Editor
 
         private void AddFontElement(List<string> languageTypes)
         {
-            HashSet<string> used = new HashSet<string>();
+            HashSet<string> used = new();
             for (int i = 0; i < _fontsProp.arraySize; i++)
             {
                 string lang = _fontsProp.GetArrayElementAtIndex(i).FindPropertyRelative("language").stringValue;

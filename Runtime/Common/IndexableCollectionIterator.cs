@@ -1,6 +1,10 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
+
+#endregion
 
 namespace UniVue.Common
 {
@@ -10,8 +14,8 @@ namespace UniVue.Common
     /// <typeparam name="TCollectionItemType">集合类型</typeparam>
     public struct IndexableCollectionIterator<TRequireType, TCollectionItemType>
         : IEnumerator<TRequireType>,
-          IEnumerable<TRequireType>,
-          IEquatable<IndexableCollectionIterator<TRequireType, TCollectionItemType>>
+            IEnumerable<TRequireType>,
+            IEquatable<IndexableCollectionIterator<TRequireType, TCollectionItemType>>
         where TRequireType : TCollectionItemType
     {
         private TCollectionItemType[] _array;
@@ -55,7 +59,7 @@ namespace UniVue.Common
             _list = list;
             Current = default;
         }
-        
+
         public IndexableCollectionIterator(IReadOnlyList<TCollectionItemType> list)
         {
             _index = 0;

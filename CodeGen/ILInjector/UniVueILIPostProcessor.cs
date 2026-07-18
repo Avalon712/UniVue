@@ -1,10 +1,14 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Unity.CompilationPipeline.Common.Diagnostics;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
+
+#endregion
 
 namespace UniVue.CodeGen
 {
@@ -68,10 +72,10 @@ namespace UniVue.CodeGen
 
                 assemblyDefinition.Write(peOutputStream, writerParameters);
                 InMemoryAssembly inMemoryAssembly = new(
-                                                        peOutputStream.ToArray(),
-                                                        pdbOutputStream != null
-                                                            ? pdbOutputStream.ToArray()
-                                                            : compiledAssembly.InMemoryAssembly.PdbData);
+                    peOutputStream.ToArray(),
+                    pdbOutputStream != null
+                        ? pdbOutputStream.ToArray()
+                        : compiledAssembly.InMemoryAssembly.PdbData);
 
                 return new ILPostProcessResult(inMemoryAssembly, diagnostics);
             }
@@ -146,14 +150,12 @@ namespace UniVue.CodeGen
                 return AssemblyDefinition.ReadAssembly(mappedPath, readParams);
 
             if (name?.Name != null)
-            {
                 foreach (string dir in _referenceDirectories)
                 {
                     string candidate = Path.Combine(dir, name.Name + ".dll");
                     if (File.Exists(candidate))
                         return AssemblyDefinition.ReadAssembly(candidate, readParams);
                 }
-            }
 
             try
             {
@@ -165,13 +167,12 @@ namespace UniVue.CodeGen
                     throw;
 
                 foreach (string dir in _referenceDirectories)
-                {
                     try
                     {
                         foreach (string dll in Directory.GetFiles(dir, "*.dll", SearchOption.TopDirectoryOnly))
                         {
                             if (!string.Equals(Path.GetFileNameWithoutExtension(dll), name.Name,
-                                               StringComparison.OrdinalIgnoreCase))
+                                    StringComparison.OrdinalIgnoreCase))
                                 continue;
                             if (File.Exists(dll))
                                 return AssemblyDefinition.ReadAssembly(dll, readParams);
@@ -181,7 +182,6 @@ namespace UniVue.CodeGen
                     {
                         // ignored
                     }
-                }
 
                 throw;
             }

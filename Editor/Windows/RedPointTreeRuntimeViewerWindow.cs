@@ -1,3 +1,5 @@
+#region
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -5,6 +7,8 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UniVue.UI;
+
+#endregion
 
 namespace UniVue.Editor
 {
@@ -73,20 +77,16 @@ namespace UniVue.Editor
             if (_boxStyle == null)
                 _boxStyle = new GUIStyle(GUI.skin.box) { padding = new RectOffset(8, 8, 8, 8) };
             if (_leftScrollStyle == null)
-            {
                 _leftScrollStyle = new GUIStyle(GUI.skin.box)
                     { padding = new RectOffset(0, 0, 0, 0), margin = new RectOffset(0, 0, 0, 0) };
-            }
 
             if (_pmListLabelStyle == null)
-            {
                 _pmListLabelStyle = new GUIStyle(EditorStyles.label)
                 {
                     padding = new RectOffset(12, 8, 2, 2),
                     alignment = TextAnchor.MiddleLeft,
                     clipping = TextClipping.Clip
                 };
-            }
 
             if (_richTextLabelStyle == null)
                 _richTextLabelStyle = new GUIStyle(EditorStyles.label) { richText = true };
@@ -108,7 +108,7 @@ namespace UniVue.Editor
             return field?.GetValue(mgr) as IReadOnlyDictionary<ulong, RedPointMgr.RedPointNode>;
         }
 
-        [MenuItem("UniVue/Windows/RedPointTreeDebugger (Runtime)")]
+        [MenuItem("UniVue/RedPointTreeDebugger (Runtime)")]
         private static void ShowWindow()
         {
             if (!EditorApplication.isPlaying)
@@ -139,13 +139,13 @@ namespace UniVue.Editor
 
             // 使用完整重载指定滚动条与背景样式，避免与 (scroll, bool, bool, ...) 等重载产生歧义
             _leftScroll = EditorGUILayout.BeginScrollView(
-                                                          _leftScroll,
-                                                          false,
-                                                          false,
-                                                          GUI.skin.horizontalScrollbar,
-                                                          GUI.skin.verticalScrollbar,
-                                                          _leftScrollStyle,
-                                                          GUILayout.ExpandHeight(true));
+                _leftScroll,
+                false,
+                false,
+                GUI.skin.horizontalScrollbar,
+                GUI.skin.verticalScrollbar,
+                _leftScrollStyle,
+                GUILayout.ExpandHeight(true));
 
             List<KeyValuePair<ulong, RedPointMgr.RedPointNode>> roots =
                 trees.Where(kv => kv.Value != null).OrderBy(kv => kv.Key).ToList();
@@ -181,13 +181,11 @@ namespace UniVue.Editor
             }
 
             if (UnityEngine.Event.current.type == EventType.MouseMove)
-            {
                 if (newHover != _leftListHoverIndex)
                 {
                     _leftListHoverIndex = newHover;
                     Repaint();
                 }
-            }
 
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
@@ -305,10 +303,8 @@ namespace UniVue.Editor
 
             // 删除节点按钮 "-"，仅当 IsDynamicDependency 为 true 时显示
             if (mgr.IsDynamicDependency(node.key))
-            {
                 if (GUILayout.Button("-", GUILayout.Width(24)))
                     mgr.DeleteDependency(node.key);
-            }
 
             EditorGUILayout.EndHorizontal();
 
@@ -316,10 +312,8 @@ namespace UniVue.Editor
             string childPrefix = isRoot ? "" : prefix + (isLast ? "   " : "│  ");
             List<RedPointMgr.RedPointNode> children = node.children;
             if (children != null && children.Count > 0)
-            {
                 for (int i = 0; i < children.Count; i++)
                     DrawNode(mgr, children[i], childPrefix, i == children.Count - 1, false);
-            }
         }
 
         // 叶子节点下拉选项

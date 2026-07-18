@@ -1,5 +1,9 @@
+#region
+
 using System;
 using UniVue.Internal;
+
+#endregion
 
 namespace UniVue.Model
 {
