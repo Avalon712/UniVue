@@ -187,22 +187,32 @@ namespace UniVue.Editor
         {
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                string[] langs = _table.languageTypes.ToArray();
+                string[] langs = _table.languageTypes != null
+                    ? _table.languageTypes.ToArray()
+                    : Array.Empty<string>();
+                bool hasLangs = langs.Length > 0;
 
                 // 默认语种（任意文本正在翻译时不允许切换）
                 bool anyWaiting = _table.HasAnyTextIsWaitTranslationResult();
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField("默认语种", GUILayout.Width(60));
-                    int current = Mathf.Max(0, Array.IndexOf(langs, _table.defaultLanguage));
-                    using (new EditorGUI.DisabledScope(langs.Length == 0 || anyWaiting))
+                    if (!hasLangs)
                     {
-                        EditorGUI.BeginChangeCheck();
-                        int next = EditorGUILayout.Popup(current, langs, GUILayout.Width(180));
-                        if (EditorGUI.EndChangeCheck() && next >= 0 && next < langs.Length && next != current)
+                        EditorGUILayout.LabelField("（暂无语种）", EditorStyles.miniLabel, GUILayout.Width(180));
+                    }
+                    else
+                    {
+                        int current = Mathf.Max(0, Array.IndexOf(langs, _table.defaultLanguage));
+                        using (new EditorGUI.DisabledScope(anyWaiting))
                         {
-                            string target = langs[next];
-                            ChangeDefaultLanguage(target);
+                            EditorGUI.BeginChangeCheck();
+                            int next = EditorGUILayout.Popup(current, langs, GUILayout.Width(180));
+                            if (EditorGUI.EndChangeCheck() && next >= 0 && next < langs.Length && next != current)
+                            {
+                                string target = langs[next];
+                                ChangeDefaultLanguage(target);
+                            }
                         }
                     }
 
@@ -220,12 +230,21 @@ namespace UniVue.Editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField("删除语种", GUILayout.Width(60));
-                    string[] removable = langs.Where(l => l != _table.defaultLanguage).ToArray();
-                    using (new EditorGUI.DisabledScope(removable.Length == 0))
+                    string[] removable = hasLangs
+                        ? langs.Where(l => l != _table.defaultLanguage).ToArray()
+                        : Array.Empty<string>();
+                    if (removable.Length == 0)
                     {
-                        _deleteLangIndex = Mathf.Clamp(_deleteLangIndex, 0, Mathf.Max(0, removable.Length - 1));
+                        EditorGUILayout.LabelField(
+                            hasLangs ? "（默认语种不可删除）" : "（暂无语种）",
+                            EditorStyles.miniLabel,
+                            GUILayout.Width(180));
+                    }
+                    else
+                    {
+                        _deleteLangIndex = Mathf.Clamp(_deleteLangIndex, 0, removable.Length - 1);
                         _deleteLangIndex = EditorGUILayout.Popup(_deleteLangIndex, removable, GUILayout.Width(180));
-                        if (GUILayout.Button("删除语种", GUILayout.Width(90)) && removable.Length > 0)
+                        if (GUILayout.Button("删除语种", GUILayout.Width(90)))
                         {
                             string lang = removable[_deleteLangIndex];
                             if (EditorUtility.DisplayDialog("删除语种", $"确定删除语种 \"{lang}\" 及其所有文本内容？", "删除", "取消"))
@@ -238,7 +257,6 @@ namespace UniVue.Editor
                         }
                     }
 
-                    if (removable.Length == 0) EditorGUILayout.LabelField("（默认语种不可删除）", EditorStyles.miniLabel);
                     GUILayout.FlexibleSpace();
                 }
 
@@ -263,22 +281,28 @@ namespace UniVue.Editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField("重命名", GUILayout.Width(60));
-                    using (new EditorGUI.DisabledScope(langs.Length == 0 || anyWaiting))
+                    if (!hasLangs)
                     {
-                        _renameLangIndex = Mathf.Clamp(_renameLangIndex, 0, Mathf.Max(0, langs.Length - 1));
-                        _renameLangIndex = EditorGUILayout.Popup(_renameLangIndex, langs, GUILayout.Width(100));
-                        EditorGUILayout.LabelField("→", GUILayout.Width(16));
-                        _renameLanguage = EditorGUILayout.TextField(_renameLanguage, GUILayout.Width(100));
-                        bool canRename = langs.Length > 0
-                                         && !string.IsNullOrWhiteSpace(_renameLanguage)
-                                         && _renameLanguage.Trim() != langs[_renameLangIndex];
-                        using (new EditorGUI.DisabledScope(!canRename))
+                        EditorGUILayout.LabelField("（暂无语种）", EditorStyles.miniLabel, GUILayout.Width(100));
+                    }
+                    else
+                    {
+                        using (new EditorGUI.DisabledScope(anyWaiting))
                         {
-                            if (GUILayout.Button("重命名语种", GUILayout.Width(90)))
+                            _renameLangIndex = Mathf.Clamp(_renameLangIndex, 0, langs.Length - 1);
+                            _renameLangIndex = EditorGUILayout.Popup(_renameLangIndex, langs, GUILayout.Width(100));
+                            EditorGUILayout.LabelField("→", GUILayout.Width(16));
+                            _renameLanguage = EditorGUILayout.TextField(_renameLanguage, GUILayout.Width(100));
+                            bool canRename = !string.IsNullOrWhiteSpace(_renameLanguage)
+                                             && _renameLanguage.Trim() != langs[_renameLangIndex];
+                            using (new EditorGUI.DisabledScope(!canRename))
                             {
-                                string oldName = langs[_renameLangIndex];
-                                string newName = _renameLanguage.Trim();
-                                _pending = () => RenameLanguage(oldName, newName);
+                                if (GUILayout.Button("重命名语种", GUILayout.Width(90)))
+                                {
+                                    string oldName = langs[_renameLangIndex];
+                                    string newName = _renameLanguage.Trim();
+                                    _pending = () => RenameLanguage(oldName, newName);
+                                }
                             }
                         }
                     }
@@ -373,11 +397,16 @@ namespace UniVue.Editor
                 EditorGUILayout.Space(2);
 
                 // 显示列（语种列多选，默认全部）
+                // 注意：MaskField / Popup 不能传入空数组，否则 Unity 内部会 IndexOutOfRangeException
                 EnsureVisibleColumnMask(langs);
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField("显示列", GUILayout.Width(60));
-                    using (new EditorGUI.DisabledScope(langs.Length == 0))
+                    if (!hasLangs)
+                    {
+                        EditorGUILayout.LabelField("（暂无语种列）", EditorStyles.miniLabel, GUILayout.Width(180));
+                    }
+                    else
                     {
                         _visibleColumnMask = EditorGUILayout.MaskField(
                             _visibleColumnMask, langs, GUILayout.Width(180));
