@@ -5,7 +5,7 @@
   "unity": "2019.3",
   "description": "A high-performance, lightweight reactive UI framework for UnityEngine.",
   "repository": {
-    "url": "https://github.com/Avalon712/UniVue.git#v3.1.0",
+    "url": "https://github.com/Avalon712/UniVue.git",
     "type": "git"
   },
   "dependencies": {
