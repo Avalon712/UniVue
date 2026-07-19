@@ -45,6 +45,8 @@ namespace UniVue.UI
 
         private static IUILayerMgr LayerMgr { get; set; }
 
+        private static IUILazyDisposer Disposer { get; set; }
+        
         public static RGraphs Renderer { get; private set; }
 
         public static RedPointMgr RedPointMgr { get; private set; }
@@ -56,9 +58,10 @@ namespace UniVue.UI
         /// <param name="redPointKeyEnumType">RedPointKey枚举类型</param>
         /// <param name="loader">加载UI预制体</param>
         /// <param name="layerMgr">层级管理接口，如果为Null则使用默认的管理器</param>
+        /// <param name="disposer">销毁UI对象（根视图），如果为null则使用内置的销毁接口</param>
         /// <param name="liveTimeAfterClosed">当界面被关闭后仍可存活的时间（秒，仅对根界面生效，默认为30秒，小于0则立即销毁）</param>
         public static void Initialize(Type redPointKeyEnumType, IUIObjectLoader loader, IUILayerMgr layerMgr = null,
-            uint liveTimeAfterClosed = 30)
+            IUILazyDisposer disposer = null, uint liveTimeAfterClosed = 30)
         {
             if (_initialized)
             {
@@ -72,7 +75,7 @@ namespace UniVue.UI
                 return;
             }
 
-            Initialize(loader, layerMgr, liveTimeAfterClosed);
+            Initialize(loader, layerMgr, disposer, liveTimeAfterClosed);
             RedPointMgr = new RedPointMgr(redPointKeyEnumType);
         }
 
@@ -81,8 +84,9 @@ namespace UniVue.UI
         /// </summary>
         /// <param name="loader">加载UI预制体</param>
         /// <param name="layerMgr">层级管理接口，如果为Null则使用默认的管理器</param>
+        /// <param name="disposer">销毁UI对象（根视图），如果为null则使用内置的销毁接口</param>
         /// <param name="liveTimeAfterClosed">当界面被关闭后仍可存活的时间（秒，仅对根界面生效，默认为30秒）</param>
-        public static void Initialize(IUIObjectLoader loader, IUILayerMgr layerMgr, uint liveTimeAfterClosed = 30)
+        public static void Initialize(IUIObjectLoader loader, IUILayerMgr layerMgr, IUILazyDisposer disposer = null, uint liveTimeAfterClosed = 30)
         {
             if (_initialized)
             {
@@ -99,6 +103,7 @@ namespace UniVue.UI
             _initialized = true;
             Loader = loader;
             LayerMgr = layerMgr;
+            Disposer = disposer;
 
             Object.DontDestroyOnLoad(LayerMgr.Root);
 
@@ -138,7 +143,14 @@ namespace UniVue.UI
 
         private static void DisposeUI(BaseUI ui)
         {
-            Object.Destroy(ui.gameObject);
+            if (Disposer != null)
+            {
+                Disposer.DisposeUI(ui);
+            }
+            else
+            {
+                Object.Destroy(ui.gameObject);
+            }
         }
 
         public static T GetView<T>(string viewName) where T : BaseView
