@@ -27,7 +27,7 @@ namespace UniVue.Editor
 
         private string _defaultLanguage;
         private string _defaultText;
-        private long _entryId;
+        private ulong _entryId;
         private bool _existsInTable;
         private bool _hasCache;
         private int _languageIndex;
@@ -35,7 +35,7 @@ namespace UniVue.Editor
         private string _otherText;
         private LanguageTable _table;
 
-        private long _textId;
+        private ulong _textId;
         private TMP_Text _tmpText;
         private int _translatorIndex;
         private string[] _translatorNames;
@@ -144,7 +144,7 @@ namespace UniVue.Editor
             if (_existsInTable)
             {
                 SerializedProperty prop = serializedObject.FindProperty("<TextId>k__BackingField");
-                if (prop != null && prop.longValue != _entryId) ApplyTextId(_entryId);
+                if (prop != null && prop.ulongValue != _entryId) ApplyTextId(_entryId);
             }
         }
 
@@ -163,7 +163,7 @@ namespace UniVue.Editor
 
             using (new EditorGUI.DisabledScope(true))
             {
-                EditorGUILayout.LongField("Text Id", _textId);
+                EditorGUILayout.TextField("Text Id", _textId.ToString());
             }
 
             if (Application.isPlaying)
@@ -285,7 +285,7 @@ namespace UniVue.Editor
             if (translator == null || !_existsInTable) return;
             if (_table.IsWaitTranslationResult(_entryId)) return;
 
-            long id = _entryId;
+            ulong id = _entryId;
             _table.Translate(id, translator, _ =>
             {
                 LanguageTable.Save();
@@ -366,7 +366,7 @@ namespace UniVue.Editor
                 return;
             }
 
-            long newId = _table.UpdateText(_entryId, _defaultText);
+            ulong newId = _table.UpdateText(_entryId, _defaultText);
             LanguageTable.Save();
 
             _entryId = newId;
@@ -402,7 +402,7 @@ namespace UniVue.Editor
             if (!string.IsNullOrEmpty(current) && current != _table.defaultLanguage &&
                 !string.IsNullOrEmpty(_otherText)) texts[current] = _otherText;
 
-            long newId = _table.AddText(texts);
+            ulong newId = _table.AddText(texts);
             if (newId < 0)
                 return;
 
@@ -443,12 +443,12 @@ namespace UniVue.Editor
             ApplyTextId(_textId);
         }
 
-        private void ApplyTextId(long id)
+        private void ApplyTextId(ulong id)
         {
             SerializedProperty prop = serializedObject.FindProperty("<TextId>k__BackingField");
             if (prop != null)
             {
-                prop.longValue = id;
+                prop.ulongValue = id;
                 serializedObject.ApplyModifiedProperties();
             }
         }

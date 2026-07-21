@@ -183,17 +183,18 @@ namespace UniVue.Utils
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        internal static uint GenerateUniqueId(string text)
+        internal static ulong GenerateUniqueId(string text)
         {
-            const uint offsetBasis = 2166136261;
-            const uint prime = 16777619;
-            uint hash = offsetBasis;
-            foreach (byte b in text)
+            const ulong offsetBasis = 14695981039346656037UL; // 0xCBF29CE484222325
+            const ulong prime = 1099511628211UL;              // 0x100000001B3
+            ulong hash = offsetBasis;
+            foreach (char c in text)
             {
-                hash ^= b;
+                hash ^= (byte)c;
+                hash *= prime;
+                hash ^= (byte)(c >> 8);
                 hash *= prime;
             }
-
             return hash;
         }
 
@@ -203,9 +204,6 @@ namespace UniVue.Utils
 #if UNITY_ANDROID && !UNITY_EDITOR
             // Android: streamingAssetsPath 已是 jar:file://... 格式，直接用
             return full;
-#elif UNITY_IOS && !UNITY_EDITOR
-            // iOS / PC / Editor: 是本地磁盘路径，需要加 file:// 前缀
-            return "file://" + full;
 #else
             return "file://" + full;
 #endif

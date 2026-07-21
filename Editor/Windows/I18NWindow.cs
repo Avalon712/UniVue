@@ -834,7 +834,7 @@ namespace UniVue.Editor
                     string edited = EditorGUI.DelayedTextField(field, value, _cellFieldStyle);
                     if (EditorGUI.EndChangeCheck() && edited != value)
                     {
-                        long id = entry.id;
+                        ulong id = entry.id;
                         _pending = () => _table.SetText(id, edited, language);
                     }
                 }
@@ -856,7 +856,7 @@ namespace UniVue.Editor
             {
                 if (GUI.Button(editBtn, "编辑", EditorStyles.miniButton))
                 {
-                    long id = entry.id;
+                    ulong id = entry.id;
                     LanguageTextEditPopup.Open(_table, id, () =>
                     {
                         LanguageTable.Save();
@@ -875,7 +875,7 @@ namespace UniVue.Editor
             {
                 if (GUI.Button(translateBtn, waiting ? "…" : "翻译", EditorStyles.miniButton))
                 {
-                    long id = entry.id;
+                    ulong id = entry.id;
                     int translatorIndex = _translatorIndex;
                     _pending = () => TranslateRow(id, translatorIndex);
                 }
@@ -885,7 +885,7 @@ namespace UniVue.Editor
             {
                 if (GUI.Button(deleteBtn, "删除", EditorStyles.miniButton))
                 {
-                    long id = entry.id;
+                    ulong id = entry.id;
                     int defaultIndex = languageTypes.IndexOf(defaultLanguage);
                     string preview = defaultIndex >= 0 && entry.languages != null &&
                                      defaultIndex < entry.languages.Count
@@ -907,7 +907,7 @@ namespace UniVue.Editor
             DrawColumnLines(rect, CountVisibleLanguageColumns(languageTypes.Count), _lineColorSoft);
         }
 
-        private void TranslateRow(long id, int translatorIndex)
+        private void TranslateRow(ulong id, int translatorIndex)
         {
             if (translatorIndex < 0 || translatorIndex >= LanguageTable.Translators.Count)
             {
@@ -1063,7 +1063,7 @@ namespace UniVue.Editor
                 {
                     [_table.defaultLanguage] = text
                 };
-                long id = _table.AddText(texts);
+                ulong id = _table.AddText(texts);
                 if (id < 0)
                 {
                     ShowNotification(new GUIContent("该文本已存在"));
@@ -1098,7 +1098,7 @@ namespace UniVue.Editor
         private readonly Dictionary<string, string> _otherEdits = new();
         private string _defaultLanguage;
         private string _defaultText;
-        private long _id;
+        private ulong _id;
         private Action _onSaved;
         private string _originalDefaultText;
         private int _otherLangIndex;
@@ -1123,7 +1123,7 @@ namespace UniVue.Editor
             EditorGUILayout.Space(6);
             using (new EditorGUI.DisabledScope(true))
             {
-                EditorGUILayout.LongField("Text Id", _id);
+                EditorGUILayout.TextField("Text Id", _id.ToString());
             }
 
             EditorGUILayout.Space(6);
@@ -1172,7 +1172,7 @@ namespace UniVue.Editor
             EditorGUILayout.Space(8);
         }
 
-        public static void Open(LanguageTable table, long id, Action onSaved)
+        public static void Open(LanguageTable table, ulong id, Action onSaved)
         {
             if (table == null) return;
             if (table.IsWaitTranslationResult(id))
@@ -1272,7 +1272,7 @@ namespace UniVue.Editor
 
                 if (choice == 0)
                 {
-                    long newId = _table.UpdateText(_id, _defaultText);
+                    ulong newId = _table.UpdateText(_id, _defaultText);
                     if (newId < 0)
                     {
                         EditorUtility.DisplayDialog("保存失败", "更新默认文本失败（可能正在翻译中）。", "确定");
@@ -1292,7 +1292,7 @@ namespace UniVue.Editor
                 };
                 foreach (KeyValuePair<string, string> kv in _otherEdits) texts[kv.Key] = kv.Value;
 
-                long addedId = _table.AddText(texts);
+                ulong addedId = _table.AddText(texts);
                 if (addedId < 0)
                 {
                     EditorUtility.DisplayDialog("保存失败", "新加失败：语言表中可能已存在相同默认文本。", "确定");
@@ -1311,7 +1311,7 @@ namespace UniVue.Editor
             Close();
         }
 
-        private void ApplyOtherEdits(long id)
+        private void ApplyOtherEdits(ulong id)
         {
             foreach (KeyValuePair<string, string> kv in _otherEdits)
             {

@@ -8,7 +8,7 @@ namespace UniVue.I18n
 {
     public readonly struct LocalString : IEquatable<LocalString>
     {
-        public readonly long textId;
+        public readonly ulong textId;
 
         public string Text => I18N.LocalText(textId);
 
@@ -20,7 +20,7 @@ namespace UniVue.I18n
             textId = I18N.LocalTextId(text);
         }
 
-        public LocalString(long textId)
+        public LocalString(ulong textId)
         {
             this.textId = textId;
         }

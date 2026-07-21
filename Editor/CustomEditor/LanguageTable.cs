@@ -31,7 +31,7 @@ namespace UniVue.Editor
         public List<string> languageTypes;
         public List<Languages> languages;
 
-        private HashSet<long> _waitTranslationResults = new();
+        private HashSet<ulong> _waitTranslationResults = new();
 
         static LanguageTable()
         {
@@ -98,7 +98,7 @@ namespace UniVue.Editor
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool IsWaitTranslationResult(long id)
+        public bool IsWaitTranslationResult(ulong id)
         {
             return _waitTranslationResults.Contains(id);
         }
@@ -135,7 +135,7 @@ namespace UniVue.Editor
             return true;
         }
 
-        public string GetText(long id, string language)
+        public string GetText(ulong id, string language)
         {
             int index = languageTypes.IndexOf(language);
             if (index < 0) return string.Empty;
@@ -150,7 +150,7 @@ namespace UniVue.Editor
         /// <param name="id">唯一Id</param>
         /// <param name="text">文本内容</param>
         /// <param name="language">语种（不能是默认语种）</param>
-        public void SetText(long id, string text, string language)
+        public void SetText(ulong id, string text, string language)
         {
             if (language == defaultLanguage) return;
             Languages lang = languages.Find(x => x.id == id);
@@ -166,7 +166,7 @@ namespace UniVue.Editor
         /// <param name="id"></param>
         /// <param name="translator">翻译器</param>
         /// <param name="onCompleted">翻译完成时回调</param>
-        public void Translate(long id, ITextTranslator translator, Action<TranslationResults> onCompleted)
+        public void Translate(ulong id, ITextTranslator translator, Action<TranslationResults> onCompleted)
         {
             if (translator == null || IsWaitTranslationResult(id)) return;
             Languages lang = languages.Find(x => x.id == id);
@@ -205,18 +205,18 @@ namespace UniVue.Editor
         /// <param name="newDefaultText">新的默认文本</param>
         /// <param name="translator">翻译器自动翻译其他语言</param>
         /// <returns>新的id</returns>
-        public long UpdateText(long oldId, string newDefaultText, ITextTranslator translator = null)
+        public ulong UpdateText(ulong oldId, string newDefaultText, ITextTranslator translator = null)
         {
             if (IsWaitTranslationResult(oldId))
             {
                 Debug.LogWarning($"当前文本(id={oldId})正在等待翻译结果，不允许进行更新！");
-                return -1;
+                return 0;
             }
 
             int index = languages.FindIndex(x => x.id == oldId);
             if (index < 0) return oldId;
             Languages lang = languages[index];
-            long newId = CoreUtils.GenerateUniqueId(newDefaultText);
+            ulong newId = CoreUtils.GenerateUniqueId(newDefaultText);
             Languages langNew = languages.Find(x => x.id == newId);
             if (langNew != null)
             {
@@ -236,15 +236,15 @@ namespace UniVue.Editor
         /// </summary>
         /// <param name="texts">其他语言的文本（必须包含默认语言环境下的文本, key=languageType, value=该语言下的文本）</param>
         /// <returns>唯一id</returns>
-        public long AddText(Dictionary<string, string> texts)
+        public ulong AddText(Dictionary<string, string> texts)
         {
             string defaultText = texts[defaultLanguage];
-            long id = CoreUtils.GenerateUniqueId(defaultText);
+            ulong id = CoreUtils.GenerateUniqueId(defaultText);
             Languages lang = languages.Find(x => x.id == id);
             if (lang != null)
             {
                 Debug.LogError($"Language table already contains same text: {defaultText}.");
-                return -1;
+                return 0;
             }
 
             lang = new Languages();
@@ -290,7 +290,7 @@ namespace UniVue.Editor
         /// <summary>
         /// 删除一条文本
         /// </summary>
-        public bool RemoveText(long id)
+        public bool RemoveText(ulong id)
         {
             if (IsWaitTranslationResult(id))
             {
@@ -310,9 +310,9 @@ namespace UniVue.Editor
         /// 切换默认语种后必须使用新默认语种下的文本重新计算所有 id。
         /// </summary>
         /// <returns>旧 id 到新 id 的映射（可用于同步引用了这些 id 的组件）</returns>
-        public Dictionary<long, long> SetDefaultLanguage(string language)
+        public Dictionary<ulong, ulong> SetDefaultLanguage(string language)
         {
-            Dictionary<long, long> idRemap = new();
+            Dictionary<ulong, ulong> idRemap = new();
             if (HasAnyTextIsWaitTranslationResult())
             {
                 Debug.LogWarning("当前有文本正在等待翻译结果，不允许切换默认文本");
@@ -322,12 +322,12 @@ namespace UniVue.Editor
             if (!languageTypes.Contains(language) || defaultLanguage == language) return idRemap;
 
             int index = languageTypes.IndexOf(language);
-            HashSet<long> newIds = new();
+            HashSet<ulong> newIds = new();
 
             foreach (Languages lang in languages)
             {
                 string newDefaultText = index < lang.languages.Count ? lang.languages[index] : string.Empty;
-                long newId = CoreUtils.GenerateUniqueId(newDefaultText);
+                ulong newId = CoreUtils.GenerateUniqueId(newDefaultText);
 
                 if (!newIds.Add(newId))
                     Debug.LogWarning(
@@ -347,7 +347,7 @@ namespace UniVue.Editor
     [Serializable]
     public sealed class Languages : IComparable<Languages>
     {
-        public long id;
+        public ulong id;
         public List<string> languages;
 
         public int CompareTo(Languages obj)

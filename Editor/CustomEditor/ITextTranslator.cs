@@ -21,7 +21,7 @@ namespace UniVue.Editor
     {
         private readonly Dictionary<string, string> _results;
 
-        public TranslationResults(int token, long id, string defaultLanguageType, string text)
+        public TranslationResults(int token, ulong id, string defaultLanguageType, string text)
         {
             Token = token;
             Id = id;
@@ -39,7 +39,7 @@ namespace UniVue.Editor
         /// <summary>
         /// 文本id
         /// </summary>
-        public long Id { get; }
+        public ulong Id { get; }
 
         /// <summary>
         /// 默认语种

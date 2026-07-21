@@ -31,7 +31,7 @@ namespace UniVue.I18n
         public const string EVENT_LANGUAGE_CHANGED_COMPLETED = nameof(EVENT_LANGUAGE_CHANGED_COMPLETED);
 
         private static bool _initialized;
-        private static IReadOnlyDictionary<long, string> _textMap;
+        private static IReadOnlyDictionary<ulong, string> _textMap;
         private static CancellationTokenSource _cts;
 
         /// <summary>
@@ -92,8 +92,7 @@ namespace UniVue.I18n
         /// <param name="language">目标语言</param>
         /// <param name="completed">完成回调：(是否成功, 当前/目标语言)</param>
         /// <returns>是否成功应用为当前语言</returns>
-        public static async Task<bool> SwitchLanguageAsync(string language,
-            AsyncResultCallback<string> completed = null)
+        public static async Task<bool> SwitchLanguageAsync(string language, AsyncResultCallback<string> completed = null)
         {
             if (Reader == null || string.IsNullOrEmpty(language))
             {
@@ -120,7 +119,7 @@ namespace UniVue.I18n
 
             try
             {
-                Task<IReadOnlyDictionary<long, string>> readTask = Reader.ReadFileAsync(language, token);
+                Task<IReadOnlyDictionary<ulong, string>> readTask = Reader.ReadFileAsync(language, token);
                 Task<TMP_FontAsset> fontTask = FontProvider != null
                     ? FontProvider.GetFontAsync(language, token)
                     : Task.FromResult<TMP_FontAsset>(null);
@@ -134,7 +133,7 @@ namespace UniVue.I18n
                     return false;
                 }
 
-                IReadOnlyDictionary<long, string> textMap = readTask.Result;
+                IReadOnlyDictionary<ulong, string> textMap = readTask.Result;
                 if (textMap == null)
                 {
                     completed?.Invoke(false, language);
@@ -180,7 +179,7 @@ namespace UniVue.I18n
         /// <summary>
         /// 获取当前语言环境下的文本
         /// </summary>
-        public static string LocalText(long id)
+        public static string LocalText(ulong id)
         {
             if (_textMap == null)
             {
@@ -205,7 +204,7 @@ namespace UniVue.I18n
         /// <summary>
         /// 获取文本唯一Id
         /// </summary>
-        public static long LocalTextId(string text)
+        public static ulong LocalTextId(string text)
         {
             return CoreUtils.GenerateUniqueId(text);
         }

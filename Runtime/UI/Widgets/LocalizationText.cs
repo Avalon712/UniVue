@@ -15,7 +15,7 @@ namespace UniVue.UI.Widgets
     [RequireComponent(typeof(TMP_Text))]
     public sealed class LocalizationText : BaseUI
     {
-        [field: SerializeField] public long TextId { get; private set; }
+        [field: SerializeField] public ulong TextId { get; private set; }
 
         private object[] _args;
 
@@ -66,7 +66,7 @@ namespace UniVue.UI.Widgets
         /// 通过唯一文本Id设置文本
         /// </summary>
         /// <param name="id">唯一Id</param>
-        public void SetText(long id)
+        public void SetText(ulong id)
         {
             TextId = id;
             TextUI.text = I18N.LocalText(id);
@@ -77,7 +77,7 @@ namespace UniVue.UI.Widgets
         /// </summary>
         /// <param name="id">唯一Id</param>
         /// <param name="args">填充占位符的参数</param>
-        public void SetText(long id, params object[] args)
+        public void SetText(ulong id, params object[] args)
         {
             TextId = id;
             _args = args;

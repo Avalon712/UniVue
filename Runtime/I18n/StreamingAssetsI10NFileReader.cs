@@ -21,7 +21,7 @@ namespace UniVue.I18n
         private const string FileExtensionName = "bytes";
         private readonly string _relativeDirectory;
         private string _cachedLanguageType;
-        private Dictionary<long, string> _cachedTexts;
+        private Dictionary<ulong, string> _cachedTexts;
         private bool _disposed;
 
         public StreamingAssetsI10NFileReader()
@@ -34,25 +34,25 @@ namespace UniVue.I18n
             _relativeDirectory = relativeDirectory;
         }
 
-        public Task<IReadOnlyDictionary<long, string>> ReadFileAsync(string languageType,
+        public Task<IReadOnlyDictionary<ulong, string>> ReadFileAsync(string languageType,
             CancellationToken token = default)
         {
             if (_disposed)
             {
                 LogUtil.Error("StreamingAssetsI10NFileReader is disposed!");
-                return Task.FromResult<IReadOnlyDictionary<long, string>>(null);
+                return Task.FromResult<IReadOnlyDictionary<ulong, string>>(null);
             }
 
-            if (string.IsNullOrEmpty(languageType)) return Task.FromResult<IReadOnlyDictionary<long, string>>(null);
+            if (string.IsNullOrEmpty(languageType)) return Task.FromResult<IReadOnlyDictionary<ulong, string>>(null);
 
             if (_cachedLanguageType == languageType && _cachedTexts != null)
-                return Task.FromResult<IReadOnlyDictionary<long, string>>(_cachedTexts);
+                return Task.FromResult<IReadOnlyDictionary<ulong, string>>(_cachedTexts);
 
-            if (token.IsCancellationRequested) return Task.FromCanceled<IReadOnlyDictionary<long, string>>(token);
+            if (token.IsCancellationRequested) return Task.FromCanceled<IReadOnlyDictionary<ulong, string>>(token);
 
             UnityWebRequest req = UnityWebRequest.Get(GetURL(languageType));
             UnityWebRequestAsyncOperation operation = req.SendWebRequest();
-            TaskCompletionSource<IReadOnlyDictionary<long, string>> tcs = new();
+            TaskCompletionSource<IReadOnlyDictionary<ulong, string>> tcs = new();
 
             CancellationTokenRegistration ctr = default;
             if (token.CanBeCanceled)
@@ -83,8 +83,8 @@ namespace UniVue.I18n
 
                     using BinaryReader reader = new(new MemoryStream(req.downloadHandler.data));
                     int totalCount = reader.ReadInt32();
-                    Dictionary<long, string> texts = new(totalCount);
-                    for (int i = 0; i < totalCount; i++) texts.Add(reader.ReadInt64(), reader.ReadString());
+                    Dictionary<ulong, string> texts = new(totalCount);
+                    for (int i = 0; i < totalCount; i++) texts.Add(reader.ReadUInt64(), reader.ReadString());
 
                     _cachedTexts = texts;
                     _cachedLanguageType = languageType;
