@@ -1,12 +1,10 @@
 ﻿#region
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UniVue.Common;
 using UniVue.Internal;
-using VC;
 
 #endregion
 
@@ -19,19 +17,23 @@ namespace UniVue.Timer
         private static readonly Heap<float> _timerHeap = new(HeapType.MinHeap, 64);
         private static float _waitTime;
         private static bool _initialized;
+        private static GameObject _driverGo;
 
-        private static IEnumerator Tick()
+        private sealed class Driver : MonoBehaviour
         {
-            while (true)
+            private void Update()
             {
-                if (_timerTasks.Count > 0)
-                {
-                    _waitTime += Time.deltaTime;
-                    if (_waitTime >= _timerHeap.Peek())
-                        UpdateWaitTime();
-                }
-
-                yield return null;
+                Tick();
+            }
+        }
+        
+        private static void Tick()
+        {
+            if (_timerTasks.Count > 0)
+            {
+                _waitTime += Time.deltaTime;
+                if (_waitTime >= _timerHeap.Peek())
+                    UpdateWaitTime();
             }
         }
 
@@ -71,7 +73,9 @@ namespace UniVue.Timer
         {
             if (!_initialized)
             {
-                VCoroutine.Run(Tick());
+                _driverGo = new GameObject();
+                _driverGo.hideFlags = HideFlags.HideAndDontSave;
+                _driverGo.AddComponent<Driver>();
                 _initialized = true;
             }
 

@@ -1,15 +1,14 @@
 ﻿#region
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine;
 using UniVue.Common;
 using UniVue.Event;
 using UniVue.Internal;
 using UniVue.Model;
 using UniVue.Utils;
-using VC;
 
 #endregion
 
@@ -17,19 +16,32 @@ namespace UniVue.UI
 {
     public sealed class RGraphs
     {
-        private static readonly CoroutineYieldHandleContext _renderCtx =
-            new(new List<YieldHandler>(1) { new InternalYieldWaitSecondsTime() });
-
         /// <summary>
         /// key = RGraph.g  value = 1-禁用 2-禁用并且禁用期间有更新
         /// </summary>
         private readonly Dictionary<RNode, int> _disableGraphs = new();
 
         private readonly HashSet<RNode> _renderQueue = new(16);
-        private CoroutineID _coroutineId;
 
+        private float _renderTimer;
+        private GameObject _driverGo;
+        
+        private sealed class Driver : MonoBehaviour
+        {
+            public RGraphs graphs;
+
+            private void Update()
+            {
+                graphs.Render(Time.deltaTime);
+            }
+        }
+        
         public RGraphs()
         {
+            _driverGo = new GameObject();
+            _driverGo.hideFlags = HideFlags.HideAndDontSave;
+            _driverGo.AddComponent<Driver>().graphs = this;
+            
             Entry = RGraph.Create();
             EventMgr.OnEvent += OnTriggerEvent;
         }
@@ -56,35 +68,35 @@ namespace UniVue.UI
             RNode.ForceDispose(Entry.g);
             Entry = default;
             EventMgr.OnEvent -= OnTriggerEvent;
-            VCoroutine.Kill(_coroutineId);
-            _coroutineId = 0;
             _renderQueue.Clear();
+            UnityEngine.Object.Destroy(_driverGo);
+            _driverGo = null;
         }
 
-        private IEnumerator Render()
+        private void Render(float deltaTime)
         {
-            while (true)
+            _renderTimer += deltaTime;
+            if (_renderTimer < RenderInternal) return;
+            _renderTimer -= RenderInternal;
+            if (_renderQueue.Count == 0) return;
+            
+
+            using InternalTempCollection<HashSet<RNode>, RNode> queue = new(_renderQueue);
+            _renderQueue.Clear();
+
+            foreach (RNode rNode in queue)
             {
-                yield return RenderInternal;
-                if (_renderQueue.Count == 0) continue;
-
-                using InternalTempCollection<HashSet<RNode>, RNode> queue = new(_renderQueue);
-                _renderQueue.Clear();
-
-                foreach (RNode rNode in queue)
-                {
-                    Action renderFn = rNode.Key.As<Action>();
-                    if (rNode.Reachable && renderFn != null) renderFn.Invoke();
-                }
-
-                //清空那些已经被释放的RGraph
-                queue.Collection.Clear();
-                foreach (RNode g in _disableGraphs.Keys)
-                    if (!g.Reachable)
-                        queue.Collection.Add(g);
-
-                foreach (RNode g in queue) _disableGraphs.Remove(g);
+                Action renderFn = rNode.Key.As<Action>();
+                if (rNode.Reachable && renderFn != null) renderFn.Invoke();
             }
+
+            //清空那些已经被释放的RGraph
+            queue.Collection.Clear();
+            foreach (RNode g in _disableGraphs.Keys)
+                if (!g.Reachable)
+                    queue.Collection.Add(g);
+
+            foreach (RNode g in queue) _disableGraphs.Remove(g);
         }
 
         private void OnTriggerEvent(EventKey eventKey)
@@ -109,8 +121,6 @@ namespace UniVue.UI
 
                     return node.Key.type == RKeyType.Event || node.Key.type == RKeyType.Graph;
                 });
-
-            if (_coroutineId == 0) _coroutineId = VCoroutine.Run(Render(), _renderCtx);
         }
 
         private void OnNotifyPropertyChanged(IModel model, string propertyName, object _)
@@ -147,8 +157,6 @@ namespace UniVue.UI
 
                     return node.Key.type == RKeyType.Model || node.Key.type == RKeyType.Graph;
                 });
-
-            if (_coroutineId == 0) _coroutineId = VCoroutine.Run(Render(), _renderCtx);
         }
 
         internal void SetEnable(in RGraph graph, bool enable)

@@ -7,7 +7,6 @@ using UnityEngine;
 using UniVue.Common;
 using UniVue.Internal;
 using UniVue.Utils;
-using VC;
 
 #endregion
 
@@ -33,11 +32,6 @@ namespace UniVue.UI
         /// key=根节点的Key，所有红点树的根节点
         /// </summary>
         private readonly Dictionary<ulong, RedPointNode> _trees = new();
-
-        public RedPointMgr()
-        {
-            VCoroutine.Run(UpdateRedPointSystem());
-        }
 
         public RedPointMgr(Type redPointKeyType)
         {
@@ -86,20 +80,14 @@ namespace UniVue.UI
                     node.rule = GetRule(key);
             }
 
-            VCoroutine.Run(UpdateRedPointSystem());
         }
 
-        private IEnumerator UpdateRedPointSystem()
+        public void UpdateRedPointSystem()
         {
-            WaitForEndOfFrame endOfFrame = new();
-            while (true)
-            {
-                yield return endOfFrame;
-                using InternalTempCollection<HashSet<ulong>, ulong> copyDirtyTree = new(_dirtyTrees);
-                foreach (ulong dirtyTree in copyDirtyTree)
-                    if (_dirtyTrees.Remove(dirtyTree) && _trees.TryGetValue(dirtyTree, out RedPointNode root))
-                        UpdateRedPointTree(root);
-            }
+            using InternalTempCollection<HashSet<ulong>, ulong> copyDirtyTree = new(_dirtyTrees);
+            foreach (ulong dirtyTree in copyDirtyTree)
+                if (_dirtyTrees.Remove(dirtyTree) && _trees.TryGetValue(dirtyTree, out RedPointNode root))
+                    UpdateRedPointTree(root);
         }
 
         private void UpdateRedPointTree(RedPointNode node)
