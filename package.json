@@ -13,7 +13,6 @@
   "email": "2947897147@qq.com"
 },
   "dependencies": {
-    "com.unity.nuget.mono-cecil": "1.10.1",
-    "org.avalon712.vcoroutine": "1.0.1"
+    "com.unity.nuget.mono-cecil": "1.10.1"
   }
 }

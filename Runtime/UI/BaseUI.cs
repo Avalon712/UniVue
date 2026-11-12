@@ -1,7 +1,6 @@
 ﻿#region
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -11,7 +10,6 @@ using UniVue.Internal;
 using UniVue.Model;
 using UniVue.Timer;
 using UniVue.Utils;
-using VC;
 
 #endregion
 
@@ -21,7 +19,6 @@ namespace UniVue.UI
     public abstract class BaseUI : UIModel
     {
         private List<BaseUI> _children;
-        private List<ulong> _coroutines;
 
         //保证OnCreate一定最先被执行
         private bool _creationInvoked;
@@ -199,11 +196,9 @@ namespace UniVue.UI
         {
             OnDispose();
             UIMgr.Renderer.Remove(ref _graph);
-            KillAllCoroutines();
             KillAllTimers();
             EventMgr.Off(this);
             _children?.Clear();
-            InternalObjectPool<List<ulong>>.Shared.Return(ref _coroutines);
             InternalObjectPool<List<ulong>>.Shared.Return(ref _timers);
             InternalObjectPool<List<BaseUI>>.Shared.Return(ref _children);
             Disposed = true;
@@ -563,64 +558,7 @@ namespace UniVue.UI
             _timers.Add(timerId);
             return timerId;
         }
-
-        /// <summary>
-        /// 开启协程（注意不是Unity的协程）
-        /// </summary>
-        protected CoroutineID RunCoroutine(IEnumerator routine)
-        {
-            CheckDisposed();
-            TryAllocateCollections(ref _coroutines);
-            CoroutineID coroutineID = VCoroutine.Run(routine);
-            _coroutines.Add(coroutineID.id);
-            return coroutineID;
-        }
-
-        /// <summary>
-        /// 暂停协程运行（注意不会销毁协程，协程内的状态会被保留）（注意不是Unity的协程）
-        /// </summary>
-        protected void StopCoroutine(in CoroutineID coroutineId)
-        {
-            CheckDisposed();
-            VCoroutine.Stop(coroutineId);
-        }
-
-        /// <summary>
-        /// 恢复协程运行（注意不是Unity的协程）
-        /// </summary>
-        protected void ResumeCoroutine(in CoroutineID coroutineId)
-        {
-            CheckDisposed();
-            VCoroutine.Resume(coroutineId);
-        }
-
-        /// <summary>
-        /// 销毁协程（注意不是Unity的协程）
-        /// </summary>
-        protected void KillCoroutine(in CoroutineID coroutineId)
-        {
-            CheckDisposed();
-            VCoroutine.Kill(coroutineId);
-        }
-
-        /// <summary>
-        /// 如果协程访问了当前界面的UI资源，防止界面被销毁后协程继续访问UI资源导致异常，可以通过ManageCoroutine将协程交由当前界面管理，在界面销毁时会自动销毁所有被管理的协程（注意不是Unity的协程）
-        /// </summary>
-        /// <param name="coroutineId">协程id</param>
-        protected void ManageCoroutine(in CoroutineID coroutineId)
-        {
-            CheckDisposed();
-            TryAllocateCollections(ref _coroutines);
-            if (!_coroutines.Contains(coroutineId.id)) _coroutines.Add(coroutineId.id);
-        }
-
-        private void KillAllCoroutines()
-        {
-            if (_coroutines == null) return;
-            CheckDisposed();
-            foreach (ulong coroutine in _coroutines) VCoroutine.Kill(coroutine);
-            _coroutines.Clear();
-        }
+        
 
         private void KillAllTimers()
         {
